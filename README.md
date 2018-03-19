@@ -2,8 +2,8 @@
 AI final project
 
 Append your ideas (with your name, perferably) to this read me file, don't edit anyone else's ideas!  Also, seperate your thoughts like I did with my name below, to allow for easy readability.
-
-Nick------------------------------------------------------------------------------------------------------------------------------------
+| Name | Comments |
+| Nick | 
 
 The main premise of this game is that the player needs to find keys (thinking 3-5) in a maze to unlock the door at the end.  There exists a monster (or multiple monsters) that will chase and kill the player on sight.  The player will want to hide from them whenever he feels threatened.
   
@@ -29,4 +29,4 @@ Optional Ideas:
 
 4) Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
 
-5) Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.  My friend suggested adding an item that "pings where the monster is."
+5) Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.  My friend suggested adding an item that "pings where the monster is." | 
