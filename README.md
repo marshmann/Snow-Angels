@@ -29,4 +29,4 @@ Optional Ideas:
 
 4) Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
 
-5) Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.
+5) Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.  My friend suggested adding an item that "pings where the monster is."
