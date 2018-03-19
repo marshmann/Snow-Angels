@@ -17,12 +17,7 @@ The monster AI should work as follows:
    If a monster sees the player, that is if the player is on a tile in the direction the monster is currently facing (and as long as there isn't a piece of terrain blocking view), it'll lock on and go toward the player.  After losing sight of the player, it should go to the last known tile of the player.  Perhaps it stays on the tile for a single turn (where a turn = one time advancement ie player movement), then slowly advances around as if sniffing out the player (so it'll move 1 tile per time increment for a short period of time).
      
 Optional Ideas:
-    Add an AI for the player who will play through the board and show the path it would take to win.  In order to do this, we will likely need to run iterative deepening A* and find the best path through a preset maze BEFORE our in-class presentation.  It wouldn't be a very entertaining watch to see it try, and fail, to beat the game.
-    
-    Add treasure in the maze that'll contribute to a score!  The reason against adding such an obvious feature would be that it makes the above idea harder to execute.  Do we prioritize earnings, time, or survival?
-    
-    Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
-    
-    Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
-    
-I believe I got all the thing's we talked about, though I might have missed some minor details.
+    1) Add an AI for the player who will play through the board and show the path it would take to win.  In order to do this, we will likely need to run iterative deepening A* and find the best path through a preset maze BEFORE our in-class presentation.  It wouldn't be a very entertaining watch to see it try, and fail, to beat the game.
+    2) Add treasure in the maze that'll contribute to a score!  The reason against adding such an obvious feature would be that it makes the above idea harder to execute.  Do we prioritize earnings, time, or survival?
+    3) Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
+    4) Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
