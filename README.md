@@ -3,6 +3,8 @@ AI final project
 
 Append your ideas (with your name, perferably) to this read me file, don't edit anyone else's ideas!  Also, seperate your thoughts like I did with my name below, to allow for easy readability.
 
+Format: <name> | <Comment>
+
 | Name | Comments |
 | --- | --- |
 Nick | The main premise of this game is that the player needs to find keys (thinking 3-5) in a maze to unlock the door at the end.  There exists a monster (or multiple monsters) that will chase and kill the player on sight.  The player will want to hide from them whenever he feels threatened.
