@@ -16,6 +16,8 @@ It will decide on how to move as it explores the board.  It wants to find the pl
 When a trap is triggered, the monster will run (advancing two times the normal speed, so four tiles whenever time advances) toward the location the trap was triggered.
    
 If a monster sees the player, that is if the player is on a tile in the direction the monster is currently facing (and as long as there isn't a piece of terrain blocking view), it'll lock on and go toward the player.  After losing sight of the player, it should go to the last known tile of the player.  Perhaps it stays on the tile for a single turn (where a turn = one time advancement ie player movement), then slowly advances around as if sniffing out the player (so it'll move 1 tile per time increment for a short period of time).
+
+Finally, there should be a "darkness feature" where the player can only see a few tiles ahead of him.  The monster wouldn't be affected. 
    
 Optional Ideas:
 
@@ -26,3 +28,5 @@ Optional Ideas:
 3) Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
 
 4) Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
+
+5) Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.
