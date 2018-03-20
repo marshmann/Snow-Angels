@@ -5,6 +5,11 @@ Append your ideas (with your name, perferably) to this read me file, don't edit 
 
 Format: Name | Comment
 
+| Mechanic | Mechanic Action |
+| --- | --- |
+Turns | Default: Monster gets two moves per every player move
+---- | Trap triggered: Monster gets four moves per every player move for a short time
+
 | Name | Core Gameplay |
 | --- | --- |
 Nick | The main premise of this game is that the player needs to find keys (thinking 3-5) in a maze to unlock the door at the end.  There exists a monster (or multiple monsters) that will chase and kill the player on sight.  The player will want to hide from them whenever he feels threatened.
