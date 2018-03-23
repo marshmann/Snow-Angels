@@ -3,7 +3,7 @@ AI final project
 
 Append your ideas (with your name, preferably) to this read me file, don't edit anyone else's ideas!  Also, separate your thoughts like I did with my name below, to allow for easy readability.
 
-#####Format: Name | Comment
+##### Format: Name | Comment
 
 If you have any questions or want to frame an idea with a question, post it below.
 If a question is answered or you come up with an idea based off of one, feel free to strike it out.
