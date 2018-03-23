@@ -1,9 +1,15 @@
 # MonsterGame
 AI final project
 
-Append your ideas (with your name, perferably) to this read me file, don't edit anyone else's ideas!  Also, seperate your thoughts like I did with my name below, to allow for easy readability.
+Append your ideas (with your name, preferably) to this read me file, don't edit anyone else's ideas!  Also, separate your thoughts like I did with my name below, to allow for easy readability.
 
-Format: Name | Comment
+#####Format: Name | Comment
+
+If you have any questions or want to frame an idea with a question, post it below.
+If a question is answered or you come up with an idea based off of one, feel free to strike it out.
+
+| Name | Question |
+| --- | --- |
 
 | Mechanic | Mechanic Action |
 | --- | --- |
@@ -19,7 +25,7 @@ Nick | The main premise of this game is that the player needs to find keys (thin
 | --- | --- |
 Nick | It will decide on how to move as it explores the board.  It wants to find the player, so it tries to go to places it hasn't been before or to places it hasn't been recently (so the monsters will eventually go back to older tiles).
 ----| When a trap is triggered, the monster will run (advancing two times the normal speed, so four tiles whenever time advances) toward the location the trap was triggered.
-----| If a monster sees the player, that is if the player is on a tile in the direction the monster is currently facing (and as long as there isn't a piece of terrain blocking view), it'll lock on and go toward the player.  After losing sight of the player, it should go to the last known tile of the player.  Perhaps it stays on the tile for a single turn (where a turn = one time advancement ie player movement), then slowly advances around as if sniffing out the player (so it'll move 1 tile per time increment for a short period of time). 
+----| If a monster sees the player, that is if the player is on a tile in the direction the monster is currently facing (and as long as there isn't a piece of terrain blocking view), it'll lock on and go toward the player.  After losing sight of the player, it should go to the last known tile of the player.  Perhaps it stays on the tile for a single turn (where a turn = one time advancement i.e. player movement), then slowly advances around as if sniffing out the player (so it'll move 1 tile per time increment for a short period of time).
 
 | Name | Features |
 | --- | --- |
