@@ -43,3 +43,4 @@ Nick | Add an AI for the player who will play through the board and show the pat
 | --- | --- |
 Dave | [Making an RPG in C#](https://www.reddit.com/r/gamedev/comments/7uq8gb/i_wanted_to_make_a_rpg_and_learn_c_i_found_this/)
 ---- | [Escape The Trolls game in various languages](https://www.reddit.com/r/dailyprogrammer/comments/4vrb8n/weekly_25_escape_the_trolls/)
+---- | [Neural Networks (3blue1brown)](https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi)
