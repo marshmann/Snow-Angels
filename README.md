@@ -5,12 +5,6 @@ Append your ideas (with your name, preferably) to this read me file, don't edit 
 
 #### Format: Name | Comment
 
-If you have any questions or want to frame an idea with a question, post it below.
-If a question is answered or you come up with an idea based off of one, feel free to strike it out.
-
-| Name | Question |
-| --- | --- |
-
 | Mechanic | Mechanic Action |
 | --- | --- |
 Turns | Default: Monster gets two moves per every player move
@@ -38,6 +32,12 @@ Nick | Add an AI for the player who will play through the board and show the pat
 ----| Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
 ----| Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
 ----| Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.  My friend suggested adding an item that "pings where the monster is."
+
+If you have any questions or want to frame an idea with a question, post it below.
+If a question is answered or you come up with an idea based off of one, feel free to strike it out.
+
+| Name | Question |
+| --- | --- |
 
 | Name | Inspirations |
 | --- | --- |

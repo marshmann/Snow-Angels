@@ -1,0 +1,41 @@
+*** Thoughts on Game Organization ***
+The game will involve a 2d, top-down maze with the player as the focal point.  The player will navigate the maze by moving up, down, left, right, evading the enemy and setting off traps.
+
+AI:
+    - enemy has alertness levels
+        - starts at 0
+        - first time they see enemy in an area, alert increases to 1
+
+
+Classes:
+    Board
+        - 2D array of tiles
+
+    Trap
+        - type property (good, bad, etc.)
+
+    Tile
+        - type (wall, floor, smoke, cracked wall)
+        - boolean hasKey
+        - Trap object (property will tell what kind of trap)
+            - is set to null if no trap
+
+Functions:
+    Initialize()
+        - find "corners" (a floor tile with two wall or cracked wall tiles bordering it)
+            - add all corners to a list
+            - randomly pick 3-5 of these tiles
+            - change key property to true for those tiles
+        - loop over floor tiles and have a low probability of assigning a trap object to each floor tile
+            - trap object will have property for which type of Trap it is
+
+    setPlayerSpawn()
+        - set in some "spawn box" that connects to the rest of the map
+
+
+    setEnemySpawn()
+        - randomly spawn; has to be minimum distance from player
+
+
+
+    play()
