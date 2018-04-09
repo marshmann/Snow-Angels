@@ -8,6 +8,9 @@ using System.Threading.Tasks;
  * For the subclasses...
  *      What I'd like to be able to do is have, in Floor: a Trap object, and a method to set it to contain a trap (SetTrap).
  *      Then, when given a Tile object, call the SetTrap method on it...  is this possible, without defining a method SetTrap in the Tile object?
+ *      
+ * I would also like to have a general method in Trap called GetProb(), which returns the "chance" variable for a sub-class
+ * The issue is that this variable should also be static, as it is different depending on which type of trap is being examined.
  * */
 
 namespace MonsterGame1
@@ -21,13 +24,19 @@ namespace MonsterGame1
             Console.WriteLine(gameBoard.GetBoard().GetLength(0));
             Console.WriteLine(gameBoard.GetBoard().GetType());
 
-            Tile[,] b = new Tile[,] { {new Wall(), new Wall(), new Wall() },
-                                      {new Wall(), new Floor(), new Wall() },
-                                      {new Wall(), new Wall(), new CrackedWall() } };
-            Board gb = new Board(b, 1);
-            gb.Initialize();
-            Console.WriteLine("\n");
+            Tile[,] b = new Tile[,] { {new Wall(), new Wall(), new Wall(), new Wall(), new Wall(), new Wall()},
+                                      {new Wall(), new Floor(), new Wall(), new CrackedWall(), new Wall(), new CrackedWall() },
+                                      {new Wall(), new Floor(), new Floor(), new Floor(), new Floor(), new Wall() },
+                                      {new Wall(), new SmokeFloor(), new Floor(), new Wall(), new Floor(), new Wall() },
+                                      {new Wall(), new Wall(), new CrackedWall(), new Wall(), new Wall(), new Wall() } };
+            Board gb = new Board(b, 2);
             Console.WriteLine(gb.ToString());
+            gb.Init();
+            Console.WriteLine(gb.ToString());
+
+            //Console.WriteLine(BadTrap.GetProb());
+            //Console.WriteLine(GoodTrap.GetProb());
+            //Console.WriteLine(Trap.GetProb());
         }
     }
 
@@ -59,8 +68,7 @@ namespace MonsterGame1
         private static int defaultNumKeys = 3;
         private static int defaultHeight = 20;
         private static int defaultWidth = 20;
-        private static BadTrap badTrap = new BadTrap();
-        private static GoodTrap goodTrap = new GoodTrap();
+        private static Random rand = new Random();
 
         // Properties:
         private Tile[,] board;
@@ -75,8 +83,8 @@ namespace MonsterGame1
             this.numKeys = numKeys;
             board = new Tile[height, width];
         }
-        
-        // With default values:
+// *Note*: Should really make Tile abstract and not even bother having these constructors; afaik we will only be using the last one (the one that takes a 2D array of Tile objects (which will be Floor, Wall, etc.) and assigns them to the Board's 2D array.        
+        // With default values
         public Board(int height, int width) 
             : this(height, width, defaultNumKeys) { }
         public Board() 
@@ -104,7 +112,7 @@ namespace MonsterGame1
         /* Performs various tasks to set the maze up and prepare it for play
          * 1. Assigns keys to tiles
          * 2. Assigns traps to tiles */
-        public void Initialize()
+        public void Init()
         {
             // Iterate through each tile and store "corners" to a list; in addition, add traps to tiles:
             List<Tile> cornerTiles = new List<Tile>();
@@ -114,17 +122,22 @@ namespace MonsterGame1
                 {
                     // Test if tile is a corner:
                     if (IsCorner(row, col))
+                    {
+                        //Console.WriteLine(board[row, col].ToString() + " is corner?");
                         cornerTiles.Add(board[row, col]);
+                    }
 
                     // Assign trap tiles:
                     if (board[row, col].GetName() == "floor")
                     {
+                        //Console.WriteLine("attempt:[" + row + "," + col + "]");
                         AttemptTrap(row, col);
                     }
                     
                 }
             }
-            Console.WriteLine("ct: " + cornerTiles.Count);
+            //Console.WriteLine("ct: " + cornerTiles.Count);
+
             // Randomly assign keys to [numKeys] corner tiles (if there are fewer corner tiles than keys, change # of keys)
             // For each key, look randomly through the corner tiles until one without a key is found.
             // If none without keys exist, the loop will exit and none will be added (though this shouldn't happen,
@@ -145,44 +158,46 @@ namespace MonsterGame1
                 }
             }
         }
-
         // Attempt to add a random trap to a tile.
         // Takes random # b/w 1 and 100 (incl) and sets a trap if the # falls within range of the trap's chance to occur:
         public void AttemptTrap(int row, int col)
         {
-            Random rand = new Random();
-            if (rand.Next(100) + 1 <= badTrap.GetProb())
-                board[row, col].SetTrap(new BadTrap());
-            else if (rand.Next(100) + 1 <= goodTrap.GetProb())
-                board[row, col].SetTrap(new GoodTrap());
+            int chanceToTrap = rand.Next(100);
+            if (chanceToTrap < 50)
+            {
+                int num = rand.Next(100);
+                if (num >= 0 && num < 50)
+                    board[row, col].SetTrap(new BadTrap());
+                else if (num >= 50 && num < 75)
+                    board[row, col].SetTrap(new GoodTrap());
+                else board[row, col].SetTrap(new NeutralTrap());
+            }
         }
 
         // Test if a tile has two bordering wall tiles (the adjacent wall tiles must be diagonal from each other;
         // (a hallway is not a corner)
         public Boolean IsCorner(int row, int col)
         {
-            Console.WriteLine("r: " + row + " col: " + col);
-            if (IsAtEdge(row, col))
+            //Console.WriteLine("r: " + row + " col: " + col);
+            if (IsAtEdge(row, col) || !(board[row, col].IsPassable()))
                 return false;
-            int count = 0;
-            Console.WriteLine("(Not Edge) r: " + row + " col: " + col);
+            // Console.WriteLine("(Not Edge) r: " + row + " col: " + col);
             // For each neighboring tile, check two tiles that would constitute corner:
             // i.e.: N + E, E + S, S + W, W + N; both must be wall to consider tile a corner tile
             if (!board[row - 1, col].IsPassable() &&   // N + E
                  !board[row, col + 1].IsPassable())
-                count++;
+                return true;
             if (!board[row, col + 1].IsPassable() &&   // E + S
                  !board[row + 1, col].IsPassable())
-                count++;
+                return true;
             if (!board[row + 1, col].IsPassable() &&   // S + W
                  !board[row, col - 1].IsPassable())
-                count++;
+                return true;
             if (!board[row, col - 1].IsPassable() &&   // W + N
                  !board[row - 1, col].IsPassable())
-                count++;
-            Console.WriteLine("count: " + count);
-            if (count >= 2) return true;
-            else return false;
+                return true;
+            // If this point is reached, no corners were found.
+            return false;
         }
 
         public Boolean IsAtEdge(int row, int col)
@@ -240,7 +255,7 @@ namespace MonsterGame1
         public String GetName() { return name; }
 
         public void GiveKey() { hasKey = true; img = "k"; }
-        public void SetTrap(Trap trap) { this.trap = trap; }
+        public void SetTrap(Trap trap) { this.trap = trap; img = trap.GetSymbol(); }
 
         /*
         public Tile CopyTile()
@@ -267,12 +282,12 @@ namespace MonsterGame1
 
     public class Wall : Tile
     {
-        public Wall() : base("wall", "D", new Effect(), false) { }
+        public Wall() : base("wall", "X", new Effect(), false) { }
     }
 
     public class CrackedWall : Tile
     {
-        public CrackedWall() : base("cracked-wall", "B", new Effect(), false) { }
+        public CrackedWall() : base("cracked-wall", "C", new Effect(), false) { }
     }
 
 
@@ -280,32 +295,39 @@ namespace MonsterGame1
     public class Trap
     {
         private String name;
+        private String symbol;
         private Effect effect;
-        private int chance;
 
-        public Trap(String name, Effect effect, int chance)
+        public Trap(String name, String symbol, Effect effect)
         {
             this.name = name;
+            this.symbol = symbol;
             this.effect = effect;
-            this.chance = chance;
         }
 
         public String GetName() { return name; }
-        public int GetProb() { return chance; }
-
+        public String GetSymbol() { return symbol; }
     }
 
     // Trap types:
     public class BadTrap : Trap
     {
-        public BadTrap () : base("bad", new Effect(), 3) { }
+        //private static int chance = 50;
+        public BadTrap () : base("bad", "b", new Effect()) { }
+        //public static int GetProb() { return chance; }
     }
 
     public class GoodTrap : Trap
     {
-        public GoodTrap () : base("good", new Effect(), 1) { }
+        //private static int chance = 50;
+        public GoodTrap () : base("good", "g", new Effect()) { }
+        //public static int GetProb() { return chance; }
     }
 
+    public class NeutralTrap : Trap
+    {
+        public NeutralTrap () : base("neutral", "n", new Effect()) { }
+    }
 
     // Effect
     public class Effect

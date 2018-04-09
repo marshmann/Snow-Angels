@@ -4,6 +4,7 @@ Board
 Trap (just generic examples atm)
     BadTrap
     GoodTrap
+    NeutralTrap
 Tile
     Floor
     SmokeFloor
@@ -14,8 +15,10 @@ Constants (optional atm, could make organization easier by keeping all the value
 
 ### Brief Description
 - Just as a note: I have not tested this stuff beyond what's in Main; there is still possibility of bugs in logic.
-### ***Still need to code:***
-    - setting the player and enemy spawns
+- **The 2D array produced by procedural generation should be comprised of the subclasses (Floor, Wall) which represent what the Tile type is.**
+
+### **Still need to code:**
+- setting the player and enemy spawns
 
 The general idea is that a 2D array of Tiles is passed to the board, and the board prepares it for play.
 
