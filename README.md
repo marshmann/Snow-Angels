@@ -27,7 +27,7 @@ Nick | There should be a "darkness feature" where the player can only see a few 
 
 | Name | Optional Ideas |
 | --- | --- |
-Nick | Add an AI for the player who will play through the board and show the path it would take to win.  In order to do this, we will likely need to run iterative deepening A* and find the best path through a preset maze BEFORE our in-class presentation.  It wouldn't be a very entertaining watch to see it try, and fail, to beat the game.
+Nick | Add an AI for the player who will play through the board and show the path it would take to win.  In order to do this, we will likely need to run iterative deepening A* and find the best path through a preset maze BEFORE our in-class presentation.  It wouldn't be a very entertaining watch to see it try, and fail, to beat the game.  HOWEVER: with random boards, we can't do it this way.  We probably NEED to do this, to add more AI elements to this game.
 ----| Add treasure in the maze that'll contribute to a score! The reason against adding such an obvious feature would be that it makes the above idea harder to execute.  Do we prioritize earnings, time, or survival?
 ----| Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
 ----| Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
