@@ -1,0 +1,36 @@
+Initialize engine version: 5.6.2f1 (a2913c821e27)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 670MX (ID=0x11a1)
+    Vendor:   NVIDIA
+    VRAM:     2992 MB
+    Driver:   22.21.13.8541
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+- Completed reload, in  0.050 seconds
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Nicholas\Documents\roguelike2d\RogueLike_Data\Managed\System.dll (this message is harmless)
+OnLevelWasLoaded was found on GameManager
+This message has been deprecated and will be removed in a later version of Unity.
+Add a delegate to SceneManager.sceneLoaded instead to get notifications after scene loading has completed
+ 
+(Filename:  Line: 376)
+
+desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 2.658600 ms
+Setting up 4 worker threads for Enlighten.
+  Thread -> id: 2b30 -> priority: 1 
+  Thread -> id: 1fdc -> priority: 1 
+  Thread -> id: 1614 -> priority: 1 
+  Thread -> id: 2b40 -> priority: 1 
