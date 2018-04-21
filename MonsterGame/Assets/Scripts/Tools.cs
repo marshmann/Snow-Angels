@@ -1,6 +1,6 @@
-﻿public class Tools {
-
-    //Shuffles arrays of any type
+﻿//Class provided by http://tutorials.daspete.at/unity3d/maze-runner
+//It simply shuffles an array of any type
+public class Tools {
     public static T[] Shuffle<T>(T[] arr, System.Random random) {
         for (int i = 0; i < arr.Length - 1; i++) {
             int randomIndex = random.Next(i, arr.Length);

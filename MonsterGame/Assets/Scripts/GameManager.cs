@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour {
     public static GameManager instance = null;
     public BoardManager boardScript;
-    public int playerFoodPoints = 100; //how much food the player defaultly has
+    public int playerLifeTotal = 3; //how much food the player defaultly has
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns

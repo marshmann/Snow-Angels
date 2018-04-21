@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿//Code is the same as the unity 2d roguelike tutorial, since audio is just a bonus.
+using UnityEngine;
 
 public class SoundManager : MonoBehaviour {
     public AudioSource efxSource; //sound effects

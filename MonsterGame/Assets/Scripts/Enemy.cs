@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+//In addition: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
+using UnityEngine;
 
 public class Enemy : MovingObject {
     public int playerDamage; //Amount of food damage the player loses when hit by this enemy
@@ -55,6 +57,6 @@ public class Enemy : MovingObject {
         Player hitPlayer = component as Player; //cast the component to be player
         animator.SetTrigger("enemyAttack"); //have the enemy visually attack the player
         SoundManager.instance.RandomizeSFX(enemyAttack1, enemyAttack2); //play a random attack sound
-        hitPlayer.LoseFood(playerDamage); //hit the player, so he/she loses food related to the playerDamage number
+        hitPlayer.LoseALife(playerDamage); //hit the player
     }
 }

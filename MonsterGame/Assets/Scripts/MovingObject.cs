@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+using System.Collections;
 using UnityEngine;
 
 //Parent class for objects that move (like the enemies or the player)

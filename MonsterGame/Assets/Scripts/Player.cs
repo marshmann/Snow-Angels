@@ -1,16 +1,16 @@
-﻿using UnityEngine.SceneManagement;
+﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
-    public int pointsPerFood = 10; //amount of points player gets per food pickup
-    public int pointsPerSoda = 20; //amount of points player gets per soda pickup
     public float restartLevelDelay = 1f;
-    public Text foodText;
+    public Text bottomText;
 
     private Animator animator; //store reference to animator component
-    private int food; //stores score per level
+    private int lives; //stores lives
+    private int gems = 0; //stores gem total
 
     //Below are containers for the sound effects related to the player
     public AudioClip moveSound1;
@@ -21,22 +21,42 @@ public class Player : MovingObject {
     public AudioClip drinkSound2;
     public AudioClip gameOverSound;
 
+    //Simple function that prints
+    private void PrintText() {
+        string str = "";
+        if(gems >= 3) {
+            str = "*";
+        }
+        bottomText.text = "Lives: " + lives + " | Gems: " + gems + str;
+    }
+
+    private bool CheckGems() {
+        return gems >= 3 ? true : false;
+    }
+
     protected override void Start() {
         animator = GetComponent<Animator>();
-        food = GameManager.instance.playerFoodPoints;
-        foodText.text = "Food: " + food;
+        lives = GameManager.instance.playerLifeTotal;
+        PrintText();
         base.Start(); //Call the MovingObject's start function
     }
 
     private void OnDisable() {
-        GameManager.instance.playerFoodPoints = food; //store score in game manager as we change levels
+        GameManager.instance.playerLifeTotal = lives; //store score in game manager as we change levels
     }
+
     //Update is called once per frame
     private void Update() {
         if (!GameManager.instance.playersTurn) return; //make sure it's the player's turn
 
         int horizontal = 0; //the direction we want to move horizontally
         int vertical = 0; //the direction we want to move vertically
+
+        //It's a cheaky cheat code to help with testing.  Don't tell anyone :]
+        if (Input.GetKeyDown(KeyCode.F12)) {
+            gems = 3;
+            PrintText();
+        }
 
         horizontal = (int) (Input.GetAxisRaw("Horizontal"));
         vertical = (int) (Input.GetAxisRaw("Vertical"));
@@ -47,10 +67,9 @@ public class Player : MovingObject {
         if (horizontal != 0 || vertical != 0)
             AttemptMove<Wall> (horizontal, vertical); //Attempt to move, assuming player might move into a wall
     }
-
+    
     protected override void AttemptMove<T>(int xDir, int yDir) {
-        food--; //Subtract a food point whenver a player tries to move
-        foodText.text = "Food: " + food;
+        PrintText();
 
         base.AttemptMove<T>(xDir, yDir); //call the MovingObject's AttemptMove function
 
@@ -68,23 +87,23 @@ public class Player : MovingObject {
     //In other words, when the player interacts with them, it'll auto call this function!
     private void OnTriggerEnter2D(Collider2D other) {
         if(other.tag == "Exit") { //if we interacted with the exit tile
-            Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
-            enabled = false; //level is over, so the player shouldn't be enabled anymore
+            if (CheckGems()) { //if we have enough gems to end the level
+                Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
+                enabled = false; //level is over, so the player shouldn't be enabled anymore
+            }
+            else {
+                bottomText.text = "You need another " + (3 - gems) + " gem(s) to go through the exit.";
+            }
         }
-        else if (other.tag == "Food"){ //if we interacted with a food tile
-            food += pointsPerFood; //add points to the food total
-            foodText.text = "+" + pointsPerFood + " Food: " + food; //display message
+        else if (other.tag == "Gem"){
+            gems += 1; 
+            PrintText();
             SoundManager.instance.RandomizeSFX(eatSound1, eatSound2); //play a random eat sound effect
             other.gameObject.SetActive(false); //disable that food object
         }
-        else if (other.tag == "Soda") { //if we interacted with a soda tile
-            food += pointsPerSoda; //add points to the soda total
-            foodText.text = "+" + pointsPerSoda + " Food: " + food; //display message
-            SoundManager.instance.RandomizeSFX(drinkSound1, drinkSound2); //play a random drink sound effect
-            other.gameObject.SetActive(false); //disable the soda object
-        }
     }
 
+    //Depricated code since we removed the destroyable wall feature
     protected override void OnCantMove<T>(T component) {
         Wall hitWall = component as Wall; //store the passed component param as a wall object
         hitWall.DamageWall(wallDamage); //damage the wall
@@ -96,10 +115,10 @@ public class Player : MovingObject {
         animator.SetTrigger("playerChop");
     }
 
-    public void LoseFood(int loss) {
+    public void LoseALife(int loss) {
         animator.SetTrigger("playerHit"); //show hit animation
-        food -= loss; //reduce the food total by the loss amount
-        foodText.text = "-" + loss + " Food: " + food;
+        lives -= 1; //reduce the food total by the loss amount
+        bottomText.text = "-1 life " + "Lives: " + lives + " | Gems: " + gems;
         CheckIfGameOver(); //check to see if that loss resulted in a game over
     }
 
@@ -108,7 +127,7 @@ public class Player : MovingObject {
     }
 
     private void CheckIfGameOver() {
-        if (food <= 0) { //if we run out of food, it's game over
+        if (lives <= 0) { //if we run out of food, it's game over
             SoundManager.instance.PlaySingle(gameOverSound); //play the game over sound
             SoundManager.instance.musicSource.Stop(); //stop playing music
             GameManager.instance.GameOver(); //Game over

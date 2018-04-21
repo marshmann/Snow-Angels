@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿//Depricated Code, as we removed the damage wall feature
+using UnityEngine;
 
 public class Wall : MonoBehaviour {
 
     public Sprite dmgSprite; //container for the damaged wall sprite
-    public int hp = 4; //health of the wall
+    public int hp = 2; //health of the wall
 
     private SpriteRenderer spriteRenderer;
 
