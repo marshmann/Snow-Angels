@@ -44,7 +44,7 @@ public class Enemy : MovingObject {
          * Then we'll move in the y direction toward the player
          * Otherwise, we'll move in the x direction
          */
-        if(Mathf.Abs(target.position.x - transform.position.x) < float.Epsilon) {
+        if (Mathf.Abs(target.position.x - transform.position.x) < float.Epsilon) {
             //If the player's y value is greater than the y value, he's above the enemy (so move up 1)
             //else he'll be below the enemy (so move down 1)
             yDir = target.position.y > transform.position.y ? 1 : -1;
@@ -62,11 +62,10 @@ public class Enemy : MovingObject {
         hitPlayer.LoseALife(playerDamage); //hit the player
     }
 
-    /*
+
 
     // ref: codeproject.com/Articles/203828/AI-Simple-Implementation-of-Uninformed-Search-Stra
-
-    class Node {
+    private class Node {
         public int depth;
         public int state;
         public int cost;
@@ -97,12 +96,12 @@ public class Enemy : MovingObject {
         }
     }
 
-    class getSucc {
-    
+    public class getSucc {
+
         public ArrayList getSuccessor(int state) {
             ArrayList result = new ArrayList();
-            result.add(2*state+1);
-            result.add(2*state+2);
+            result.add(2 * state + 1);
+            result.add(2 * state + 2);
             return result;
         }
 
@@ -111,8 +110,8 @@ public class Enemy : MovingObject {
             Random n = new Random();
             Test t = new Test();
             // Currently, the cost function for the nodes is random
-            result.add(new Node(2*state+1, parent, n.next(1,100)+parent.cost));
-            result.add(new Node(2*state+2, parent, n.next(1,100)+parent.cost));
+            result.add(new Node(2 * state + 1, parent, n.next(1, 100) + parent.cost));
+            result.add(new Node(2 * state + 2, parent, n.next(1, 100) + parent.cost));
             result.sort(t);
             return result;
         }
@@ -132,16 +131,16 @@ public class Enemy : MovingObject {
         ArrayList children = new ArrayList();
         Stack fringe = new Stack();
         fringe.push(start);
-        while(fringe.count != 0) {
+        while (fringe.count != 0) {
             Node parent = (Node)fringe.pop();
-            if(parent.state == goal.state) {
+            if (parent.state == goal.state) {
                 break;
             }
-            if(parent.depth = depthLimit) {
+            if (parent.depth = depthLimit) {
                 continue;
             } else {
                 children = x.getSuccessor(parent.state);
-                for(int i = 0; i < children.count; i++) {
+                for (int i = 0; i < children.count; i++) {
                     int state = (int)children[i];
                     Node temp = new Node(state, parent);
                     fringe.push(temp);
@@ -151,11 +150,10 @@ public class Enemy : MovingObject {
     }
 
     // Input: Vector of where the AI is looking
-    public void updateMap(xDir, yDir) {
-        if(canSeePlayer(xDir, yDir)) {
-            // Move towards the player
-            // This will need reworked to save the last known location of the player
-            AttemptMove<Player>(xDir, yDir);
+    public void updateMap(int xDir, int yDir) {
+        if (canSeePlayer(xDir, yDir)) {
+            // Make note of the current location of the ai
+            // Swap to the astar AI
         } else {
             // We do the exploration AI, which is depth limited search in this implementation
             // We need to add the nodes for start and goal states
@@ -166,48 +164,45 @@ public class Enemy : MovingObject {
         }
     }
 
-    public bool canSeePlayer(xDir, yDir) {
-        if(xDir < 0 && target.position.x > transform.position.x) {
+    public bool canSeePlayer(int xDir, int yDir) {
+        if (xDir < 0 && target.position.x > transform.position.x) {
             return false;
-        } else if(xDir > 0 && target.position.x < transform.position.x) {
+        } else if (xDir > 0 && target.position.x < transform.position.x) {
             return false;
-        } else if(Mathf.Abs(target.position.x - transform.position.x) > (this.perception + float.Epsilon)) {
+        } else if (Mathf.Abs(target.position.x - transform.position.x) > (this.perception + float.Epsilon)) {
             return false;
-        } else if(yDir < 0 && target.position.y > transform.position.y) {
+        } else if (yDir < 0 && target.position.y > transform.position.y) {
             return false;
-        } else if(yDir > 0 && target.position.y < transform.position.y) {
+        } else if (yDir > 0 && target.position.y < transform.position.y) {
             return false;
-        } else if(Mathf.Abs(target.position.y - transform.position.y) > (this.perception + float.Epsilon)) {
+        } else if (Mathf.Abs(target.position.y - transform.position.y) > (this.perception + float.Epsilon)) {
             return false;
-        } 
+        }
         return canSeePlayer(xDir, yDir, 1);
     }
 
-    public bool canSeePlayer(xDir, yDir, len) {
-        if(len == this.perception) {
+    public bool canSeePlayer(int xDir, int yDir, int len) {
+        if (len == this.perception) {
             return false;
-        } else if(xDir != 0 && isThisTileAWall("x", xDir, yDir, len)) {
+        } else if (xDir != 0 && isThisTileAWall("x", xDir, yDir, len)) {
             return false;
-        } else if(yDir != 0 && isThisTileAWall("y", xDir, yDir, len)) {
+        } else if (yDir != 0 && isThisTileAWall("y", xDir, yDir, len)) {
             return false;
         } else {
             return isThePlayerHere(xDir, yDir, len) || canSeePlayer(xDir, yDir, len++);
-        } 
+        }
     }
 
     // There is a possibility that this is wrong if xDir/yDir is negative. I will have to test it.
     public bool isThisTileAWall(char c, int x, int y, int len) {
-        return c == "x" ? 
-                base.board[transform.position.x+len, transform.position.y] == 1 ? true : false
-            :
-                base.board[transform.position.x, transform.position.y+len] == 1 ? true : false;
+        return c == "x" ?
+            base.board[transform.position.x + len, transform.position.y] == 1 ? true : false:
+            base.board[transform.position.x, transform.position.y + len] == 1 ? true : false;
     }
 
-    public bool isThePlayerHere(xDir, yDir, len) {
-        return xDir != 0 ? (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon))
-                         :
-                           (Mathf.Abs(target.position.y - transform.position.y) == (len + float.Epsilon));
+    public bool isThePlayerHere(int xDir, int yDir, int len) {
+        return xDir != 0 ? 
+            (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon)):
+            (Mathf.Abs(target.position.y - transform.position.y) == (len + float.Epsilon));
     }
-    */
-
 }
