@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
     public static GameManager instance = null;
-    public BoardManager boardScript;
-    public int playerLifeTotal = 3; //how much food the player defaultly has
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
+    [HideInInspector] public BoardManager boardScript;
+    public int playerLifeTotal = 3; //how much food the player defaultly has
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
@@ -20,6 +20,10 @@ public class GameManager : MonoBehaviour {
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
     private bool doingSetUp; //a boolean dedicated to making the user not move during the level transition
+
+    [HideInInspector] public int[,] board; 
+    /* The above 2d array is the board state where
+     * 0 is a floor, 1 is a wall, 2 is a broken wall and 3 is the exit */
 
     void Awake () {
         //The below code makes sure that only one instance of GameManager is open at a time
@@ -58,6 +62,16 @@ public class GameManager : MonoBehaviour {
         enemies.Clear(); //Make sure the enemy list is empty when a new level starts
         boardScript.SetupScene(level);
     }
+    public void PrintIt<T>(T[,] x) {
+        string str = "";
+        for (int i = x.GetUpperBound(0)-1; i >= 0; i--) {
+            for (int j = x.GetUpperBound(0) - 1; j >= 0; j--) {
+                str = x[j, i] + str;
+            }
+            print(str);
+            str = "";
+        }
+    }
 
     //Used to turn off the level image
     private void HideLevelImage() {
@@ -82,6 +96,10 @@ public class GameManager : MonoBehaviour {
 
     public void AddEnemyToList(Enemy script) {
         enemies.Add(script);
+    }
+
+    public void SetBoard(int[,] grid) {
+        board = grid;
     }
 
     IEnumerator MoveEnemies() {

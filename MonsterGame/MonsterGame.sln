@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterGame", "MonsterGame.csproj", "{2380B03E-6796-7B78-39C0-2B6F2E2EF888}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterGame.Editor", "MonsterGame.Editor.csproj", "{1B05D32B-BC80-23DD-6995-6D7B28723E97}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,10 +13,6 @@ Global
 		{2380B03E-6796-7B78-39C0-2B6F2E2EF888}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2380B03E-6796-7B78-39C0-2B6F2E2EF888}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2380B03E-6796-7B78-39C0-2B6F2E2EF888}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B05D32B-BC80-23DD-6995-6D7B28723E97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B05D32B-BC80-23DD-6995-6D7B28723E97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B05D32B-BC80-23DD-6995-6D7B28723E97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B05D32B-BC80-23DD-6995-6D7B28723E97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
 ﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 //Parent class for objects that move (like the enemies or the player)
@@ -13,6 +14,33 @@ public abstract class MovingObject : MonoBehaviour {
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb2d; //store the component reference of the object we're moving
     private float inverseMoveTime; //makes movement calculations "more efficent"
+    [HideInInspector] public int[,] knownBoard;
+    private int[,] board;
+
+    private List<Vector2> InitList(int x, int y) {
+        List<Vector2> list = new List<Vector2>(8) {
+            new Vector2(x - 1, y - 1), new Vector2(x - 1, y),
+            new Vector2(x - 1, y + 1), new Vector2(x, y + 1),
+            new Vector2(x + 1, y + 1), new Vector2(x + 1, y),
+            new Vector2(x + 1, y - 1), new Vector2(x, y - 1)
+        };
+        return list;
+    }
+
+    private void UpdateGrid() {
+        Vector2 position = transform.position;
+        int x = (int)position.x; int y = (int)position.y;
+        List<Vector2> neighbors = InitList(x, y);
+        int max = 2 * GameManager.instance.boardScript.columns + 1;
+        foreach (Vector2 pair in neighbors) {
+            int xVal = (int)pair.x; int yVal = (int)pair.y;
+            if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
+            else if (board[xVal, yVal] == 1) knownBoard[xVal, yVal] = 1;
+            else if (board[xVal, yVal] == 2) knownBoard[xVal, yVal] = 2;
+            else if (board[xVal, yVal] == 3) knownBoard[xVal, yVal] = 3;
+        }
+        //GameManager.instance.PrintIt<int>(knownBoard);
+    }
 
     //Use this for initialization
     protected virtual void Start() {
@@ -21,6 +49,11 @@ public abstract class MovingObject : MonoBehaviour {
 
         //Computationally, multiplying is more efficient than dividing, storing the inverse allows us to multiply.
         inverseMoveTime = 1f / moveTime;
+
+        int col = 2 * GameManager.instance.boardScript.columns + 1;
+        int row = 2 * GameManager.instance.boardScript.rows + 1;
+        knownBoard = new int[col, row];
+        board = GameManager.instance.board;
     }
 
     /*
@@ -42,6 +75,7 @@ public abstract class MovingObject : MonoBehaviour {
 
         if (hit.transform == null) { //if we don't collide with anything
             StartCoroutine(SmoothMovement(end));
+            UpdateGrid();
             return true; //we can move
         }
         else //if we collide with something
