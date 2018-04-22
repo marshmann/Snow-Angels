@@ -10,6 +10,8 @@ public class Enemy : MovingObject {
     private Transform target; //use to store player position (where the enemies will move toward)
     private bool skipMove; //enemies move every other turn
 
+    private int perception = 4; // Hack-y version right now where I'm just hard coding. Need to update to reference game board dimensions.
+
     //Below are containers for the audio effects
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
