@@ -15,7 +15,7 @@ public abstract class MovingObject : MonoBehaviour {
     private Rigidbody2D rb2d; //store the component reference of the object we're moving
     private float inverseMoveTime; //makes movement calculations "more efficent"
     [HideInInspector] public int[,] knownBoard;
-    private int[,] board;
+    [HideInInspector] public int[,] board;
 
     private List<Vector2> InitList(int x, int y) {
         List<Vector2> list = new List<Vector2>(8) {

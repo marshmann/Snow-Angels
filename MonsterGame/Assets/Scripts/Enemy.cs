@@ -10,7 +10,7 @@ public class Enemy : MovingObject {
     private Transform target; //use to store player position (where the enemies will move toward)
     private bool skipMove; //enemies move every other turn
 
-    private int perception = 4; // Hack-y version right now where I'm just hard coding. Need to update to reference game board dimensions.
+    private int perception = GameManager.instance.columns; // Hack-y version right now where I'm just hard coding. Need to update to reference game board dimensions.
 
     //Below are containers for the audio effects
     public AudioClip enemyAttack1;
@@ -61,4 +61,153 @@ public class Enemy : MovingObject {
         SoundManager.instance.RandomizeSFX(enemyAttack1, enemyAttack2); //play a random attack sound
         hitPlayer.LoseALife(playerDamage); //hit the player
     }
+
+    /*
+
+    // ref: codeproject.com/Articles/203828/AI-Simple-Implementation-of-Uninformed-Search-Stra
+
+    class Node {
+        public int depth;
+        public int state;
+        public int cost;
+        public Node parent;
+
+        // Parent node which has depth: 0 and parent: null
+        public Node(int state) {
+            this.state = state;
+            this.parent = null;
+            this.cost = 0;
+        }
+
+        pubilc Node(int state) {
+            this.state = state;
+        }
+
+        public Node(int state, Node parent) {
+            this.state = state;
+            this.parent = parent;
+            this.depth = (parent == null) ? 0 : parent.depth + 1;
+        }
+
+        public Node(int state, Node parent, int cost) {
+            this.state = state;
+            this.parent = parent;
+            this.depth = (parent == null) ? 0 : parent.depth + 1;
+            this.cost = cost;
+        }
+    }
+
+    class getSucc {
+    
+        public ArrayList getSuccessor(int state) {
+            ArrayList result = new ArrayList();
+            result.add(2*state+1);
+            result.add(2*state+2);
+            return result;
+        }
+
+        public ArrayList getSuccessor(int state, Node parent) {
+            ArrayList result = new ArrayList();
+            Random n = new Random();
+            Test t = new Test();
+            // Currently, the cost function for the nodes is random
+            result.add(new Node(2*state+1, parent, n.next(1,100)+parent.cost));
+            result.add(new Node(2*state+2, parent, n.next(1,100)+parent.cost));
+            result.sort(t);
+            return result;
+        }
+
+    }
+
+    public class Test : IComparer {
+        public int Compare(object x, object y) {
+            int val1 = ((Node)x).cost;
+            int val2 = ((Node)y).cost;
+            return val1 <= val2 ? 1 : 0;
+        }
+    }
+
+    public void depthLimitedSearch(Node start, Node goal, int depthLimit) {
+        getSucc x = new getSucc();
+        ArrayList children = new ArrayList();
+        Stack fringe = new Stack();
+        fringe.push(start);
+        while(fringe.count != 0) {
+            Node parent = (Node)fringe.pop();
+            if(parent.state == goal.state) {
+                break;
+            }
+            if(parent.depth = depthLimit) {
+                continue;
+            } else {
+                children = x.getSuccessor(parent.state);
+                for(int i = 0; i < children.count; i++) {
+                    int state = (int)children[i];
+                    Node temp = new Node(state, parent);
+                    fringe.push(temp);
+                }
+            }
+        }
+    }
+
+    // Input: Vector of where the AI is looking
+    public void updateMap(xDir, yDir) {
+        if(canSeePlayer(xDir, yDir)) {
+            // Move towards the player
+            // This will need reworked to save the last known location of the player
+            AttemptMove<Player>(xDir, yDir);
+        } else {
+            // We do the exploration AI, which is depth limited search in this implementation
+            // We need to add the nodes for start and goal states
+            Node start = base.board[transform.position.x, transform.position.y];
+            Node goal = base.board[target.position.x, target.position.y];
+            int depth = perception;
+            depthLimitedSearch(start, goal, depth);
+        }
+    }
+
+    public bool canSeePlayer(xDir, yDir) {
+        if(xDir < 0 && target.position.x > transform.position.x) {
+            return false;
+        } else if(xDir > 0 && target.position.x < transform.position.x) {
+            return false;
+        } else if(Mathf.Abs(target.position.x - transform.position.x) > (this.perception + float.Epsilon)) {
+            return false;
+        } else if(yDir < 0 && target.position.y > transform.position.y) {
+            return false;
+        } else if(yDir > 0 && target.position.y < transform.position.y) {
+            return false;
+        } else if(Mathf.Abs(target.position.y - transform.position.y) > (this.perception + float.Epsilon)) {
+            return false;
+        } 
+        return canSeePlayer(xDir, yDir, 1);
+    }
+
+    public bool canSeePlayer(xDir, yDir, len) {
+        if(len == this.perception) {
+            return false;
+        } else if(xDir != 0 && isThisTileAWall("x", xDir, yDir, len)) {
+            return false;
+        } else if(yDir != 0 && isThisTileAWall("y", xDir, yDir, len)) {
+            return false;
+        } else {
+            return isThePlayerHere(xDir, yDir, len) || canSeePlayer(xDir, yDir, len++);
+        } 
+    }
+
+    // There is a possibility that this is wrong if xDir/yDir is negative. I will have to test it.
+    public bool isThisTileAWall(char c, int x, int y, int len) {
+        return c == "x" ? 
+                base.board[transform.position.x+len, transform.position.y] == 1 ? true : false
+            :
+                base.board[transform.position.x, transform.position.y+len] == 1 ? true : false;
+    }
+
+    public bool isThePlayerHere(xDir, yDir, len) {
+        return xDir != 0 ? (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon))
+                         :
+                           (Mathf.Abs(target.position.y - transform.position.y) == (len + float.Epsilon));
+    }
+    */
+
 }
