@@ -21,9 +21,9 @@ public class BoardManager : MonoBehaviour {
         }       
     }
 
-    //Specify the size of the board, we can change them as the levels progress.  Default is 8x8.
-    public int columns;
-    public int rows;
+    //Specify the size of the board, we can change them as the levels progress.  Default is 20x20.
+    public int columns = 20;
+    public int rows = 20;
     //This creates a Count object that is used to specify how many walls are created in the level (not the border walls, just the internal ones).
 
     //The amount of gems that'll appear in the level - min and max actually set in unity (the values here don't matter)
@@ -194,7 +194,6 @@ public class BoardManager : MonoBehaviour {
                 }
             }
         }
-
         return board;
     }
 
