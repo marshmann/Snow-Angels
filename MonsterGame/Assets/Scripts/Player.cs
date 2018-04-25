@@ -68,9 +68,11 @@ public class Player : MovingObject {
 
             //Check to see if any enemy is too close to the player
             //I'm just ignoring wall's because that's annoying and a waste of time
-            foreach (Enemy enemy in GameManager.instance.enemies) { 
-                if ((int)System.Math.Abs(enemy.transform.position.x - transform.position.x) <= stealthRadius ||
-                    (int)System.Math.Abs(enemy.transform.position.y - transform.position.y) <= stealthRadius) {
+            foreach (Enemy enemy in GameManager.instance.enemies) {
+                int total = (int)System.Math.Abs(enemy.transform.position.x - transform.position.x) 
+                            + (int)System.Math.Abs(enemy.transform.position.y - transform.position.y);
+
+                if (total <= stealthRadius) {
                     playerCanStealth = false;
                     break;
                 }

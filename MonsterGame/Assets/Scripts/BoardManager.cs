@@ -236,6 +236,11 @@ public class BoardManager : MonoBehaviour {
                     GameObject wallChoice = outerWallTiles[rand];
                     Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
 
+                    //Below code will make it so the entire board is just floors; good for testing enemy ai
+                    //int rand = Random.Range(0, floorTiles.Length);
+                    //GameObject wallChoice = floorTiles[rand];
+                    //Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
+
                     if (i != twocol && j != tworow) {
                         if (rand == 3) board[i, j] = 2;
                         else board[i, j] = 1;
@@ -248,7 +253,7 @@ public class BoardManager : MonoBehaviour {
         GameManager.instance.SetBoard(board);
 
         //monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
-        int enemyCount = (int)Mathf.Log((level), 2f);
+        int enemyCount = (int)Mathf.Log((level+1), 2f);
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount,grid); //put the specified amount of enemies on the board
     }

@@ -14,7 +14,10 @@ public class GameManager : MonoBehaviour {
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
 
     [HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
+
     [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
+    private float time = 0.0f; //initalizer for time
+    private float hideTime = 1f; //Enemies will move every half-second the player is hiding
 
     private bool enemiesMoving;
     private int level = 1; //Level 2 is when a single enemy will spawn on the board
@@ -64,6 +67,8 @@ public class GameManager : MonoBehaviour {
         enemies.Clear(); //Make sure the enemy list is empty when a new level starts
         boardScript.SetupScene(level);
     }
+
+    //Function dedicated to printing the board for testing.
     public void PrintIt<T>(T[,] x) {
         string str = "";
         for (int i = x.GetUpperBound(0)-1; i >= 0; i--) {
@@ -81,6 +86,7 @@ public class GameManager : MonoBehaviour {
         doingSetUp = false;
     }
 
+    //Print the game over screen and end the game
     public void GameOver() {
         levelText.text = "You survived for " + level + " days";
         levelImage.SetActive(true);
@@ -89,7 +95,13 @@ public class GameManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        if (playersTurn || enemiesMoving || doingSetUp)
+        time += Time.deltaTime;
+        if ((playersTurn && isHiding) && (time >= hideTime)) {
+            time = 0.0f;
+            playersTurn = false;
+            return;
+        }
+        else if ((playersTurn && !isHiding) || enemiesMoving || doingSetUp)
             return;
 
         //If it's not the players turn and it should be the enemies turn, call the move enemies function
