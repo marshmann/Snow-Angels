@@ -154,7 +154,8 @@ public class Enemy : MovingObject {
     
     // Input: Vector of where the AI is looking
     public void UpdateMap(int xDir, int yDir) {
-        if (CanSeePlayer(xDir, yDir)) {
+        //If the enemy can see the player and if the player isn't hiding
+        if (CanSeePlayer(xDir, yDir) && !GameManager.instance.isHiding) { 
             //AstarCode
         }
         else {
@@ -173,7 +174,7 @@ public class Enemy : MovingObject {
         else if (xDir > 0 && target.position.x < transform.position.x) {
             return false;
         }
-        else if (Mathf.Abs(target.position.x - transform.position.x) > (this.perception + float.Epsilon)) {
+        else if (Mathf.Abs(target.position.x - transform.position.x) > (perception + float.Epsilon)) {
             return false;
         }
         else if (yDir < 0 && target.position.y > transform.position.y) {
@@ -182,14 +183,14 @@ public class Enemy : MovingObject {
         else if (yDir > 0 && target.position.y < transform.position.y) {
             return false;
         }
-        else if (Mathf.Abs(target.position.y - transform.position.y) > (this.perception + float.Epsilon)) {
+        else if (Mathf.Abs(target.position.y - transform.position.y) > (perception + float.Epsilon)) {
             return false;
         }
         return CanSeePlayer(xDir, yDir, 1);
     }
 
     public bool CanSeePlayer(int xDir, int yDir, int len) {
-        if (len == this.perception) {
+        if (len == perception) {
             return false;
         }
         else if (xDir != 0 && IsThisTileAWall('x', xDir, yDir, len)) {
@@ -203,7 +204,7 @@ public class Enemy : MovingObject {
         }
     }
 
-        // There is a possibility that this is wrong if xDir/yDir is negative. I will have to test it.
+    // There is a possibility that this is wrong if xDir/yDir is negative. I will have to test it.
     public bool IsThisTileAWall(char c, int x, int y, int len) {
         return c == 'x' ?
             board[(int)transform.position.x + len, (int)transform.position.y] == 1 ? true : false :

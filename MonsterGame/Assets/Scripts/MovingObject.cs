@@ -35,9 +35,7 @@ public abstract class MovingObject : MonoBehaviour {
         foreach (Vector2 pair in neighbors) {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
-            else if (board[xVal, yVal] == 1) knownBoard[xVal, yVal] = 1;
-            else if (board[xVal, yVal] == 2) knownBoard[xVal, yVal] = 2;
-            else if (board[xVal, yVal] == 3) knownBoard[xVal, yVal] = 3;
+            else knownBoard[xVal, yVal] = board[xVal, yVal];
         }
         //GameManager.instance.PrintIt<int>(knownBoard);
     }

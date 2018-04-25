@@ -13,7 +13,9 @@ public class GameManager : MonoBehaviour {
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
 
-    private List<Enemy> enemies; //List with all the enemy references stored
+    [HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
+    [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
+
     private bool enemiesMoving;
     private int level = 1; //Level 2 is when a single enemy will spawn on the board
 

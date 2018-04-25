@@ -7,10 +7,14 @@ public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
     public float restartLevelDelay = 1f;
     public Text bottomText;
-
+    
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
     private int gems = 0; //stores gem total
+
+    //The value that specifies the min amount of tiles that can be between the player and the enemy
+    //If the enemy is within (stealthRadius) tiles of the player, he can't stealth
+    public int stealthRadius = 3;
 
     //Below are containers for the sound effects related to the player
     public AudioClip moveSound1;
@@ -49,23 +53,56 @@ public class Player : MovingObject {
     private void Update() {
         if (!GameManager.instance.playersTurn) return; //make sure it's the player's turn
 
+        bool isHiding = GameManager.instance.isHiding;
         int horizontal = 0; //the direction we want to move horizontally
         int vertical = 0; //the direction we want to move vertically
 
-        //It's a cheaky cheat code to help with testing.  Don't tell anyone :]
+        //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
             gems = 3;
             PrintText();
         }
 
-        horizontal = (int) (Input.GetAxisRaw("Horizontal"));
-        vertical = (int) (Input.GetAxisRaw("Vertical"));
+        if (isHiding == false && Input.GetKeyDown(KeyCode.F)) {
+            bool playerCanStealth = true;
 
-        if (horizontal != 0) //if we're moving horizontally
-            vertical = 0; //set it so vertical is 0; this ensures we have no diagnal movement
+            //Check to see if any enemy is too close to the player
+            //I'm just ignoring wall's because that's annoying and a waste of time
+            foreach (Enemy enemy in GameManager.instance.enemies) { 
+                if ((int)System.Math.Abs(enemy.transform.position.x - transform.position.x) <= stealthRadius ||
+                    (int)System.Math.Abs(enemy.transform.position.y - transform.position.y) <= stealthRadius) {
+                    playerCanStealth = false;
+                    break;
+                }
+            }
+            if (playerCanStealth) {
+                bottomText.text = "You are now hidden.";
+                GameManager.instance.isHiding = true;
+                animator.SetBool("playerHiding", true); //make the player hide in a box
+            }
+            else bottomText.text = "You can't stealth right now!";
+        }
+        else if (isHiding == true && Input.GetKeyDown(KeyCode.F)) {
+            GameManager.instance.isHiding = false; //Player is no longer hiding
+            animator.SetBool("playerHiding", false); //Player gets out of the box
+        }
+        else {
+            horizontal = (int)(Input.GetAxisRaw("Horizontal"));
+            vertical = (int)(Input.GetAxisRaw("Vertical"));
 
-        if (horizontal != 0 || vertical != 0)
-            AttemptMove<Wall> (horizontal, vertical); //Attempt to move, assuming player might move into a wall
+            if (horizontal != 0) //if we're moving horizontally
+                vertical = 0; //set it so vertical is 0; this ensures we have no diagnal movement
+
+            //Player tried to move
+            if (horizontal != 0 || vertical != 0) {
+                if (isHiding) {
+                    GameManager.instance.isHiding = false;
+                    animator.SetBool("playerHiding", false); //player gets out of the box
+                    //Change Sprite back
+                }
+                AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
+            }
+        }
     }
     
     protected override void AttemptMove<T>(int xDir, int yDir) {
