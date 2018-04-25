@@ -23,10 +23,103 @@ namespace MazeAStar
 {
     class MazeAStar
     {
+        // Testing of MinPQ
+        public class Thing : IComparer, IDenumerable
+        {
+            public int i;
+            int num;
+            public Thing(int i) { this.i = i; }
+            public override Boolean Equals(Object obj)
+            {
+                Thing t = (Thing)obj;
+                if (i == t.i)
+                    return true;
+                return false;
+            }
+            public Thing GetCopy() { return new Thing(i); }
+            public void SetNumber(int n) { num = n; }      // minpq stuff
+            public int GetNumber() { return num; }         // ^
+            int IComparer.Compare(Object o1, Object o2)
+            {
+                Thing t1 = (Thing)o1;
+                Thing t2 = (Thing)o2;
+                if (t1.i > t2.i)
+                    return 1;
+                if (t1.i < t2.i)
+                    return -1;
+                return 0;
+            }
+            public override String ToString() { return Convert.ToString(i) + "("+num+")"; }
+        }
+
         static void Main(string[] args)
         {
-            Console.WriteLine("hakuna matata~");
+            /*
+            MinPQ<Thing> pq = new MinPQ<Thing>();
+            Thing a = new Thing(10);
+            Thing b = new Thing(20);
+            Thing c = new Thing(30);
+            Thing d = new Thing(70);
+            Thing e = new Thing(60);
+            Thing f = new Thing(-20);
+            Thing g = new Thing(190);
+
+            pq.Add(a);
+            pq.Add(b);
+            pq.Add(c);
+
+            Thing z = c.GetCopy();      // Deep copy of 'c' object
+            z.i = 15;                   // Change inner field
+            z.SetNumber(c.GetNumber()); // Set number of new object to be that of old object
+            pq.Update(z);               // Call update (swim, then sink)
+
+            pq.Add(d);
+            pq.Add(e);
+            pq.Add(f);
+
+            
+
+            Thing y = e.GetCopy();
+            y.i = 25;
+            y.SetNumber(e.GetNumber());
+            pq.Update(y);
+
+            pq.Add(g);
+
+            Thing x = g.GetCopy();
+            x.i = -15;
+            x.SetNumber(g.GetNumber());
+            pq.Update(x);
+
+            pq.Remove();
+
+            while (!pq.IsEmpty())
+                Console.WriteLine(pq.Remove());
+            */
+
+            int[,] t1 = new int[,]
+            { 
+                { 1, 1, 1, 1, 1 },
+                { 1, 0, 0, 0, 1 },
+                { 1, 0, 1, -1, 1 },
+                { 1, 1, 1, 0, 1 },
+                { 1, 1, 1, 1, 1 },
+            };
+            Tiles tiles1 = new Tiles(t1, 3, 2, 1, 2);
+
+            int[,] t2 = new int[,]
+            {
+                { 1, 1, 1, 1, 1 },
+                { 1, 0, 0, -1, 1 },
+                { 1, 0, 1, 0, 1 },
+                { 1, 1, 1, 0, 1 },
+                { 1, 1, 1, 1, 1 },
+            };
+            Tiles tiles2 = new Tiles(t2, 3, 2, 1, 2);
+            Console.WriteLine(tiles1.Equals(tiles2));
         }
+
+        
 
         // Returns stack of actions taken to reach goal state (with first action to take on top)
         // ***NOTE: The other four parameters are just here for testing purposes.
@@ -42,7 +135,8 @@ namespace MazeAStar
                 transform.position.x,
                 transform.position.y,
                 target.position.x,
-                target.position.y);*/
+                target.position.y); 
+                */
             hashmap[tiles] = start;      // Add starting node to explored set
             frontier.Add(start);
 
@@ -105,7 +199,7 @@ namespace MazeAStar
                             if (oldCost > newCost)
                             {
                                 // Set Number of moveNode to the one stored in the hashmap before overwriting it?
-                                // moveNode.SetNumber(hashmap[moveNode.GetTiles()].GetNumber());
+                                moveNode.SetNumber(hashmap[moveNode.GetTiles()].GetNumber());
                                 hashmap[moveNode.GetTiles()] = moveNode;    // Update moveNode in hashmap with new cost
                                 frontier.Update(hashmap[moveNode.GetTiles()]);
                             }
@@ -121,11 +215,11 @@ namespace MazeAStar
                     // Else, move isn't legal, do nothing and move on.
                 }
             }
-        }
+        }            
 
         class Tiles
         {
-            private int xSelf, ySelf, xTarget, yTarget;
+            public int xSelf, ySelf, xTarget, yTarget;
             public int[,] tiles;
             public Tiles(int[,] tiles, int xs, int ys, int xt, int yt)
             {
@@ -283,20 +377,21 @@ namespace MazeAStar
             }
         }
 
-
         // ***NOTE: The Compare(obj, obj) method is a method of the ANode class right now, so it has to be perfomed on an ANode object... that doesn't seem right.
 
         //Code given by Dr. Simon
         // adapted from Sedgewick.
+
+
+        // GENERIC MINPQ: 
         public interface IDenumerable
         {
             int GetNumber();
             void SetNumber(int x);
         }
-
         public class MinPQ<Key> where Key : IComparer, IDenumerable
         {
-            private ArrayList pq;
+            public ArrayList pq;
             private int N = 0;
 
             public MinPQ(int cap)
@@ -322,7 +417,7 @@ namespace MazeAStar
             {
                 N++;
                 pq.Add(x);
-                Swim(N);
+                Swim(N, x);
             }
 
             public Key Remove()
@@ -336,16 +431,15 @@ namespace MazeAStar
                 return min;
             }
 
-            private void Swim(int k)
+            private void Swim(int k, Key q)
             {
+                pq[k] = q;
                 Key x = (Key)pq[k]; // assigned outside of loop
-                Key y = (Key)pq[k / 2]; // value is changed inside loop
-                while (k > 1 && y.Compare(y, x) > 0)
+                while (k > 1 && ((Key)pq[k / 2]).Compare((Key)pq[k / 2], x) > 0)
                 {
                     pq[k] = pq[k / 2];
-                    y.SetNumber(k);
+                    ((Key)pq[k / 2]).SetNumber(k);
                     k = k / 2;
-                    y = (Key)pq[k / 2];
                 }
                 pq[k] = x;
                 x.SetNumber(k);
@@ -374,15 +468,14 @@ namespace MazeAStar
                 Key t = (Key)pq[i];
                 pq[i] = pq[j];
                 pq[j] = t;
-                Key key1 = (Key)pq[i];
-                Key key2 = (Key)pq[j];
-                key1.SetNumber(i);
-                key2.SetNumber(j);
+                ((Key)pq[i]).SetNumber(i);
+                ((Key)pq[j]).SetNumber(j);
             }
 
             public void Update(Key x)
             {
-                Swim(x.GetNumber());
+                Swim(x.GetNumber(), x);
+                Sink(x.GetNumber());
             }
         }
     }
