@@ -25,6 +25,9 @@ public class AStar : MonoBehaviour {
     private bool ValidNeighbor(int x, int y, int[,] state) {
         if ( x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
             return false;
+        else if(state[x,y] == 5) {
+            return true;
+        }
         else if (state[x, y] != 0) {
             print(x + " " + y + " is not a valid swap because it's " + state[x, y]);
             return false;
@@ -81,6 +84,9 @@ public class AStar : MonoBehaviour {
             pushFlag = false;
             return;
         }
+        if(pushFlag == false) {
+            return;
+        }
         if (pushFlag) path.Push(new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy));
         SetPath(n, path, pushFlag);
     }
@@ -121,7 +127,9 @@ public class AStar : MonoBehaviour {
             data.inFrontier = false;
 
             if (IsGoal(data)) {
-                SetPath(data, path, true);
+                //SetPath(data, path, true);
+                Vector2 x = new Vector2(5, 5);
+                path.Push(x);
                 return path;
             }
 

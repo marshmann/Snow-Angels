@@ -36,7 +36,7 @@ public class Node : IDenumerable, IComparer {
         int yf = ny.g + ny.h;
 
         if (xf == yf) return 0;
-        else if (yf > xf) return 1;
-        else return -1;
+        else if (yf > xf) return -1;
+        else return 1;
     }
 }
