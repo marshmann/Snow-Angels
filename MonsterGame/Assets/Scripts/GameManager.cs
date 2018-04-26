@@ -71,13 +71,14 @@ public class GameManager : MonoBehaviour {
     //Function dedicated to printing the board for testing.
     public void PrintIt<T>(T[,] x) {
         string str = "";
-        for (int i = x.GetUpperBound(0)-1; i >= 0; i--) {
-            for (int j = x.GetUpperBound(0) - 1; j >= 0; j--) {
+        for (int i = x.GetUpperBound(0); i >= 0; i--) {
+            for (int j = x.GetUpperBound(0); j >= 0; j--) {
                 str = x[j, i] + str;
             }
             print(str);
             str = "";
         }
+        print("------------");
     }
 
     //Used to turn off the level image

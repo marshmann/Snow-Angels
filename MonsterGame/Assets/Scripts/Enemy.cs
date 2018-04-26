@@ -1,6 +1,7 @@
 ﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
 //In addition: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MovingObject {
@@ -17,7 +18,7 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
 
-    private Stack path;
+    private Stack<Vector2> path;
     private bool onPath = false;
 
     protected override void Start() {
@@ -69,8 +70,8 @@ public class Enemy : MovingObject {
 
         //Change this to also consider if something new was explored by the enemy
         if (!onPath) {
-            MazeAStar aStar = gameObject.AddComponent<MazeAStar>();
-            path = aStar.AstarPickDirection(knownBoard, (int)transform.position.x,
+            AStar aStar = gameObject.AddComponent<AStar>();
+            path = aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, (int)target.position.x, (int)target.position.y);
 
             print(path);
