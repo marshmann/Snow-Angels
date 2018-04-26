@@ -184,6 +184,10 @@ public class Enemy : MovingObject {
         else {
             // We do the exploration AI, which is depth limited search in this implementation
             // We need to add the nodes for start and goal states
+            /* Start and goal nodes need to be changed:
+             * start -> knownBoard
+             * goal -> knownBoard being completely explored
+             */
             Node start = new Node(board[(int)transform.position.x, (int)transform.position.y]);
             Node goal = new Node(board[(int)target.position.x, (int)target.position.y]);
             DepthLimitedSearch(start, goal, perception);
@@ -216,10 +220,7 @@ public class Enemy : MovingObject {
         if (len == perception) {
             return false;
         }
-        else if (xDir != 0 && IsThisTileAWall('x', xDir, yDir, len)) {
-            return false;
-        }
-        else if (yDir != 0 && IsThisTileAWall('y', xDir, yDir, len)) {
+        else if (IsThisTileAWall(xDir, yDir, len)) {
             return false;
         }
         else {
@@ -227,11 +228,8 @@ public class Enemy : MovingObject {
         }
     }
 
-    // There is a possibility that this is wrong if xDir/yDir is negative. I will have to test it.
-    public bool IsThisTileAWall(char c, int x, int y, int len) {
-        return c == 'x' ?
-            board[(int)transform.position.x + len, (int)transform.position.y] == 1 ? true : false :
-            board[(int)transform.position.x, (int)transform.position.y + len] == 1 ? true : false;
+    public bool IsThisTileAWall(int xDir, int yDir, int len) {
+        return board[(int)transform.position.x + (xDir * len), (int)transform.position.y + (yDir * len)] == 1;
     }
 
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
