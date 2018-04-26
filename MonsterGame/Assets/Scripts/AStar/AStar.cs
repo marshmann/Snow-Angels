@@ -9,7 +9,7 @@ public class AStar : MonoBehaviour {
     private int xTarget;
     private int yTarget;
 
-    private Stack<Vector2> path = new Stack<Vector2>();
+    private Queue<Vector2> path = new Queue<Vector2>();
 
     private bool IsGoal(Node n) {
         print(n.aix + " " + n.aiy + " | " + xTarget + " " + yTarget);
@@ -79,16 +79,11 @@ public class AStar : MonoBehaviour {
         return neighbors;
     }
 
-    private void SetPath(Node n, Stack<Vector2> path, bool pushFlag) {
-        if (n == null) {
-            pushFlag = false;
-            return;
-        }
-        if(pushFlag == false) {
-            return;
-        }
-        if (pushFlag) path.Push(new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy));
-        SetPath(n, path, pushFlag);
+    private void SetPath(Node n, Queue<Vector2> path) {
+        if (n == null) return;
+        SetPath(n.parent, path);
+        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
+        path.Enqueue(vec);
     }
 
     private Vector2 FindAi(State state) {
@@ -100,7 +95,7 @@ public class AStar : MonoBehaviour {
         return new Vector2(-1, -1);
     }
 
-    public Stack<Vector2> DoAStar(int[,] board, int aix, int aiy, int xTarget, int yTarget) {
+    public Queue<Vector2> DoAStar(int[,] board, int aix, int aiy, int xTarget, int yTarget) {
         this.xTarget = xTarget; this.yTarget = yTarget;
 
         MinPQ<Node> minPQ = new MinPQ<Node>();
@@ -127,9 +122,7 @@ public class AStar : MonoBehaviour {
             data.inFrontier = false;
 
             if (IsGoal(data)) {
-                //SetPath(data, path, true);
-                Vector2 x = new Vector2(5, 5);
-                path.Push(x);
+                SetPath(data, path);
                 return path;
             }
 

@@ -18,7 +18,7 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
 
-    private Stack<Vector2> path;
+    private Queue<Vector2> path = new Queue<Vector2>(0);
     private bool onPath = false;
 
     protected override void Start() {
@@ -69,24 +69,20 @@ public class Enemy : MovingObject {
         */
 
         //Change this to also consider if something new was explored by the enemy
-        if (!onPath) {
+        print(path.Count);
+        if (path.Count == 0 && !onPath) {
             AStar aStar = gameObject.AddComponent<AStar>();
             path = aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, (int)target.position.x, (int)target.position.y);
 
-            print(path);
+            print(path.ToArray());
             onPath = true;
         }
+        else {
+            //Vector2 move = path.Dequeue();
+            //print(move);
+        }
 
-         //if (path.Pop() == null)
-           // print("Dead");
-        //ANode node = (ANode)path.Pop();
-
-        //xDir = node.XSelf(); yDir = node.YSelf();
-
-        //print(xDir + " " + yDir);
-
-        //AttemptMove<Player>(xDir, yDir); //Attempt to move toward the player, assuming the enemy might run into the player
     }
 
     protected override void OnCantMove<T>(T component) {
