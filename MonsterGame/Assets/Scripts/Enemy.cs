@@ -17,6 +17,9 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
 
+    private Stack path;
+    private bool onPath = false;
+
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
         animator = GetComponent<Animator>();
@@ -24,6 +27,10 @@ public class Enemy : MovingObject {
         base.Start();
 
         perception = board.GetUpperBound(0);
+    }
+
+    private void Update() {
+        UpdateGrid();
     }
 
     protected override void AttemptMove<T>(int xDir, int yDir) {
@@ -50,7 +57,7 @@ public class Enemy : MovingObject {
          * (or extremely close, as represented by float.Epsilon)
          * Then we'll move in the y direction toward the player
          * Otherwise, we'll move in the x direction
-         */
+         
         if (Mathf.Abs(target.position.x - transform.position.x) < float.Epsilon) {
             //If the player's y value is greater than the y value, he's above the enemy (so move up 1)
             //else he'll be below the enemy (so move down 1)
@@ -58,8 +65,27 @@ public class Enemy : MovingObject {
         }
         else
             xDir = target.position.x > transform.position.x ? 1 : -1; //same as above but for x values
+        */
 
-        AttemptMove<Player>(xDir, yDir); //Attempt to move toward the player, assuming the enemy might run into the player
+        //Change this to also consider if something new was explored by the enemy
+        if (!onPath) {
+            MazeAStar aStar = gameObject.AddComponent<MazeAStar>();
+            path = aStar.AstarPickDirection(knownBoard, (int)transform.position.x,
+                (int)transform.position.y, (int)target.position.x, (int)target.position.y);
+
+            print(path);
+            onPath = true;
+        }
+
+         //if (path.Pop() == null)
+           // print("Dead");
+        //ANode node = (ANode)path.Pop();
+
+        //xDir = node.XSelf(); yDir = node.YSelf();
+
+        //print(xDir + " " + yDir);
+
+        //AttemptMove<Player>(xDir, yDir); //Attempt to move toward the player, assuming the enemy might run into the player
     }
 
     protected override void OnCantMove<T>(T component) {

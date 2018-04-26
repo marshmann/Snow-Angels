@@ -18,7 +18,6 @@ using System.Threading.Tasks;
  * 
  * */
 
-
 namespace MazeAStar
 {
     class MazeAStar
@@ -76,8 +75,6 @@ namespace MazeAStar
             pq.Add(d);
             pq.Add(e);
             pq.Add(f);
-
-            
 
             Thing y = e.GetCopy();
             y.i = 25;
@@ -186,6 +183,7 @@ namespace MazeAStar
                     if (node.MoveTo(i))
                     {
                         // Create copy of node with move having been performed, and store it to new reference.
+                        //----Change the xt and yt to be a global variable, there's no point storing it in every node---
                         int xs = node.XSelf(), ys = node.YSelf(), xt = node.XTarget(), yt = node.YTarget();
                         moveNode = new ANode(new Tiles(node.GetTiles().CopyTiles(), xs, ys, xt, yt), node, xs, ys, xt, yt); // Passing these variables twice is a bit derpy
                         node.MoveTo(oppDir);    // Retract move, set node back to original state
@@ -194,27 +192,27 @@ namespace MazeAStar
                         if (hashmap.ContainsKey(moveNode.GetTiles()))
                         {
                             // If cost already represented in hashmap is greater than current cost:
-                            int oldCost = moveNode.GetCost();                       // current state (may have diff value than one in hashmap)
-                            int newCost = hashmap[moveNode.GetTiles()].GetCost();   // last state stored
+                            int newCost = moveNode.GetCost();                       // current state (may have diff value than one in hashmap)
+                            int oldCost = hashmap[moveNode.GetTiles()].GetCost();   // last state stored
                             if (oldCost > newCost)
                             {
                                 // Set Number of moveNode to the one stored in the hashmap before overwriting it?
-                                moveNode.SetNumber(hashmap[moveNode.GetTiles()].GetNumber());
+                                //moveNode.SetNumber(hashmap[moveNode.GetTiles()].GetNumber());
                                 hashmap[moveNode.GetTiles()] = moveNode;    // Update moveNode in hashmap with new cost
                                 frontier.Update(hashmap[moveNode.GetTiles()]);
                             }
                             // Else newCost is lower, so do nothing and move on.
                         }
-                        else    // State does not exist in hashmap, so add it to hashmap and frontier.
+                        else // State does not exist in hashmap, so add it to hashmap and frontier.
                         {
                             hashmap[moveNode.GetTiles()] = moveNode;
                             frontier.Add(moveNode);
                         }
-
                     }
                     // Else, move isn't legal, do nothing and move on.
                 }
             }
+            //---Hey, oh sugar honey iced tea, don't forget to add random walk if the astar fails... which it shouldn't
         }            
 
         class Tiles

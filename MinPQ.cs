@@ -10,8 +10,7 @@ public interface IDenumerable
 	void SetNumber(int x);
 }
 
-public class MinPQ<Key> where Key : IComparable<Key>, IDenumerable {
-
+public class MinPQ<Key> where Key : IComparable<Key>, IDenumerable { 
 	private ArrayList pq;
 	private int N = 0;
 
@@ -21,8 +20,7 @@ public class MinPQ<Key> where Key : IComparable<Key>, IDenumerable {
 		pq.Add(null);
 	}
 	
-	public MinPQ()
-		: this(1) { }
+	public MinPQ() : this(1) { }
 
 	public Boolean IsEmpty() { return N == 0; }
 

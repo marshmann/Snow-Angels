@@ -27,7 +27,7 @@ public abstract class MovingObject : MonoBehaviour {
         return list;
     }
 
-    private void UpdateGrid() {
+    public void UpdateGrid() {
         Vector2 position = transform.position;
         int x = (int)position.x; int y = (int)position.y;
         List<Vector2> neighbors = InitList(x, y);
