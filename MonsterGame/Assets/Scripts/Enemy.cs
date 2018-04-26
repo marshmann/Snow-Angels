@@ -243,16 +243,12 @@ public class Enemy : MovingObject {
         if (len == perception) {
             return false;
         }
-        else if (IsThisTileAWall(xDir, yDir, len)) {
+        else if (board[(int)transform.position.x + (xDir * len), (int)transform.position.y + (yDir * len)] == 1) {
             return false;
         }
         else {
             return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len++);
         }
-    }
-
-    public bool IsThisTileAWall(int xDir, int yDir, int len) {
-        return board[(int)transform.position.x + (xDir * len), (int)transform.position.y + (yDir * len)] == 1;
     }
 
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
