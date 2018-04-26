@@ -16,6 +16,7 @@ public abstract class MovingObject : MonoBehaviour {
     private float inverseMoveTime; //makes movement calculations "more efficent"
     [HideInInspector] public int[,] knownBoard;
     [HideInInspector] public int[,] board;
+    [HideInInspector] public bool newInfo;
 
     private List<Vector2> InitList(int x, int y) {
         List<Vector2> list = new List<Vector2>(8) {
@@ -35,7 +36,11 @@ public abstract class MovingObject : MonoBehaviour {
         foreach (Vector2 pair in neighbors) {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
-            else knownBoard[xVal, yVal] = board[xVal, yVal];
+            else {
+                if (knownBoard[xVal, yVal] != board[xVal, yVal])
+                    newInfo = true;
+                knownBoard[xVal, yVal] = board[xVal, yVal];
+            }
         }
         //GameManager.instance.PrintIt<int>(knownBoard);
     }

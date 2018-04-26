@@ -18,20 +18,43 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
 
-    private Queue<Vector2> path = new Queue<Vector2>(0);
+    private Queue<Vector2> path;
     private bool onPath = false;
+    private int lastSeenX = 0;
+    private int lastSeenY = 0;
+
+    //Randomize these in start
+    private int lastMoveX; 
+    private int lastMoveY;
 
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
         animator = GetComponent<Animator>();
         target = GameObject.FindGameObjectWithTag("Player").transform;
+
         base.Start();
 
-        perception = board.GetUpperBound(0);
+        path = new Queue<Vector2>();
+        perception = board.GetLength(0)/2;
+
+        SetInitDirection();
     }
 
     private void Update() {
         UpdateGrid();
+    }
+
+    private void SetInitDirection() {
+        int[] direct = new int[4] { 0, 1, 2, 3 };
+
+        int val = Random.Range(0, direct.Length);
+
+        switch (val) {
+            case 0: { lastMoveX = 1; lastMoveY = 0; break; };
+            case 1: { lastMoveX = -1; lastMoveY = 0; break; };
+            case 2: { lastMoveX = 0; lastMoveY = 1; break; };
+            case 3: { lastMoveX = 0; lastMoveY = -1; break; };
+        }
     }
 
     protected override void AttemptMove<T>(int xDir, int yDir) {
@@ -51,38 +74,36 @@ public class Enemy : MovingObject {
     }
 
     public void MoveEnemy() {
-        int xDir = 0;
-        int yDir = 0;
+        //If we can see the player, We'll do Astar
+        //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
+        //Also, don't need to worry about newInfo here as it's accounted for
+        Vector2 move = new Vector2(0,0); //Initalize the move vector
+        if (CanSeePlayer(lastMoveX, lastMoveY)) { 
+            int x = (int)target.position.x;
+            int y = (int)target.position.y;
+            lastSeenX = x; lastSeenY = y; //Store the last seen location
 
-        /*  If the player's x coordinate and the enemy's x cordinate are the same 
-         * (or extremely close, as represented by float.Epsilon)
-         * Then we'll move in the y direction toward the player
-         * Otherwise, we'll move in the x direction
-         
-        if (Mathf.Abs(target.position.x - transform.position.x) < float.Epsilon) {
-            //If the player's y value is greater than the y value, he's above the enemy (so move up 1)
-            //else he'll be below the enemy (so move down 1)
-            yDir = target.position.y > transform.position.y ? 1 : -1;
-        }
-        else
-            xDir = target.position.x > transform.position.x ? 1 : -1; //same as above but for x values
-        */
-
-        //Change this to also consider if something new was explored by the enemy
-        print(path.Count);
-        if (path.Count == 0 && !onPath) {
             AStar aStar = gameObject.AddComponent<AStar>();
             path = aStar.DoAStar(knownBoard, (int)transform.position.x,
-                (int)transform.position.y, (int)target.position.x, (int)target.position.y);
-
-            print(path.ToArray());
-            onPath = true;
+                (int)transform.position.y, x, y);
         }
-        else {
-            //Vector2 move = path.Dequeue();
-            //print(move);
-        }
+        else if (!CanSeePlayer(lastMoveX, lastMoveY)) {
+            if(path.Count == 0) {
+                //Call Dave's Code to Explore, should return a Vector2
+            }
+            else{ //We are on the path to the last place the player was seen
+                if (newInfo) { //We got new information in the maze as we moved, so we rerun AStar
+                    AStar aStar = gameObject.AddComponent<AStar>();
 
+                    //We don't know the player's current position, so we go to the last place he was seen
+                    path = aStar.DoAStar(knownBoard, (int)transform.position.x,
+                        (int)transform.position.y, lastSeenX, lastSeenY);
+                }
+            }
+        }
+        newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
+        lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+        AttemptMove<Player>((int)move.x, (int)move.y);
     }
 
     protected override void OnCantMove<T>(T component) {
@@ -177,20 +198,16 @@ public class Enemy : MovingObject {
     
     // Input: Vector of where the AI is looking
     public void UpdateMap(int xDir, int yDir) {
-        //If the enemy can see the player and if the player isn't hiding
-        if (CanSeePlayer(xDir, yDir) && !GameManager.instance.isHiding) { 
-            //AstarCode
-        }
-        else {
-            // We do the exploration AI, which is depth limited search in this implementation
-            // We need to add the nodes for start and goal states
-            Node start = new Node(board[(int)transform.position.x, (int)transform.position.y]);
-            Node goal = new Node(board[(int)target.position.x, (int)target.position.y]);
-            DepthLimitedSearch(start, goal, perception);
-        }
+        // We do the exploration AI, which is depth limited search in this implementation
+        // We need to add the nodes for start and goal states
+        Node start = new Node(board[(int)transform.position.x, (int)transform.position.y]);
+        Node goal = new Node(board[(int)target.position.x, (int)target.position.y]);
+        DepthLimitedSearch(start, goal, perception);    
     }
 
     public bool CanSeePlayer(int xDir, int yDir) {
+        if (GameManager.instance.isHiding) return false;
+
         if (xDir < 0 && target.position.x > transform.position.x) {
             return false;
         }
@@ -236,7 +253,7 @@ public class Enemy : MovingObject {
 
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
         return xDir != 0 ?
-           (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon)) :
+           (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon)):
            (Mathf.Abs(target.position.y - transform.position.y) == (len + float.Epsilon));
     }
 }

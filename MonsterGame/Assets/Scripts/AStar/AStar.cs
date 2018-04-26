@@ -9,12 +9,10 @@ public class AStar : MonoBehaviour {
     private int xTarget;
     private int yTarget;
 
-    private Queue<Vector2> path = new Queue<Vector2>();
+    private Queue<Vector2> path;
 
     private bool IsGoal(Node n) {
-        print(n.aix + " " + n.aiy + " | " + xTarget + " " + yTarget);
         if (n.aix == xTarget && n.aiy == yTarget) return true;
-        //else if (System.Math.Abs(n.aix - xTarget) + System.Math.Abs(n.aiy - yTarget) == 1) return true;
         else return false;
     }
 
@@ -29,7 +27,6 @@ public class AStar : MonoBehaviour {
             return true;
         }
         else if (state[x, y] != 0) {
-            print(x + " " + y + " is not a valid swap because it's " + state[x, y]);
             return false;
         }
         else return true;
@@ -48,8 +45,6 @@ public class AStar : MonoBehaviour {
 
     private int[,] Swap(Node n, int x, int y) {
         int[,] cp = Clone(n.state);
-
-        print("Swaping: " + n + " With: " + x + ", " + y);
 
         int t = cp[x, y];
         cp[x, y] = cp[n.aix, n.aiy];
@@ -80,7 +75,7 @@ public class AStar : MonoBehaviour {
     }
 
     private void SetPath(Node n, Queue<Vector2> path) {
-        if (n == null) return;
+        if (n.parent == null) return;
         SetPath(n.parent, path);
         Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
         path.Enqueue(vec);
@@ -96,15 +91,13 @@ public class AStar : MonoBehaviour {
     }
 
     public Queue<Vector2> DoAStar(int[,] board, int aix, int aiy, int xTarget, int yTarget) {
+        path = new Queue<Vector2>();
         this.xTarget = xTarget; this.yTarget = yTarget;
 
         MinPQ<Node> minPQ = new MinPQ<Node>();
 
         board[xTarget, yTarget] = 5; //initalize the location of the last viewed player
         board[aix, aiy] = 4; //initalize enemy location
-
-        print("Player: " + xTarget + ", " + yTarget);
-        print("Enemy: " + aix + ", " + aiy);
 
         Node root = new Node(board, aix, aiy, null) {
             g = 0, inFrontier = true
@@ -141,7 +134,7 @@ public class AStar : MonoBehaviour {
                 n.h = Heuristic(n);
                 //If the neighbor's state is a new state that hasn't been seen before
                 if (!hashmap.ContainsKey(neighbor)) {
-                    //GameManager.instance.PrintIt<int>(neighbor.board);
+                    n.parent = data;
                     minPQ.Add(n);
                     hashmap[neighbor] = n;
                 }
