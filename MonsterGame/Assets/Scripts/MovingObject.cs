@@ -33,8 +33,8 @@ public abstract class MovingObject : MonoBehaviour {
     }
 
     public void ResetMap() {
-        int col = 2 * GameManager.instance.boardScript.columns + 1;
-        int row = 2 * GameManager.instance.boardScript.rows + 1;
+        int col = 2 * GameManager.instance.boardScript.columns;
+        int row = 2 * GameManager.instance.boardScript.rows;
         for (int i = 0; i < col; i++) {
             for (int j = 0; j < row; j++) {
                 if (map[i,j] != 2) {
@@ -49,7 +49,7 @@ public abstract class MovingObject : MonoBehaviour {
         Vector2 position = transform.position;
         int x = (int)position.x; int y = (int)position.y;
         List<Vector2> neighbors = InitList(x, y);
-        int max = 2 * GameManager.instance.boardScript.columns + 1;
+        int max = 2 * GameManager.instance.boardScript.columns;
         foreach (Vector2 pair in neighbors) {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
