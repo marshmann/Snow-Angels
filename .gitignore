@@ -1,1 +1,22 @@
+<<<<<<< HEAD
 Library/
+=======
+*.dwlt
+
+# OS Stuff
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.BIN/
+Desktop.ini
+*.dll
+
+*.log
+
+*.info
+*Temp*
+MonsterGame/Library/
+>>>>>>> f4e671960ad2d60891166d42ce2546821cd714b8
