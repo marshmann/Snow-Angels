@@ -1,3 +1,6 @@
 
 *.dwlt
 MonsterGame/Library/assetDatabase3
+*.dwlt
+*.info
+*.info
