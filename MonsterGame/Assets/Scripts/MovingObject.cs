@@ -29,6 +29,7 @@ public abstract class MovingObject : MonoBehaviour {
             new Vector2(x + 1, y + 1), new Vector2(x + 1, y),
             new Vector2(x + 1, y - 1), new Vector2(x, y - 1)
         };
+
         return list;
     }
     /*
@@ -57,10 +58,10 @@ public abstract class MovingObject : MonoBehaviour {
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
             else {
                 if (knownBoard[xVal, yVal] != board[xVal, yVal]) {
-                    boolBoard[xVal, yVal] = true;
                     newInfo = true;
                     knownBoard[xVal, yVal] = board[xVal, yVal];
                 }
+                boolBoard[xVal, yVal] = true;
             }
             /*
             if (map[xVal, yVal] == 0) {
