@@ -280,22 +280,22 @@ public class Enemy : MovingObject {
         return new Vector2(-1, -1);
     }
 
+    private void SetPath(Node n, Queue<Vector2> path) {
+        if (n.parent == null) return;
+        SetPath(n.parent, path);
+        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
+        explorePath.Enqueue(vec);
+    }
+
     private void ExplorationAI(int[,] rootBoard, int aix, int aiy) {
         Dictionary<State, Node> hm = new Dictionary<State, Node>();
-    
+
         rootBoard[aix, aiy] = 4;
         Node root = new Node(rootBoard, aix, aiy, null, 0);
         Node max = ModifiedDFS(root, 3, hm);
 
         explorePath = new Queue<Vector2>(); //Empty the original queue
         SetPath(max, explorePath);
-    }
-
-    private void SetPath(Node n, Queue<Vector2> path) {
-        if (n.parent == null) return;
-        SetPath(n.parent, path);
-        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
-        path.Enqueue(vec);
     }
 
     //It will ALWAYS finish it's path, which means we should cut at an early depth
