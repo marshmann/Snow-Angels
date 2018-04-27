@@ -6,8 +6,8 @@
 MonsterGame/Library/assetDatabase3
 
 # Inverse ignore some stuff
-!/Assets/
-!/ProjectSettings/
+!MonsterGame/Assets/
+!MonsterGame/ProjectSettings/
 !.gitignore
 
 # OS Stuff
@@ -28,5 +28,13 @@ Desktop.ini
 *.obj
 *.obj.meta
 *.info
-*.info
-*.info
+
+
+*.dll
+
+*.log
+
+MonsterGame/Library/ScriptMapper
+MonsterGame/MonsterGame.csproj
+MonsterGame/Library/assetDatabase3
+MonsterGame/Library/assetDatabase3
