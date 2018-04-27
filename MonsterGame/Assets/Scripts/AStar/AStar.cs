@@ -5,7 +5,6 @@ using UnityEngine;
 public class AStar : MonoBehaviour {
     private int initAix;
     private int initAiy;
-    private int count = 0;
     private int xTarget;
     private int yTarget;
 

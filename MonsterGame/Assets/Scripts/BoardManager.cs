@@ -152,13 +152,13 @@ public class BoardManager : MonoBehaviour {
         /* The reason this loop is from -1 to columns +1 (same for rows)
          * is because we are building a border around the gameboard for the outerwall 
          */
-        int[,] board = new int[2 * columns, 2 * rows];
+        int[,] board = new int[2 * columns + 1, 2 * rows + 1];
         boardHolder = new GameObject("Board").transform; //initalize the boardHolder
         bool exitPlaced = false;
 
         int col = 2 * columns; int row = 2 * rows;
-        for(int x = -1; x < col + 1; x++) {
-            for(int y = -1; y < row + 1; y++) {
+        for(int x = -1; x < col; x++) {
+            for (int y = -1; y < row; y++) {
                 GameObject chosenTile; //The tile that we will randomly choose to put on the board
 
                 int xVal = x / 2; int yVal = y / 2;
@@ -172,21 +172,21 @@ public class BoardManager : MonoBehaviour {
                  * Then, we cast it to be a GameObject (with "as GameObject")
                  * Finally we set the parent of the instantiated object to be the board
                  */
-                
+
                 //If the tile is on the edge, choose a random outer wall tile
-                if (x == -1 || x == 2 * col || y == -1 || y == row) {
+                if (x == -1 || y == -1) {
                     chosenTile = outerWallTiles[Random.Range(0, outerWallTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                 }
-                else if(!exitPlaced && x >= columns && y >= columns && (grid[xVal, yVal])) {
+                else if (!exitPlaced && x >= columns && y >= columns && (grid[xVal, yVal])) {
                     GameObject instance = Instantiate(exit, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                     exitPlaced = true; //we only set the exit once
 
                     board[x, y] = 3; //indicate that there is an exit
                 }
-                else if (grid[(int)(x/2), (int)(y/2)]) {
+                else if (grid[xVal, yVal]) {
                     //else choose a random floor tile from the floorTile array
                     chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
@@ -220,6 +220,10 @@ public class BoardManager : MonoBehaviour {
         }
     }
 
+    private void AddMissingCorners() {
+
+    }
+
     //Function that is called by the game manager to set up the board
     public void SetupScene(int level) {
         //Generate the maze
@@ -234,7 +238,9 @@ public class BoardManager : MonoBehaviour {
                 if (!grid[i/2, j/2]) {
                     int rand = Random.Range(0, outerWallTiles.Length);
                     GameObject wallChoice = outerWallTiles[rand];
-                    Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
+                    GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
+
+                    instance.transform.SetParent(boardHolder);
 
                     //Below code will make it so the entire board is just floors; good for testing enemy ai
                     //int rand = Random.Range(0, floorTiles.Length);
@@ -248,6 +254,8 @@ public class BoardManager : MonoBehaviour {
                 }
             }
         }
+
+        AddMissingCorners();
 
         InitializeList(); //reset the gridPos list
         GameManager.instance.SetBoard(board);

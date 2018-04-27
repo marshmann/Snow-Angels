@@ -50,11 +50,13 @@ public class Enemy : MovingObject {
         int val = Random.Range(0, direct.Length);
 
         switch (val) {
-            case 0: { lastMoveX = 1; lastMoveY = 0; break; };
-            case 1: { lastMoveX = -1; lastMoveY = 0; break; };
-            case 2: { lastMoveX = 0; lastMoveY = 1; break; };
-            case 3: { lastMoveX = 0; lastMoveY = -1; break; };
+            case 0: { lastMoveX = 1; lastMoveY = 0; break; }
+            case 1: { lastMoveX = -1; lastMoveY = 0; break; }
+            case 2: { lastMoveX = 0; lastMoveY = 1; break; }
+            case 3: { lastMoveX = 0; lastMoveY = -1; break; }
         }
+
+        print(lastMoveX + ", " +lastMoveY);
     }
 
     protected override void AttemptMove<T>(int xDir, int yDir) {
@@ -69,6 +71,14 @@ public class Enemy : MovingObject {
         skipMove = true;
     }
 
+    private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
+        Queue<Vector2> cp = new Queue<Vector2>(v.Count);
+        for(int i = 0; i < v.Count; i++) {
+            cp.Enqueue(v.Dequeue());
+        }
+        return cp;
+    }
+
     public int[,] GetBoard() {
         return board;
     }
@@ -77,6 +87,7 @@ public class Enemy : MovingObject {
         //If we can see the player, We'll do Astar
         //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
         //Also, don't need to worry about newInfo here as it's accounted for
+        bool update = false;
         Vector2 move = new Vector2(0,0); //Initalize the move vector
         if (CanSeePlayer(lastMoveX, lastMoveY)) { 
             int x = (int)target.position.x;
@@ -84,25 +95,39 @@ public class Enemy : MovingObject {
             lastSeenX = x; lastSeenY = y; //Store the last seen location
 
             AStar aStar = gameObject.AddComponent<AStar>();
-            path = aStar.DoAStar(knownBoard, (int)transform.position.x,
-                (int)transform.position.y, x, y);
+            path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
+                (int)transform.position.y, x, y));
+
+            print("Hello1");
+
+            DestroyImmediate(aStar);
+            print(path.Peek());
+            update = true;
         }
-        else if (!CanSeePlayer(lastMoveX, lastMoveY)) {
-            if(path.Count == 0) {
+        else{
+            if (path.Count == 0) {
                 //Call Dave's Code to Explore, should return a Vector2
+                print("Fk");
             }
-            else{ //We are on the path to the last place the player was seen
+            else { //We are on the path to the last place the player was seen
                 if (newInfo) { //We got new information in the maze as we moved, so we rerun AStar
                     AStar aStar = gameObject.AddComponent<AStar>();
-
                     //We don't know the player's current position, so we go to the last place he was seen
-                    path = aStar.DoAStar(knownBoard, (int)transform.position.x,
-                        (int)transform.position.y, lastSeenX, lastSeenY);
+                    path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
+                        (int)transform.position.y, lastSeenX, lastSeenY));
+
+                    print("Hello2");
+                    DestroyImmediate(aStar);
                 }
+                update = true;
             }
         }
+        print(move);
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
-        lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+        if (update) {
+            move = path.Dequeue();
+            lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+        }
         AttemptMove<Player>((int)move.x, (int)move.y);
     }
 
@@ -217,7 +242,6 @@ public class Enemy : MovingObject {
 
     public bool CanSeePlayer(int xDir, int yDir) {
         if (GameManager.instance.isHiding) return false;
-
         if (xDir < 0 && target.position.x > transform.position.x) {
             return false;
         }
@@ -236,7 +260,9 @@ public class Enemy : MovingObject {
         else if (Mathf.Abs(target.position.y - transform.position.y) > (perception + float.Epsilon)) {
             return false;
         }
-        return CanSeePlayer(xDir, yDir, 1);
+        //return CanSeePlayer(xDir, yDir, 1);
+
+        return true;
     }
 
     public bool CanSeePlayer(int xDir, int yDir, int len) {
