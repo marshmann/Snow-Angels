@@ -28,4 +28,15 @@ Desktop.ini
 *.obj
 *.obj.meta
 *.info
-*.info
+
+
+*.dll
+
+*.log
+
+MonsterGame/Library/ScriptMapper
+MonsterGame/MonsterGame.csproj
+MonsterGame/Library/assetDatabase3
+MonsterGame/Library/assetDatabase3
+*.log
+*.dwlt
