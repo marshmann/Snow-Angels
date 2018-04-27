@@ -1,5 +1,4 @@
 *.dwlt
-
 # OS Stuff
 .DS_Store
 ._*
@@ -16,3 +15,8 @@ Desktop.ini
 *.info
 *Temp*
 MonsterGame/Library/
+*.mdb
+*.stamp
+*.dwlt
+MonsterGame/Library/expandedItems
+MonsterGame/Library/assetDatabase3

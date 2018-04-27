@@ -440,39 +440,6 @@ public class Enemy : MovingObject {
                             (int)transform.position.x - yDir == (int)target.position.x) &&
                        ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
                             (int)transform.position.y - xDir == (int)target.position.y);
-            /*
-            if (omitLeft) {
-                if ((yDir < 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
-                    (yDir > 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
-                    (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
-                    (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) {
-                    omitRight = true;
-                    return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
-                                (int)transform.position.x + yDir == (int)target.position.x) &&
-                           ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
-                                (int)transform.position.y + xDir == (int)target.position.y);
-                }
-                else {
-                    if ((yDir > 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
-                        (yDir < 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
-                        (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
-                        (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) 
-                        omitLeft = true;
-                        
-                    else if ((yDir < 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
-                             (yDir > 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
-                             (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
-                             (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) 
-                        omitRight = true;
-                    
-                    return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
-                                (int)transform.position.x - yDir == (int)target.position.x ||
-                                (int)transform.position.x + yDir == (int)target.position.x) &&
-                           ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
-                                (int)transform.position.y - xDir == (int)target.position.y ||
-                                (int)transform.position.y + xDir == (int)target.position.y);
-                }
-            }*/
         }
     }
 }
