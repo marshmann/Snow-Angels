@@ -220,8 +220,17 @@ public class BoardManager : MonoBehaviour {
         }
     }
 
-    private void AddMissingCorners() {
+    private void AddMissingCorners(int row, int col) { 
+        int rand1 = Random.Range(0, outerWallTiles.Length);
+        GameObject wallChoice1 = outerWallTiles[rand1];
+        GameObject instance1 = Instantiate(wallChoice1, new Vector3(-1, row, 0f), Quaternion.identity);
 
+        int rand2 = Random.Range(0, outerWallTiles.Length);
+        GameObject wallChoice2 = outerWallTiles[rand2];
+        GameObject instance2 = Instantiate(wallChoice2, new Vector3(row, -1, 0f), Quaternion.identity);
+
+        instance1.transform.SetParent(boardHolder);
+        instance2.transform.SetParent(boardHolder);
     }
 
     //Function that is called by the game manager to set up the board
@@ -255,7 +264,7 @@ public class BoardManager : MonoBehaviour {
             }
         }
 
-        AddMissingCorners();
+        AddMissingCorners(tworow, twocol);
 
         InitializeList(); //reset the gridPos list
         GameManager.instance.SetBoard(board);
