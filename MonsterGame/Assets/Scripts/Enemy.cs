@@ -203,9 +203,9 @@ public class Enemy : MovingObject {
         bool Cutt_off = false;
         int depth = 0;
         while(Cutt_off == false) {
-            Console.WriteLine("Search Goal at Depth {0}",depth);
+            print("Search Goal at Depth {0} " + depth);
             Depth_Limited_Search(Start, Goal, depth,ref Cutt_off);
-            Console.WriteLine("-----------------------------");
+            print("-----------------------------");
             depth++;
         }     
     }
@@ -217,11 +217,10 @@ public class Enemy : MovingObject {
         Fringe.Push(Start);
         while (Fringe.Count != 0) {
             Node Parent = (Node)Fringe.Pop();
-            Console.WriteLine("Node {0} Visited ", Parent.State);
+            print("Node {0} Visited " + Parent.state);
             // Console.ReadKey();
-            if (Parent.State == Goal.State) {
-                Console.WriteLine();
-                Console.WriteLine("Find Goal   " + Parent.State);
+            if (Parent.state == Goal.state) {
+                print("Find Goal   " + Parent.state);
                 Cut_off = true;
                 break;
             } 
@@ -229,7 +228,7 @@ public class Enemy : MovingObject {
                 continue;
             }
             else {
-                children = x.GetSussessor(Parent.State);
+                children = x.GetSuccessor(Parent.state);
                 for (int i = 0; i < children.Count; i++) {
                     int State = (int)children[i];
                     Node Tem = new Node(State, Parent);
@@ -239,25 +238,6 @@ public class Enemy : MovingObject {
             } 
         } 
     } 
-    
-    // Input: Vector of where the AI is looking
-    public void UpdateMap(int xDir, int yDir) {
-        //If the enemy can see the player and if the player isn't hiding
-        if (CanSeePlayer(xDir, yDir) && !GameManager.instance.isHiding) { 
-            //AstarCode
-        }
-        else {
-            // We do the exploration AI, which is depth limited search in this implementation
-            // We need to add the nodes for start and goal states
-            /* Start and goal nodes need to be changed:
-             * start -> knownBoard
-             * goal -> knownBoard being completely explored
-             */
-            Node start = new Node(board[(int)transform.position.x, (int)transform.position.y]);
-            Node goal = new Node(board[(int)target.position.x, (int)target.position.y]);
-            DepthLimitedSearch(start, goal, perception);
-        }
-    }
 
     public bool CanSeePlayer(int xDir, int yDir) {
         if (GameManager.instance.isHiding) return false;

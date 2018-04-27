@@ -14,12 +14,13 @@ public abstract class MovingObject : MonoBehaviour {
     private BoxCollider2D boxCollider;
     private Rigidbody2D rb2d; //store the component reference of the object we're moving
     private float inverseMoveTime; //makes movement calculations "more efficent"
-    [HideInInspector] public  int[,] knownBoard;
-    [HideInInspector] public  int[,] board;
-    [HideInInspector] public  int[,] map;
-    [HideInInspector] public  int    numUnexplored;
-    [HideInInspector] private int    unexploredRemaining;
-    [HideInInspector] public  bool   newInfo;
+    [HideInInspector] public int[,] knownBoard;
+    [HideInInspector] public int[,] board;
+    [HideInInspector] public int[,] map;
+    [HideInInspector] public int numUnexplored;
+    private int unexploredRemaining;
+    [HideInInspector] public bool newInfo;
+    [HideInInspector] public bool fullyExplored;
 
     private List<Vector2> InitList(int x, int y) {
         List<Vector2> list = new List<Vector2>(8) {
@@ -31,13 +32,13 @@ public abstract class MovingObject : MonoBehaviour {
         return list;
     }
 
-    public void resetMap() {
+    public void ResetMap() {
         int col = 2 * GameManager.instance.boardScript.columns + 1;
         int row = 2 * GameManager.instance.boardScript.rows + 1;
         for (int i = 0; i < col; i++) {
             for (int j = 0; j < row; j++) {
-                if (map[i][j] != 2) {
-                    map[i][j] = 0;
+                if (map[i,j] != 2) {
+                    map[i,j] = 0;
                 }
             }
         }
@@ -61,7 +62,7 @@ public abstract class MovingObject : MonoBehaviour {
                 map[xVal, yVal] = 1;
                 unexploredRemaining--;
                 if(unexploredRemaining == 0) {
-                    resetMap();
+                    ResetMap();
                 }
             }
         }
@@ -76,8 +77,8 @@ public abstract class MovingObject : MonoBehaviour {
         //Computationally, multiplying is more efficient than dividing, storing the inverse allows us to multiply.
         inverseMoveTime = 1f / moveTime;
 
-        int col = 2 * GameManager.instance.boardScript.columns + 1;
-        int row = 2 * GameManager.instance.boardScript.rows + 1;
+        int col = 2 * GameManager.instance.boardScript.columns;
+        int row = 2 * GameManager.instance.boardScript.rows;
         knownBoard = new int[col, row];
         map = new int[col, row];
         board = GameManager.instance.board;
@@ -85,8 +86,8 @@ public abstract class MovingObject : MonoBehaviour {
         numUnexplored = row * col;
         for (int i = 0; i < col; i++) {
             for (int j = 0; j < row; j++) {
-                if (board[i][j] != 0 && board[i][j] != 3) {
-                    map[i][j] = 2;
+                if (board[i,j] != 0 && board[i,j] != 3) {
+                    map[i,j] = 2;
                     numUnexplored--;
                 }
             }
