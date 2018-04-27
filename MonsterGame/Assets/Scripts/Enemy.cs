@@ -25,14 +25,14 @@ public class Enemy : MovingObject {
     private int lastSeenY = 0;
 
     //Randomize these in start
-    private int lastMoveX; 
+    private int lastMoveX;
     private int lastMoveY;
 
     //Testing
     // private int num = 0;
 
     private bool omitRight = false;
-    private bool omitLeft  = false;
+    private bool omitLeft = false;
 
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
@@ -43,7 +43,7 @@ public class Enemy : MovingObject {
 
         path = new Queue<Vector2>();
         explorePath = new Queue<Vector2>();
-        perception = board.GetLength(0)/2;
+        perception = board.GetLength(0) / 2;
 
         SetInitDirection();
     }
@@ -79,7 +79,7 @@ public class Enemy : MovingObject {
 
     private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
         Queue<Vector2> cp = new Queue<Vector2>(v.Count);
-        for(int i = 0; i < v.Count; i++) {
+        for (int i = 0; i < v.Count; i++) {
             cp.Enqueue(v.Dequeue());
         }
         return cp;
@@ -89,8 +89,7 @@ public class Enemy : MovingObject {
         return board;
     }
 
-    public int GetNewlyExploredInt(int[,] newBoard) {
-        int x = (int)transform.position.x; int y = (int)transform.position.y;
+    public int GetNewlyExploredInt(int[,] newBoard, int x, int y) {
         List<Vector2> neighbors = InitList(x, y);
         int max = 2 * GameManager.instance.boardScript.columns;
 
@@ -142,26 +141,26 @@ public class Enemy : MovingObject {
         List<State> neighbors = new List<State>();
         if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
             State child = new State(Swap(n, n.aix - 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
-            print(child.newlyExploredTiles);
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix-1, n.aiy);
+            //print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
             State child = new State(Swap(n, n.aix + 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
-            print(child.newlyExploredTiles);
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix + 1, n.aiy);
+            //print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
             State child = new State(Swap(n, n.aix, n.aiy - 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
-            print(child.newlyExploredTiles);
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy-1);
+            //print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
             State child = new State(Swap(n, n.aix, n.aiy + 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
-            print(child.newlyExploredTiles);
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy + 1);
+            //print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         return neighbors;
@@ -170,10 +169,10 @@ public class Enemy : MovingObject {
     //Function that initializes all unknown spaces to -1 
     private int[,] CreateInitDFSBoard() {
         int size = board.GetLength(0);
-        int[,] tempBoard = new int[size-1, size-1];
+        int[,] tempBoard = new int[size - 1, size - 1];
         print(size);
-        for (int i = 0; i < size-1; i++) {
-            for (int j = 0; j < size-1; j++) {
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - 1; j++) {
                 if (boolBoard[i, j]) {
                     tempBoard[i, j] = knownBoard[i, j];
                 }
@@ -188,8 +187,8 @@ public class Enemy : MovingObject {
         //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
         //Also, don't need to worry about newInfo here as it's accounted for
         bool exploring = false;
-        Vector2 move = new Vector2(0,0); //Initalize the move vector
-        if (CanSeePlayer(lastMoveX, lastMoveY) && 2 > 3) { 
+        Vector2 move = new Vector2(0, 0); //Initalize the move vector
+        if (CanSeePlayer(lastMoveX, lastMoveY) && 2 > 3) {
             int x = (int)target.position.x;
             int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
@@ -231,7 +230,7 @@ public class Enemy : MovingObject {
         if (!exploring) {
             move = path.Dequeue();
         }
-        else if (exploring){
+        else if (exploring) {
             move = explorePath.Dequeue();
         }
         //The enemy should never be standing still now, so if this is 0,0 then something's wrong
@@ -262,7 +261,7 @@ public class Enemy : MovingObject {
         }
 
         public override string ToString() {
-            return aix + ", " + aiy + " | " + exploredTiles; 
+            return aix + ", " + aiy + " | " + exploredTiles;
         }
     }
 
@@ -297,6 +296,7 @@ public class Enemy : MovingObject {
 
     private void SetPath(Node n, Queue<Vector2> explorePath) {
         if (n.parent == null) {
+            print(n);
             print("hey it returned null");
             return;
         }
@@ -320,7 +320,7 @@ public class Enemy : MovingObject {
         Stack<Node> stack = new Stack<Node>();
         Node max = root;
         stack.Push(root);
-        while(stack.Count != 0 && depth != 0) {
+        while (stack.Count != 0 && depth != 0) {
             Node parent = stack.Pop();
             if (parent.exploredTiles > max.exploredTiles) {
                 max = parent;
@@ -365,13 +365,13 @@ public class Enemy : MovingObject {
             (int)transform.position.x == board.GetLength(0) - 1 && xDir == 1 ||
             (int)transform.position.y == 0 && yDir == -1 ||
             (int)transform.position.y == board.GetLength(0) - 1 && yDir == 1) {
-                omitRight = true;
-        } 
+            omitRight = true;
+        }
         else if ((int)transform.position.x == 0 && xDir == 1 ||
                  (int)transform.position.x == board.GetLength(0) - 1 && xDir == -1 ||
                  (int)transform.position.y == 0 && yDir == 1 ||
                  (int)transform.position.y == board.GetLength(0) - 1 && yDir == -1) {
-                    omitLeft = true;
+            omitLeft = true;
         }
         return CanSeePlayer(xDir, yDir, 1);
     }
@@ -386,8 +386,8 @@ public class Enemy : MovingObject {
             return false;
         }
         else if ((int)transform.position.x + (xDir * len) < 0 ||
-                 (int)transform.position.x + (xDir * len) > board.GetLength(0) - 1 || 
-                 (int)transform.position.y + (yDir * len) < 0 || 
+                 (int)transform.position.x + (xDir * len) > board.GetLength(0) - 1 ||
+                 (int)transform.position.y + (yDir * len) < 0 ||
                  (int)transform.position.y + (yDir * len) > board.GetLength(0) - 1) {
             return false;
         }
@@ -395,56 +395,58 @@ public class Enemy : MovingObject {
             return false;
         }
         else {
-            return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len+1);
+            return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len + 1);
         }
     }
-
+   
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
         if (omitRight && omitLeft) {
-            return (int)transform.position.x + (xDir * len) == (int)target.position.x && 
+            return (int)transform.position.x + (xDir * len) == (int)target.position.x &&
                    (int)transform.position.y + (yDir * len) == (int)target.position.y;
         }
         else if (omitRight) {
-            if ((yDir > 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) || 
-                (yDir < 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) || 
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                    omitLeft = true;
-            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
-                        (int)transform.position.x - yDir == (int)target.position.x) && 
-                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
-                        (int)transform.position.y - xDir == (int)target.position.y);
-        }
-        else if (omitLeft) {
-            if ((yDir < 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) ||
-                (yDir > 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                    omitRight = true;
-            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
-                        (int)transform.position.x + yDir == (int)target.position.x) && 
-                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
-                        (int)transform.position.y + xDir == (int)target.position.y);
-        }
-        else {
-            if ((yDir > 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) || 
-                (yDir < 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) || 
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
+            if ((yDir > 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
+                (yDir < 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
+                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
+                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) {
                 omitLeft = true;
+                return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
+                            (int)transform.position.x - yDir == (int)target.position.x) &&
+                       ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
+                            (int)transform.position.y - xDir == (int)target.position.y);
             }
-            else if ((yDir < 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) ||
-                     (yDir > 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) ||
-                     (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                     (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                omitRight = true;
+            else if (omitLeft) {
+                if ((yDir < 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
+                    (yDir > 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
+                    (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
+                    (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) {
+                    omitRight = true;
+                    return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
+                                (int)transform.position.x + yDir == (int)target.position.x) &&
+                           ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
+                                (int)transform.position.y + xDir == (int)target.position.y);
+                }
+                else {
+                    if ((yDir > 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
+                        (yDir < 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
+                        (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
+                        (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) 
+                        omitLeft = true;
+                        
+                    else if ((yDir < 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
+                             (yDir > 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
+                             (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y - 1] == 1) ||
+                             (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y + 1] == 1)) 
+                        omitRight = true;
+                    
+                    return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
+                                (int)transform.position.x - yDir == (int)target.position.x ||
+                                (int)transform.position.x + yDir == (int)target.position.x) &&
+                           ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
+                                (int)transform.position.y - xDir == (int)target.position.y ||
+                                (int)transform.position.y + xDir == (int)target.position.y);
+                }
             }
-            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
-                        (int)transform.position.x - yDir == (int)target.position.x || 
-                        (int)transform.position.x + yDir == (int)target.position.x) && 
-                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
-                        (int)transform.position.y - xDir == (int)target.position.y || 
-                        (int)transform.position.y + xDir == (int)target.position.y);
         }
     }
 }
