@@ -28,6 +28,12 @@ public class Enemy : MovingObject {
     private int lastMoveX; 
     private int lastMoveY;
 
+    //Testing
+    // private int num = 0;
+
+    private bool omitRight = false;
+    private bool omitLeft  = false;
+
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
         animator = GetComponent<Animator>();
@@ -193,6 +199,7 @@ public class Enemy : MovingObject {
                 (int)transform.position.y, x, y));
             print("Regular Astar");
             DestroyImmediate(aStar);
+
             brokeExploring = true;
         }
         else { //enemy can't see player
@@ -334,6 +341,7 @@ public class Enemy : MovingObject {
     }
 
     public bool CanSeePlayer(int xDir, int yDir) {
+        print("We are in the generic CSP method");
         if (GameManager.instance.isHiding) return false;
         if (xDir < 0 && target.position.x > transform.position.x) {
             return false;
@@ -353,26 +361,68 @@ public class Enemy : MovingObject {
         else if (Mathf.Abs(target.position.y - transform.position.y) > (perception + float.Epsilon)) {
             return false;
         }
-        //return CanSeePlayer(xDir, yDir, 1);
-
-        return true;
+        if ((int)transform.position.x == 0 && xDir == -1 ||
+            (int)transform.position.x == board.GetLength(0) - 1 && xDir == 1 ||
+            (int)transform.position.y == 0 && yDir == -1 ||
+            (int)transform.position.y == board.GetLength(0) - 1 && yDir == 1) {
+                omitRight = true;
+        } 
+        else if ((int)transform.position.x == 0 && xDir == 1 ||
+                 (int)transform.position.x == board.GetLength(0) - 1 && xDir == -1 ||
+                 (int)transform.position.y == 0 && yDir == 1 ||
+                 (int)transform.position.y == board.GetLength(0) - 1 && yDir == -1) {
+                    omitLeft = true;
+        }
+        return CanSeePlayer(xDir, yDir, 1);
     }
 
     public bool CanSeePlayer(int xDir, int yDir, int len) {
+        // print("We are in recursive call number " + ++num);
+        // print("xPos, yPos: " + ((int)transform.position.x)) + "  " + ((int)transform.position.y);
+        // print("xDir, yDir: " + xDir + " " + yDir);
+        // print("Len: " + len);
+        // print("xTransform, yTransform: " + ((int)transform.position.x + (xDir * len)) + " " + ((int)transform.position.y + (yDir * len)));
         if (len == perception) {
+            return false;
+        }
+        else if ((int)transform.position.x + (xDir * len) < 0 ||
+                 (int)transform.position.x + (xDir * len) > board.GetLength(0) - 1 || 
+                 (int)transform.position.y + (yDir * len) < 0 || 
+                 (int)transform.position.y + (yDir * len) > board.GetLength(0) - 1) {
             return false;
         }
         else if (board[(int)transform.position.x + (xDir * len), (int)transform.position.y + (yDir * len)] == 1) {
             return false;
         }
         else {
-            return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len++);
+            return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len+1);
         }
     }
 
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
-        return xDir != 0 ?
-           (Mathf.Abs(target.position.x - transform.position.x) == (len + float.Epsilon)):
-           (Mathf.Abs(target.position.y - transform.position.y) == (len + float.Epsilon));
+        if (omitRight && omitLeft) {
+            return (int)transform.position.x + (xDir * len) == (int)target.position.x && 
+                   (int)transform.position.y + (yDir * len) == (int)target.position.y;
+        }
+        else if(omitRight) {
+            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
+                        (int)transform.position.x - yDir == (int)target.position.x) && 
+                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
+                        (int)transform.position.y - xDir == (int)target.position.y);
+        }
+        else if(omitLeft) {
+            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
+                        (int)transform.position.x + yDir == (int)target.position.x) && 
+                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
+                        (int)transform.position.y + 1 == (int)target.position.y);
+        }
+        else {
+            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
+                        (int)transform.position.x - yDir == (int)target.position.x || 
+                        (int)transform.position.x + yDir == (int)target.position.x) && 
+                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
+                        (int)transform.position.y - xDir == (int)target.position.y || 
+                        (int)transform.position.y + xDir == (int)target.position.y);
+        }
     }
 }

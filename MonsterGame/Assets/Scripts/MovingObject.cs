@@ -50,9 +50,14 @@ public abstract class MovingObject : MonoBehaviour {
     public void UpdateGrid() {
         Vector2 position = transform.position;
         int x = (int)position.x; int y = (int)position.y;
+<<<<<<< HEAD
+        List<Vector2> neighbors = InitList(x, y);
+        int max = 2 * GameManager.instance.boardScript.columns;
+=======
         int max = 2 * GameManager.instance.boardScript.columns;
 
         List<Vector2> neighbors = InitList(x,y);
+>>>>>>> feed1e6b664d3bd1245fff52bc5fc8d34243a6d0
         foreach (Vector2 pair in neighbors) {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
