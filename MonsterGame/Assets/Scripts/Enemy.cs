@@ -280,7 +280,7 @@ public class Enemy : MovingObject {
         return new Vector2(-1, -1);
     }
 
-    private void SetPath(Node n, Queue<Vector2> path) {
+    private void SetPath(Node n, Queue<Vector2> explorePath) {
         if (n.parent == null) return;
         SetPath(n.parent, path);
         Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
@@ -289,7 +289,6 @@ public class Enemy : MovingObject {
 
     private void ExplorationAI(int[,] rootBoard, int aix, int aiy) {
         Dictionary<State, Node> hm = new Dictionary<State, Node>();
-
         rootBoard[aix, aiy] = 4;
         Node root = new Node(rootBoard, aix, aiy, null, 0);
         Node max = ModifiedDFS(root, 3, hm);
@@ -308,10 +307,14 @@ public class Enemy : MovingObject {
             if (parent.exploredTiles > max.exploredTiles) {
                 max = parent;
             }
-            foreach(State neighbor in GetNeighbors(parent)) {
-                Vector2 coord = FindAi(neighbor);
-                Node temp = new Node(neighbor.board, (int)coord.x, (int)coord.y, parent, parent.exploredTiles + neighbor.newlyExploredTiles);
-                stack.Push(temp);
+            foreach (State neighbor in GetNeighbors(parent)) {
+                if (!hm.ContainsKey(neighbor)) {
+                    Vector2 coord = FindAi(neighbor);
+                    Node temp = new Node(neighbor.board, (int)coord.x, (int)coord.y, parent, parent.exploredTiles + neighbor.newlyExploredTiles);
+                    stack.Push(temp);
+
+                    hm[neighbor] = temp;
+                }
             }
         }
         return max;
