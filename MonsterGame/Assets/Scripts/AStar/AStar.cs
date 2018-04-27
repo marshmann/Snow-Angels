@@ -1,4 +1,4 @@
-﻿using System;
+﻿//Author: Nicholas Marshman with a good amount of aid from Kevin Bechman
 using System.Collections.Generic;
 using UnityEngine;
 
