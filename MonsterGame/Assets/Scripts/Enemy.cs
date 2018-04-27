@@ -108,7 +108,7 @@ public class Enemy : MovingObject {
         else{
             if (path.Count == 0) {
                 //Call Dave's Code to Explore, should return a Vector2
-                // move = depthLimitedSearch(start, goal, );
+                // we need to figure out how to do the IDDFS now here
                 print("We gotta call Dave's code");
             }
             else { //We are on the path to the last place the player was seen
@@ -199,29 +199,46 @@ public class Enemy : MovingObject {
         }
     }
 
-    public void DepthLimitedSearch(Node start, Node goal, int depthLimit) {
+    public static void Iterative_Deepening_Search(Node Start, Node Goal) {
+        bool Cutt_off = false;
+        int depth = 0;
+        while(Cutt_off == false) {
+            Console.WriteLine("Search Goal at Depth {0}",depth);
+            Depth_Limited_Search(Start, Goal, depth,ref Cutt_off);
+            Console.WriteLine("-----------------------------");
+            depth++;
+        }     
+    }
+
+    public static void Depth_Limited_Search(Node Start, Node Goal, int depth_Limite,ref bool Cut_off) {
         GetSucc x = new GetSucc();
         ArrayList children = new ArrayList();
-        Stack fringe = new Stack();
-        fringe.Push(start);
-        while (fringe.Count != 0) {
-            Node parent = (Node)fringe.Pop();
-            if (parent.state == goal.state) {
+        Stack Fringe = new Stack();
+        Fringe.Push(Start);
+        while (Fringe.Count != 0) {
+            Node Parent = (Node)Fringe.Pop();
+            Console.WriteLine("Node {0} Visited ", Parent.State);
+            // Console.ReadKey();
+            if (Parent.State == Goal.State) {
+                Console.WriteLine();
+                Console.WriteLine("Find Goal   " + Parent.State);
+                Cut_off = true;
                 break;
-            }
-            if (parent.depth == depthLimit) {
+            } 
+            if (Parent.depth == depth_Limite) {
                 continue;
             }
             else {
-                children = x.GetSuccessor(parent.state);
+                children = x.GetSussessor(Parent.State);
                 for (int i = 0; i < children.Count; i++) {
-                    int state = (int)children[i];
-                    Node temp = new Node(state, parent);
-                    fringe.Push(temp);
-                }
-            }
-        }
-    }
+                    int State = (int)children[i];
+                    Node Tem = new Node(State, Parent);
+                    Fringe.Push(Tem);
+
+                } 
+            } 
+        } 
+    } 
     
     // Input: Vector of where the AI is looking
     public void UpdateMap(int xDir, int yDir) {
