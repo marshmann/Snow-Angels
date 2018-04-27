@@ -16,13 +16,13 @@ public abstract class MovingObject : MonoBehaviour {
     private float inverseMoveTime; //makes movement calculations "more efficent"
     [HideInInspector] public int[,] knownBoard;
     [HideInInspector] public int[,] board;
-    [HideInInspector] public int[,] map;
-    [HideInInspector] public int numUnexplored;
-    private int unexploredRemaining;
+    [HideInInspector] public bool[,] boolBoard;
+    //[HideInInspector] public int[,] map;
+    //[HideInInspector] public int numUnexplored;
+    //private int unexploredRemaining;
     [HideInInspector] public bool newInfo;
-    [HideInInspector] public bool fullyExplored;
 
-    private List<Vector2> InitList(int x, int y) {
+    public List<Vector2> InitList(int x, int y) {
         List<Vector2> list = new List<Vector2>(8) {
             new Vector2(x - 1, y - 1), new Vector2(x - 1, y),
             new Vector2(x - 1, y + 1), new Vector2(x, y + 1),
@@ -31,10 +31,10 @@ public abstract class MovingObject : MonoBehaviour {
         };
         return list;
     }
-
+    /*
     public void ResetMap() {
-        int col = 2 * GameManager.instance.boardScript.columns + 1;
-        int row = 2 * GameManager.instance.boardScript.rows + 1;
+        int col = 2 * GameManager.instance.boardScript.columns;
+        int row = 2 * GameManager.instance.boardScript.rows;
         for (int i = 0; i < col; i++) {
             for (int j = 0; j < row; j++) {
                 if (map[i,j] != 2) {
@@ -44,20 +44,25 @@ public abstract class MovingObject : MonoBehaviour {
         }
         unexploredRemaining = numUnexplored - 1;
     }
+    */
 
     public void UpdateGrid() {
         Vector2 position = transform.position;
         int x = (int)position.x; int y = (int)position.y;
-        List<Vector2> neighbors = InitList(x, y);
-        int max = 2 * GameManager.instance.boardScript.columns + 1;
+        int max = 2 * GameManager.instance.boardScript.columns;
+
+        List<Vector2> neighbors = InitList(x,y);
         foreach (Vector2 pair in neighbors) {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
             else {
-                if (knownBoard[xVal, yVal] != board[xVal, yVal])
+                if (knownBoard[xVal, yVal] != board[xVal, yVal]) {
+                    boolBoard[xVal, yVal] = true;
                     newInfo = true;
-                knownBoard[xVal, yVal] = board[xVal, yVal];
+                    knownBoard[xVal, yVal] = board[xVal, yVal];
+                }
             }
+            /*
             if (map[xVal, yVal] == 0) {
                 map[xVal, yVal] = 1;
                 unexploredRemaining--;
@@ -65,8 +70,8 @@ public abstract class MovingObject : MonoBehaviour {
                     ResetMap();
                 }
             }
+            */
         }
-        //GameManager.instance.PrintIt<int>(knownBoard);
     }
 
     //Use this for initialization
@@ -79,9 +84,13 @@ public abstract class MovingObject : MonoBehaviour {
 
         int col = 2 * GameManager.instance.boardScript.columns;
         int row = 2 * GameManager.instance.boardScript.rows;
+
         knownBoard = new int[col, row];
-        map = new int[col, row];
+        boolBoard = new bool[col, row];
+        //map = new int[col, row];
         board = GameManager.instance.board;
+
+        /*
         fullyExplored = false;
         numUnexplored = row * col;
         for (int i = 0; i < col; i++) {
@@ -91,8 +100,7 @@ public abstract class MovingObject : MonoBehaviour {
                     numUnexplored--;
                 }
             }
-        }
-        unexploredRemaining = numUnexplored;
+        }*/
     }
 
     /*

@@ -1,4 +1,4 @@
-﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+﻿//Authors: Nicholas Marshman - using Unity 2D roguelike tutorial as a base (and geeksforgeeks for DFS)
 //In addition: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +19,8 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack2;
 
     private Queue<Vector2> path;
-    private bool onPath = false;
+    private Queue<Vector2> explorePath;
+    private bool brokeExploring = false;
     private int lastSeenX = 0;
     private int lastSeenY = 0;
 
@@ -35,6 +36,7 @@ public class Enemy : MovingObject {
         base.Start();
 
         path = new Queue<Vector2>();
+        explorePath = new Queue<Vector2>();
         perception = board.GetLength(0)/2;
 
         SetInitDirection();
@@ -55,8 +57,6 @@ public class Enemy : MovingObject {
             case 2: { lastMoveX = 0; lastMoveY = 1; break; }
             case 3: { lastMoveX = 0; lastMoveY = -1; break; }
         }
-
-        print(lastMoveX + ", " +lastMoveY);
     }
 
     protected override void AttemptMove<T>(int xDir, int yDir) {
@@ -83,12 +83,101 @@ public class Enemy : MovingObject {
         return board;
     }
 
+    public int GetNewlyExploredInt(int[,] newBoard) {
+        int x = (int)transform.position.x; int y = (int)transform.position.y;
+        List<Vector2> neighbors = InitList(x, y);
+        int max = 2 * GameManager.instance.boardScript.columns;
+
+        int count = 0;
+        foreach (Vector2 pair in neighbors) {
+            int xVal = (int)pair.x; int yVal = (int)pair.y;
+            if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
+            else {
+                if (newBoard[xVal, yVal] != board[xVal, yVal]) {
+                    newBoard[xVal, yVal] = board[xVal, yVal];
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private bool ValidNeighbor(int x, int y, int[,] state) {
+        if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
+            return false;
+        else if (state[x, y] != 0) {
+            return false;
+        }
+        else return true;
+    }
+
+    private int[,] Clone(int[,] board) {
+        int[,] copy = new int[board.GetLength(0), board.GetLength(0)];
+
+        for (int i = 0; i < board.GetLength(0); i++) {
+            for (int j = 0; j < board.GetLength(0); j++) {
+                copy[i, j] = board[i, j];
+            }
+        }
+        return copy;
+    }
+
+    private int[,] Swap(Node n, int x, int y) {
+        int[,] cp = Clone(n.state);
+
+        int t = cp[x, y];
+        cp[x, y] = cp[n.aix, n.aiy];
+        cp[n.aix, n.aiy] = t;
+
+        return cp;
+    }
+
+    private List<State> GetNeighbors(Node n) {
+        List<State> neighbors = new List<State>();
+        if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
+            State child = new State(Swap(n, n.aix - 1, n.aiy));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
+            State child = new State(Swap(n, n.aix + 1, n.aiy));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
+            State child = new State(Swap(n, n.aix, n.aiy - 1));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
+            State child = new State(Swap(n, n.aix, n.aiy + 1));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            neighbors.Add(child);
+        }
+        return neighbors;
+    }
+
+    //Function that initializes all unknown spaces to -1 
+    private int[,] CreateInitDFSBoard() {
+        int size = board.GetLength(0);
+        int[,] tempBoard = new int[size, size];
+        print(size);
+        for (int i = 0; i < size-1; i++) {
+            for (int j = 0; j < size-1; j++) {
+                if (boolBoard[i, j]) {
+                    tempBoard[i, j] = knownBoard[i, j];
+                }
+                else tempBoard[i, j] = -1;
+            }
+        }
+        return tempBoard;
+    }
+
     public void MoveEnemy() {
         //If we can see the player, We'll do Astar
         //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
         //Also, don't need to worry about newInfo here as it's accounted for
-        bool update = false;
-        Node start, goal;
+        bool exploring = false;
         Vector2 move = new Vector2(0,0); //Initalize the move vector
         if (CanSeePlayer(lastMoveX, lastMoveY)) { 
             int x = (int)target.position.x;
@@ -98,18 +187,20 @@ public class Enemy : MovingObject {
             AStar aStar = gameObject.AddComponent<AStar>();
             path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, x, y));
-
-            print("Hello1");
-
+            print("Regular Astar");
             DestroyImmediate(aStar);
-            print(path.Peek());
-            update = true;
+            brokeExploring = true;
         }
-        else{
-            if (path.Count == 0) {
-                //Call Dave's Code to Explore, should return a Vector2
-                // we need to figure out how to do the IDDFS now here
-                print("We gotta call Dave's code");
+        else { //enemy can't see player
+            // haven't seen player, and there is no current explore path or we recently stopped chasing
+            if (path.Count == 0 && (explorePath.Count == 0 || brokeExploring)) {
+                exploring = true;
+                print("Creating Explore Path");
+                ExplorationAI(CreateInitDFSBoard(), (int)transform.position.x, (int)transform.position.y);
+            }
+            // haven't seen player, and there is a current path we are exploring AND we haven't stopped to chase a player yet
+            else if (path.Count == 0 && explorePath.Count != 0 && !brokeExploring) {
+                exploring = true;
             }
             else { //We are on the path to the last place the player was seen
                 if (newInfo) { //We got new information in the maze as we moved, so we rerun AStar
@@ -118,18 +209,22 @@ public class Enemy : MovingObject {
                     path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, lastSeenX, lastSeenY));
 
-                    print("Hello2");
+                    print("AStar with new Info");
                     DestroyImmediate(aStar);
+                    brokeExploring = true;
                 }
-                update = true;
+                //Else if we got no new information and we are still on the path to the player
             }
         }
-        print(move);
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
-        if (update) {
+        if (!exploring) {
             move = path.Dequeue();
-            lastMoveX = (int)move.x; lastMoveY = (int)move.y;
         }
+        else if (exploring){
+            move = explorePath.Dequeue();
+        }
+        //The enemy should never be standing still now, so if this is 0,0 then something's wrong
+        lastMoveX = (int)move.x; lastMoveY = (int)move.y;
         AttemptMove<Player>((int)move.x, (int)move.y);
     }
 
@@ -140,104 +235,87 @@ public class Enemy : MovingObject {
         hitPlayer.LoseALife(playerDamage); //hit the player
     }
 
-    // ref: codeproject.com/Articles/203828/AI-Simple-Implementation-of-Uninformed-Search-Stra
     public class Node {
-        public int depth;
-        public int state;
-        public int cost;
         public Node parent;
+        public int[,] state;
+        public int aix;
+        public int aiy;
+        public int exploredTiles;
 
-        // Parent node which has depth: 0 and parent: null
-        public Node(int state) {
+        public Node(int[,] state, int aix, int aiy, Node parent, int exploredTiles) {
             this.state = state;
-            parent = null;
-            cost = 0;
-        }
-
-        public Node(int state, Node parent) {
-            this.state = state;
+            this.aix = aix;
+            this.aiy = aiy;
             this.parent = parent;
-            depth = (parent == null) ? 0 : parent.depth + 1;
-        }
-
-        public Node(int state, Node parent, int cost) {
-            this.state = state;
-            this.parent = parent;
-            this.cost = cost;
-            depth = (parent == null) ? 0 : parent.depth + 1;
-        }
-
-        //Before making edits, the node class DID NOT END HERE.
-        //This is a big deal, so make sure it's correct.
-    }
-
-    public class GetSucc {
-        public ArrayList GetSuccessor(int state) {
-            ArrayList result = new ArrayList {
-                2 * state + 1,
-                2 * state + 2
-            };
-            return result;
-        }
-
-        public ArrayList GetSuccessor(int state, Node parent) {
-            ArrayList result = new ArrayList();
-            Test t = new Test();
-            // Currently, the cost function for the nodes is random
-            result.Add(new Node(2 * state + 1, parent, Random.Range(1, 100) + parent.cost));
-            result.Add(new Node(2 * state + 2, parent, Random.Range(1, 100) + parent.cost));
-            result.Sort(t);
-            return result;
+            this.exploredTiles = exploredTiles;
         }
     }
 
-    public class Test : IComparer {
-        public int Compare(object x, object y) {
-            int val1 = ((Node)x).cost;
-            int val2 = ((Node)y).cost;
-            return val1 <= val2 ? 1 : 0;
+    public class State {
+        public int[,] board;
+        public int newlyExploredTiles;
+
+        public State(int[,] board) {
+            this.board = board;
         }
-    }
 
-    public static void Iterative_Deepening_Search(Node Start, Node Goal) {
-        bool Cutt_off = false;
-        int depth = 0;
-        while(Cutt_off == false) {
-            print("Search Goal at Depth {0} " + depth);
-            Depth_Limited_Search(Start, Goal, depth,ref Cutt_off);
-            print("-----------------------------");
-            depth++;
-        }     
-    }
+        public override int GetHashCode() {
+            int hash = 0;
 
-    public static void Depth_Limited_Search(Node Start, Node Goal, int depth_Limite,ref bool Cut_off) {
-        GetSucc x = new GetSucc();
-        ArrayList children = new ArrayList();
-        Stack Fringe = new Stack();
-        Fringe.Push(Start);
-        while (Fringe.Count != 0) {
-            Node Parent = (Node)Fringe.Pop();
-            print("Node {0} Visited " + Parent.state);
-            // Console.ReadKey();
-            if (Parent.state == Goal.state) {
-                print("Find Goal   " + Parent.state);
-                Cut_off = true;
-                break;
-            } 
-            if (Parent.depth == depth_Limite) {
-                continue;
+            for (int i = 0; i < board.GetLength(0); i++) {
+                for (int j = 0; j < board.GetLength(0); j++) {
+                    hash = hash * 31 + board[i, j];
+                }
             }
-            else {
-                children = x.GetSuccessor(Parent.state);
-                for (int i = 0; i < children.Count; i++) {
-                    int State = (int)children[i];
-                    Node Tem = new Node(State, Parent);
-                    Fringe.Push(Tem);
+            return hash;
+        }
+    }
 
-                } 
-            } 
-        } 
-    } 
+    private Vector2 FindAi(State state) {
+        for (int i = 0; i < state.board.GetLength(0); i++) {
+            for (int j = 0; j < state.board.GetLength(0); j++) {
+                if (state.board[i, j] == 4) return new Vector2(i, j);
+            }
+        }
+        return new Vector2(-1, -1);
+    }
+
+    private void ExplorationAI(int[,] rootBoard, int aix, int aiy) {
+        Dictionary<State, Node> hm = new Dictionary<State, Node>();
+    
+        rootBoard[aix, aiy] = 4;
+        Node root = new Node(rootBoard, aix, aiy, null, 0);
+        Node max = ModifiedDFS(root, 3, hm);
+
+        explorePath = new Queue<Vector2>(); //Empty the original queue
+        SetPath(max, explorePath);
+    }
+
+    private void SetPath(Node n, Queue<Vector2> path) {
+        if (n.parent == null) return;
+        SetPath(n.parent, path);
+        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
+        path.Enqueue(vec);
+    }
+
+    //It will ALWAYS finish it's path, which means we should cut at an early depth
+    private Node ModifiedDFS(Node root, int depth, Dictionary<State, Node> hm) {
+        Stack<Node> stack = new Stack<Node>();
+        Node max = root;
+        stack.Push(root);
+        while(stack.Count != 0) {
+            Node parent = stack.Pop();
+            if (parent.exploredTiles > max.exploredTiles) {
+                max = parent;
+            }
+            foreach(State neighbor in GetNeighbors(parent)) {
+                Vector2 coord = FindAi(neighbor);
+                Node temp = new Node(neighbor.board, (int)coord.x, (int)coord.y, parent, parent.exploredTiles + neighbor.newlyExploredTiles);
+                stack.Push(temp);
+            }
+        }
+        return max;
+    }
 
     public bool CanSeePlayer(int xDir, int yDir) {
         if (GameManager.instance.isHiding) return false;
