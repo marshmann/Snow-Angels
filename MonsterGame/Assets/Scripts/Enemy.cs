@@ -188,7 +188,7 @@ public class Enemy : MovingObject {
         //Also, don't need to worry about newInfo here as it's accounted for
         bool exploring = false;
         Vector2 move = new Vector2(0, 0); //Initalize the move vector
-        if (CanSeePlayer(lastMoveX, lastMoveY) && 2 > 3) {
+        if (2 > 3 && CanSeePlayer(lastMoveX, lastMoveY)) {
             int x = (int)target.position.x;
             int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
@@ -203,6 +203,9 @@ public class Enemy : MovingObject {
         }
         else { //enemy can't see player
             // haven't seen player, and there is no current explore path or we recently stopped chasing
+
+            print(path.Count + " " + explorePath.Count);
+
             if (path.Count == 0 && (explorePath.Count == 0 || brokeExploring)) {
                 exploring = true;
                 print("Creating Explore Path");
@@ -213,7 +216,7 @@ public class Enemy : MovingObject {
                 exploring = true;
             }
             else { //We are on the path to the last place the player was seen
-                if (newInfo) { //We got new information in the maze as we moved, so we rerun AStar
+                if (2>3 && newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
                     AStar aStar = gameObject.AddComponent<AStar>();
                     //We don't know the player's current position, so we go to the last place he was seen
                     path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
@@ -438,6 +441,7 @@ public class Enemy : MovingObject {
                             (int)transform.position.x - yDir == (int)target.position.x) &&
                        ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
                             (int)transform.position.y - xDir == (int)target.position.y);
+            /*
             if (omitLeft) {
                 if ((yDir < 0 && board[(int)transform.position.x - 1, (int)transform.position.y] == 1) ||
                     (yDir > 0 && board[(int)transform.position.x + 1, (int)transform.position.y] == 1) ||
@@ -469,7 +473,7 @@ public class Enemy : MovingObject {
                                 (int)transform.position.y - xDir == (int)target.position.y ||
                                 (int)transform.position.y + xDir == (int)target.position.y);
                 }
-            }
+            }*/
         }
     }
 }

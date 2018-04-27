@@ -11,18 +11,8 @@ ehthumbs.db
 Thumbs.db
 .BIN/
 Desktop.ini
-
-# Ridiculous sized data files
-*.off
-*.off.meta
-*.ply
-*.ply.meta
-*.obj
-*.obj.meta
-*.info
-
-
 *.dll
 
 *.log
 
+*Temp*
