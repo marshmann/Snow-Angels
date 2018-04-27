@@ -401,8 +401,7 @@ public class Enemy : MovingObject {
 
     public bool IsThePlayerHere(int xDir, int yDir, int len) {
         if (omitRight && omitLeft) {
-            return (int)transform.position.x + (xDir * len) == (int)target.position.x && 
-                   (int)transform.position.y + (yDir * len) == (int)target.position.y;
+            return (int)transform.position.x + (xDir * len) == (int)target.position.x && (int)transform.position.y + (yDir * len) == (int)target.position.y;
         }
         else if (omitRight) {
             if ((yDir > 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) || 
@@ -410,6 +409,7 @@ public class Enemy : MovingObject {
                 (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
                 (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
                     omitLeft = true;
+            }
             return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
                         (int)transform.position.x - yDir == (int)target.position.x) && 
                    ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
@@ -421,6 +421,7 @@ public class Enemy : MovingObject {
                 (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
                 (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
                     omitRight = true;
+            }
             return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
                         (int)transform.position.x + yDir == (int)target.position.x) && 
                    ((int)transform.position.y + (yDir * len) == (int)target.position.y || 

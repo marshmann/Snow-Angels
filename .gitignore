@@ -1,3 +1,29 @@
+# Ignore everything
+/*
+/*/
 
 *.dwlt
 MonsterGame/Library/assetDatabase3
+
+# Inverse ignore some stuff
+!/Assets/
+!/ProjectSettings/
+!.gitignore
+
+# OS Stuff
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.BIN/
+Desktop.ini
+
+# Ridiculous sized data files
+*.off
+*.off.meta
+*.ply
+*.ply.meta
+*.obj
+*.obj.meta
