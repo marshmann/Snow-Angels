@@ -99,7 +99,7 @@ public class Enemy : MovingObject {
             int xVal = (int)pair.x; int yVal = (int)pair.y;
             if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
             else {
-                if (newBoard[xVal, yVal] != board[xVal, yVal]) {
+                if ((newBoard[xVal, yVal] != board[xVal, yVal]) && newBoard[xVal, yVal] != 4) {
                     newBoard[xVal, yVal] = board[xVal, yVal];
                     count++;
                 }
@@ -143,21 +143,25 @@ public class Enemy : MovingObject {
         if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
             State child = new State(Swap(n, n.aix - 1, n.aiy));
             child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
             State child = new State(Swap(n, n.aix + 1, n.aiy));
             child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
             State child = new State(Swap(n, n.aix, n.aiy - 1));
             child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
             State child = new State(Swap(n, n.aix, n.aiy + 1));
             child.newlyExploredTiles = GetNewlyExploredInt(child.board);
+            print(child.newlyExploredTiles);
             neighbors.Add(child);
         }
         return neighbors;
@@ -166,7 +170,7 @@ public class Enemy : MovingObject {
     //Function that initializes all unknown spaces to -1 
     private int[,] CreateInitDFSBoard() {
         int size = board.GetLength(0);
-        int[,] tempBoard = new int[size, size];
+        int[,] tempBoard = new int[size-1, size-1];
         print(size);
         for (int i = 0; i < size-1; i++) {
             for (int j = 0; j < size-1; j++) {
@@ -185,7 +189,7 @@ public class Enemy : MovingObject {
         //Also, don't need to worry about newInfo here as it's accounted for
         bool exploring = false;
         Vector2 move = new Vector2(0,0); //Initalize the move vector
-        if (CanSeePlayer(lastMoveX, lastMoveY)) { 
+        if (CanSeePlayer(lastMoveX, lastMoveY) && 2 > 3) { 
             int x = (int)target.position.x;
             int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
@@ -256,6 +260,10 @@ public class Enemy : MovingObject {
             this.parent = parent;
             this.exploredTiles = exploredTiles;
         }
+
+        public override string ToString() {
+            return aix + ", " + aiy + " | " + exploredTiles; 
+        }
     }
 
     public class State {
@@ -288,7 +296,10 @@ public class Enemy : MovingObject {
     }
 
     private void SetPath(Node n, Queue<Vector2> explorePath) {
-        if (n.parent == null) return;
+        if (n.parent == null) {
+            print("hey it returned null");
+            return;
+        }
         SetPath(n.parent, path);
         Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
         explorePath.Enqueue(vec);
@@ -309,7 +320,7 @@ public class Enemy : MovingObject {
         Stack<Node> stack = new Stack<Node>();
         Node max = root;
         stack.Push(root);
-        while(stack.Count != 0) {
+        while(stack.Count != 0 && depth != 0) {
             Node parent = stack.Pop();
             if (parent.exploredTiles > max.exploredTiles) {
                 max = parent;
@@ -317,13 +328,15 @@ public class Enemy : MovingObject {
             foreach (State neighbor in GetNeighbors(parent)) {
                 if (!hm.ContainsKey(neighbor)) {
                     Vector2 coord = FindAi(neighbor);
+                    if ((int)coord.x == -1) print("Error: enemy returned coord: " + coord);
                     Node temp = new Node(neighbor.board, (int)coord.x, (int)coord.y, parent, parent.exploredTiles + neighbor.newlyExploredTiles);
                     stack.Push(temp);
-
                     hm[neighbor] = temp;
                 }
             }
+            depth -= 1;
         }
+        print(max + " || " + root);
         return max;
     }
 
