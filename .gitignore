@@ -6,8 +6,8 @@
 MonsterGame/Library/assetDatabase3
 
 # Inverse ignore some stuff
-!/Assets/
-!/ProjectSettings/
+!MonsterGame/Assets/
+!MonsterGame/ProjectSettings/
 !.gitignore
 
 # OS Stuff
