@@ -76,12 +76,10 @@ public class BoardManager : MonoBehaviour {
         }
 
         //Depth first search maze generator
-        void CreateMaze(int x, int y) {
-            
+        void CreateMaze(int x, int y) {            
             //Create a direction array in one of four directions and shuffle it
             int[] directions = new int[] { 1, 2, 3, 4 };
             Tools.Shuffle(directions, random); //shuffle the directions
-
             //Loop through every direction and create 2 cells that aren't going to be walls 
             for (int i = 0; i < directions.Length; i++) {
                 if (directions[i] == 1) {

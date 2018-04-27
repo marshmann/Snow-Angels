@@ -167,7 +167,7 @@ public class Enemy : MovingObject {
     private int[,] CreateInitDFSBoard() {
         int size = board.GetLength(0);
         int[,] tempBoard = new int[size - 1, size - 1];
-        print(size);
+        //print(size);
         for (int i = 0; i < size - 1; i++) {
             for (int j = 0; j < size - 1; j++) {
                 if (boolBoard[i, j]) {
@@ -200,7 +200,7 @@ public class Enemy : MovingObject {
 
         DestroyImmediate(aStar);
 
-        print("Ai is going to " + chosenTile + " from " + transform.position.x + ", " + transform.position.y);
+        //print("Ai is going to " + chosenTile + " from " + transform.position.x + ", " + transform.position.y);
     }
 
     public void MoveEnemy() {
@@ -216,7 +216,7 @@ public class Enemy : MovingObject {
             AStar aStar = gameObject.AddComponent<AStar>();
             path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, x, y));
-            print("We can see the player. Running Regular Astar");
+            //print("We can see the player. Running Regular Astar");
             DestroyImmediate(aStar);
             brokeExploring = true;
         }
@@ -234,7 +234,7 @@ public class Enemy : MovingObject {
                     explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, rwx, rwy));
                     DestroyImmediate(aStar);
-                    print("Recalculating RW");
+                    //print("Recalculating RW");
                 }
                 exploring = true;
             }
@@ -244,7 +244,7 @@ public class Enemy : MovingObject {
                     //We don't know the player's current position, so we go to the last place he was seen
                     path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, lastSeenX, lastSeenY));
-                    print("AStar with new Info");
+                    //sprint("AStar with new Info");
                     DestroyImmediate(aStar);
                     brokeExploring = true;
                 }
@@ -367,7 +367,7 @@ public class Enemy : MovingObject {
             }
             depth -= 1;
         }
-        print("ModifiedDFS returned max: " + max + " root: " + root);
+        //print("ModifiedDFS returned max: " + max + " root: " + root);
         return max;
     }
 
