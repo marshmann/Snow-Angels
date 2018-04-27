@@ -1,6 +1,5 @@
 ﻿//Authors: Nicholas Marshman - using Unity 2D roguelike tutorial as a base (and geeksforgeeks for DFS)
 //In addition: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -188,7 +187,7 @@ public class Enemy : MovingObject {
         //Also, don't need to worry about newInfo here as it's accounted for
         bool exploring = false;
         Vector2 move = new Vector2(0, 0); //Initalize the move vector
-        if (2 > 3 && CanSeePlayer(lastMoveX, lastMoveY)) {
+        if (CanSeePlayer(lastMoveX, lastMoveY)) {
             int x = (int)target.position.x;
             int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
@@ -216,7 +215,7 @@ public class Enemy : MovingObject {
                 exploring = true;
             }
             else { //We are on the path to the last place the player was seen
-                if (2>3 && newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
+                if (newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
                     AStar aStar = gameObject.AddComponent<AStar>();
                     //We don't know the player's current position, so we go to the last place he was seen
                     path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
