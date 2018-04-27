@@ -88,6 +88,7 @@ public class Enemy : MovingObject {
         //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
         //Also, don't need to worry about newInfo here as it's accounted for
         bool update = false;
+        Node start, goal;
         Vector2 move = new Vector2(0,0); //Initalize the move vector
         if (CanSeePlayer(lastMoveX, lastMoveY)) { 
             int x = (int)target.position.x;
@@ -107,7 +108,8 @@ public class Enemy : MovingObject {
         else{
             if (path.Count == 0) {
                 //Call Dave's Code to Explore, should return a Vector2
-                print("Fk");
+                // move = depthLimitedSearch(start, goal, );
+                print("We gotta call Dave's code");
             }
             else { //We are on the path to the last place the player was seen
                 if (newInfo) { //We got new information in the maze as we moved, so we rerun AStar
