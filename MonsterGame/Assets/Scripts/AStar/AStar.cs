@@ -1,5 +1,4 @@
-﻿//Author: Nicholas Marshman with a good amount of aid from Kevin Bechman
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class AStar : MonoBehaviour {
@@ -20,9 +19,9 @@ public class AStar : MonoBehaviour {
     }
 
     private bool ValidNeighbor(int x, int y, int[,] state) {
-        if ( x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
+        if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
             return false;
-        else if(state[x,y] == 5) {
+        else if (state[x, y] == 5) {
             return true;
         }
         else if (state[x, y] != 0) {
@@ -34,8 +33,8 @@ public class AStar : MonoBehaviour {
     private int[,] Clone(int[,] board) {
         int[,] copy = new int[board.GetLength(0), board.GetLength(0)];
 
-        for(int i = 0; i < board.GetLength(0); i++) {
-            for(int j = 0; j < board.GetLength(0); j++) {
+        for (int i = 0; i < board.GetLength(0); i++) {
+            for (int j = 0; j < board.GetLength(0); j++) {
                 copy[i, j] = board[i, j];
             }
         }
@@ -54,7 +53,7 @@ public class AStar : MonoBehaviour {
 
     private List<State> GetNeighbors(Node n) {
         List<State> neighbors = new List<State>();
-        if(ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
+        if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
             State child = new State(Swap(n, n.aix - 1, n.aiy));
             neighbors.Add(child);
         }
@@ -76,14 +75,14 @@ public class AStar : MonoBehaviour {
     private void SetPath(Node n, Queue<Vector2> path) {
         if (n.parent == null) return;
         SetPath(n.parent, path);
-        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.parent.aiy - n.aiy);
+        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
         path.Enqueue(vec);
     }
 
     private Vector2 FindAi(State state) {
-        for(int i = 0; i < state.board.GetLength(0); i++) {
-            for( int j = 0; j < state.board.GetLength(0); j++) {
-                if (state.board[i, j] == 4) return new Vector2(i,j);
+        for (int i = 0; i < state.board.GetLength(0); i++) {
+            for (int j = 0; j < state.board.GetLength(0); j++) {
+                if (state.board[i, j] == 4) return new Vector2(i, j);
             }
         }
         return new Vector2(-1, -1);
@@ -99,7 +98,8 @@ public class AStar : MonoBehaviour {
         board[aix, aiy] = 4; //initalize enemy location
 
         Node root = new Node(board, aix, aiy, null) {
-            g = 0, inFrontier = true
+            g = 0,
+            inFrontier = true
         };
 
         root.h = Heuristic(root);
@@ -118,16 +118,17 @@ public class AStar : MonoBehaviour {
                 return path;
             }
 
-            foreach(State neighbor in GetNeighbors(data)){
+            foreach (State neighbor in GetNeighbors(data)) {
                 Vector2 coord = FindAi(neighbor);
                 if ((int)coord.x == -1) { //Error in finding ai on board
                     print("Error: enemy returned coord: " + coord);
                     GameManager.instance.PrintIt<int>(neighbor.board);
                     return null;
-                } 
+                }
 
                 Node n = new Node(neighbor.board, (int)coord.x, (int)coord.y, data) {
-                    g = data.g + 1, inFrontier = true
+                    g = data.g + 1,
+                    inFrontier = true
                 };
 
                 n.h = Heuristic(n);
@@ -141,7 +142,7 @@ public class AStar : MonoBehaviour {
                 else if (hashmap.ContainsKey(neighbor)) {
                     Node old = hashmap[neighbor];
                     //if old node is in the frontier and the new node has a lower f value
-                    if(old.inFrontier && ((old.g+old.h) > (n.h + n.g))) {
+                    if (old.inFrontier && ((old.g + old.h) > (n.h + n.g))) {
                         //Update old's values
                         old.g = n.g;
                         old.h = n.h;
