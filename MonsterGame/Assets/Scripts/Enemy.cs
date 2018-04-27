@@ -19,9 +19,9 @@ public class Enemy : MovingObject {
 
     private Queue<Vector2> path;
     private Queue<Vector2> explorePath;
-    private bool brokeExploring = false;
-    private int lastSeenX = 0;
-    private int lastSeenY = 0;
+    // private bool brokeExploring = false;
+    // private int lastSeenX = 0;
+    // private int lastSeenY = 0;
 
     //Randomize these in start
     private int lastMoveX;
@@ -33,6 +33,10 @@ public class Enemy : MovingObject {
     private bool omitRight = false;
     private bool omitLeft = false;
 
+    // private bool exploring = false;
+    private bool sawPlayer = false;
+    AStar aStar;
+
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
         animator = GetComponent<Animator>();
@@ -43,6 +47,8 @@ public class Enemy : MovingObject {
         path = new Queue<Vector2>();
         explorePath = new Queue<Vector2>();
         perception = board.GetLength(0) / 2;
+
+        aStar = gameObject.AddComponent<AStar>();
 
         SetInitDirection();
     }
@@ -181,64 +187,117 @@ public class Enemy : MovingObject {
         return tempBoard;
     }
 
+    // 1, 0  -> right
+    // 0, 1  -> up
+    // -1, 0 -> left
+    // 0, -1 -> down
+
     public void MoveEnemy() {
-        //If we can see the player, We'll do Astar
-        //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
-        //Also, don't need to worry about newInfo here as it's accounted for
-        bool exploring = false;
-        Vector2 move = new Vector2(0, 0); //Initalize the move vector
+        Vector2 move = new Vector2(0, 0);
+        // Check to see if we can see the player
         if (CanSeePlayer(lastMoveX, lastMoveY)) {
-            int x = (int)target.position.x;
-            int y = (int)target.position.y;
-            lastSeenX = x; lastSeenY = y; //Store the last seen location
-
-            AStar aStar = gameObject.AddComponent<AStar>();
-            path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-                (int)transform.position.y, x, y));
-            print("Regular Astar");
-            DestroyImmediate(aStar);
-
-            brokeExploring = true;
+            // If we can, we are going to run our A* code to get to their location
+            sawPlayer = true; 
+            int x = (int)target.position.x, y = (int)target.position.y;
+            // lastSeenX = x = (int)target.position.x;
+            // lastSeenY = y = (int)target.position.y;
+            // If we have seen him before, we already have an object and just have to update it
+            path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x, (int)transform.position.y, x, y));
         }
-        else { //enemy can't see player
-            // haven't seen player, and there is no current explore path or we recently stopped chasing
-
-            print(path.Count + " " + explorePath.Count);
-
-            if (path.Count == 0 && (explorePath.Count == 0 || brokeExploring)) {
-                exploring = true;
-                print("Creating Explore Path");
-                ExplorationAI(CreateInitDFSBoard(), (int)transform.position.x, (int)transform.position.y);
-            }
-            // haven't seen player, and there is a current path we are exploring AND we haven't stopped to chase a player yet
-            else if (path.Count == 0 && explorePath.Count != 0 && !brokeExploring) {
-                exploring = true;
-            }
-            else { //We are on the path to the last place the player was seen
-                if (newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
-                    AStar aStar = gameObject.AddComponent<AStar>();
-                    //We don't know the player's current position, so we go to the last place he was seen
-                    path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-                        (int)transform.position.y, lastSeenX, lastSeenY));
-
-                    print("AStar with new Info");
-                    DestroyImmediate(aStar);
-                    brokeExploring = true;
-                }
-                //Else if we got no new information and we are still on the path to the player
-            }
-        }
-        newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
-        if (!exploring) {
+        if (sawPlayer) {
+            // If we have seen the player, we want to figure out where we need to move
             move = path.Dequeue();
+            // And we want to make sure that we aren't out of nodes
+            if (path.Count == 0) {
+                sawPlayer = false;
+            }
+            // And we are going to update how we are going to move
+            lastMoveX = (int)move.x; lastMoveY = (int)move.y;
         }
-        else if (exploring) {
-            move = explorePath.Dequeue();
+        else {
+            // We cannot see the player or haven't seen it recently. 
+            // If we are not chasing, we will check to see if our random walk is out of nodes
+            if (explorePath.Count == 0) {
+                // We will reset our exploration path if we are out of nodes
+                ExplorationAI(CreateInitDFSBoard(), (int)transform.position.x, (int)transform.position.y);
+                // And we will go to the first location that we have, updating our movements
+                lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+            }
+            // Else, we have at least node on our explorePath and we can just go there
+            else {
+                move = explorePath.Dequeue();
+                // And we update our variables to match our movements
+                lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+            }
         }
-        //The enemy should never be standing still now, so if this is 0,0 then something's wrong
-        lastMoveX = (int)move.x; lastMoveY = (int)move.y;
-        AttemptMove<Player>((int)move.x, (int)move.y);
+        // In every case, we are going to move to whichever location is currently stored in our last moved
+        print("I'm attempting to move at: " + lastMoveX + ", " + lastMoveY);
+        AttemptMove<Player>(lastMoveX, lastMoveY);
     }
+
+    // public void MoveEnemy() {
+    //     //If we can see the player, We'll do Astar
+    //     //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
+    //     //Also, don't need to worry about newInfo here as it's accounted for
+    //     Vector2 move = new Vector2(0, 0); //Initalize the move vector
+    //     if (CanSeePlayer(lastMoveX, lastMoveY)) {
+    //         int x = (int)target.position.x;
+    //         int y = (int)target.position.y;
+    //         lastSeenX = x; lastSeenY = y; //Store the last seen location
+
+    //         AStar aStar = gameObject.AddComponent<AStar>();
+    //         path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
+    //             (int)transform.position.y, x, y));
+    //         print("We can see the player. Running Regular Astar");
+    //         DestroyImmediate(aStar);
+
+    //         brokeExploring = true;
+    //     }
+    //     else { //enemy can't see player
+    //         // haven't seen player, and there is no current explore path or we recently stopped chasing
+
+    //         print(path.Count + " " + explorePath.Count);
+
+    //         if (path.Count == 0 && (explorePath.Count == 0 || brokeExploring)) {
+    //             exploring = true;
+    //             print("We can not see the player. Creating Explore Path");
+    //             ExplorationAI(CreateInitDFSBoard(), (int)transform.position.x, (int)transform.position.y);
+    //         }
+    //         // haven't seen player, and there is a current path we are exploring AND we haven't stopped to chase a player yet
+    //         else if (path.Count == 0 && explorePath.Count != 0 && !brokeExploring) {
+    //             exploring = true;
+    //         }
+    //         else { //We are on the path to the last place the player was seen
+    //             if (newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
+    //                 AStar aStar = gameObject.AddComponent<AStar>();
+    //                 //We don't know the player's current position, so we go to the last place he was seen
+    //                 path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
+    //                     (int)transform.position.y, lastSeenX, lastSeenY));
+
+    //                 print("AStar with new Info");
+    //                 DestroyImmediate(aStar);
+    //                 brokeExploring = true;
+    //             }
+    //             //Else if we got no new information and we are still on the path to the player
+    //         }
+    //     }
+    //     newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
+    //     if (!exploring) {
+    //         move = path.Dequeue();
+    //     }
+    //     else if (exploring) {
+    //         print("Explore count before dequeue: " + explorePath.Count);
+    //         if(explorePath.Count == 0) {
+    //             print("Creating an explore path...");
+    //             ExplorationAI(CreateInitDFSBoard(), (int)transform.position.x, (int)transform.position.y);
+    //             print("Explore count before dequeue for real this time: " + explorePath.Count);
+    //         }
+    //         move = explorePath.Dequeue();
+    //     }
+    //     //The enemy should never be standing still now, so if this is 0,0 then something's wrong
+    //     lastMoveX = (int)move.x; lastMoveY = (int)move.y;
+    //     AttemptMove<Player>((int)move.x, (int)move.y);
+    // }
 
     protected override void OnCantMove<T>(T component) {
         Player hitPlayer = component as Player; //cast the component to be player
@@ -298,8 +357,8 @@ public class Enemy : MovingObject {
 
     private void SetPath(Node n, Queue<Vector2> explorePath) {
         if (n.parent == null) {
-            print(n);
-            print("hey it returned null");
+            print("Node " + n);
+            print("has no parent -- returned null");
             return;
         }
         SetPath(n.parent, path);
@@ -338,12 +397,11 @@ public class Enemy : MovingObject {
             }
             depth -= 1;
         }
-        print(max + " || " + root);
+        print("ModifiedDFS returned max: " + max + " root: " + root);
         return max;
     }
 
     public bool CanSeePlayer(int xDir, int yDir) {
-        print("We are in the generic CSP method");
         if (GameManager.instance.isHiding) return false;
         if (xDir < 0 && target.position.x > transform.position.x) {
             return false;

@@ -76,7 +76,7 @@ public class AStar : MonoBehaviour {
     private void SetPath(Node n, Queue<Vector2> path) {
         if (n.parent == null) return;
         SetPath(n.parent, path);
-        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
+        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.parent.aiy - n.aiy);
         path.Enqueue(vec);
     }
 
