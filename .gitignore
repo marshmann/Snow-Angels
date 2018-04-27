@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-Library/
-=======
 *.dwlt
-
 # OS Stuff
 .DS_Store
 ._*
@@ -19,4 +15,9 @@ Desktop.ini
 *.info
 *Temp*
 MonsterGame/Library/
->>>>>>> f4e671960ad2d60891166d42ce2546821cd714b8
+*.mdb
+*.stamp
+*.dwlt
+MonsterGame/Library/expandedItems
+MonsterGame/Library/assetDatabase3
+MonsterGame/.vs/
