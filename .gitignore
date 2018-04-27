@@ -1,14 +1,6 @@
-# Ignore everything
-/*
-/*/
+
 
 *.dwlt
-MonsterGame/Library/assetDatabase3
-
-# Inverse ignore some stuff
-!MonsterGame/Assets/
-!MonsterGame/ProjectSettings/
-!.gitignore
 
 # OS Stuff
 .DS_Store
@@ -34,10 +26,3 @@ Desktop.ini
 
 *.log
 
-MonsterGame/Library/ScriptMapper
-MonsterGame/MonsterGame.csproj
-MonsterGame/Library/assetDatabase3
-MonsterGame/Library/assetDatabase3
-*.log
-*.dwlt
-MonsterGame/Library/CurrentLayout.dwlt
