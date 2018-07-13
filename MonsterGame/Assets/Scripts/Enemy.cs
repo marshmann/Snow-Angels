@@ -31,7 +31,7 @@ public class Enemy : MovingObject {
     private int rwy;
 
     //Testing
-    // private int num = 0;
+    //private int num = 0;
 
     private bool omitRight = false;
     private bool omitLeft = false;
@@ -53,6 +53,7 @@ public class Enemy : MovingObject {
         UpdateGrid();
     }
 
+    //Randomizes the direction the enemy is initally facing
     private void SetInitDirection() {
         int[] direct = new int[4] { 0, 1, 2, 3 };
 
@@ -66,6 +67,7 @@ public class Enemy : MovingObject {
         }
     }
 
+    //Enemy AI's move once every two "turns", or once every two steps the player takes.
     protected override void AttemptMove<T>(int xDir, int yDir) {
         //check to see if the enemy can move or not
 
@@ -74,6 +76,7 @@ public class Enemy : MovingObject {
         skipMove = true;
     }
 
+    //Method to deep copy a queue
     private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
         Queue<Vector2> cp = new Queue<Vector2>(v.Count);
         for (int i = 0; i < v.Count; i++) {
@@ -82,10 +85,12 @@ public class Enemy : MovingObject {
         return cp;
     }
 
+    //A simple getter function
     public int[,] GetBoard() {
         return board;
     }
 
+    //A method to find out how many newly explored tiles the AI found as he was exploring.
     public int GetNewlyExploredInt(int[,] newBoard, int x, int y) {
         List<Vector2> neighbors = InitList(x, y);
         int max = 2 * GameManager.instance.boardScript.columns;
@@ -104,81 +109,10 @@ public class Enemy : MovingObject {
         return count;
     }
 
-    private bool ValidNeighbor(int x, int y, int[,] state) {
-        if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
-            return false;
-        else if (state[x, y] != 0) {
-            return false;
-        }
-        else return true;
-    }
-
-    private int[,] Clone(int[,] board) {
-        int[,] copy = new int[board.GetLength(0), board.GetLength(0)];
-
-        for (int i = 0; i < board.GetLength(0); i++) {
-            for (int j = 0; j < board.GetLength(0); j++) {
-                copy[i, j] = board[i, j];
-            }
-        }
-        return copy;
-    }
-
-    private int[,] Swap(Node n, int x, int y) {
-        int[,] cp = Clone(n.state);
-
-        int t = cp[x, y];
-        cp[x, y] = cp[n.aix, n.aiy];
-        cp[n.aix, n.aiy] = t;
-
-        return cp;
-    }
-
-    private List<State> GetNeighbors(Node n) {
-        List<State> neighbors = new List<State>();
-        if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
-            State child = new State(Swap(n, n.aix - 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix-1, n.aiy);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
-            State child = new State(Swap(n, n.aix + 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix + 1, n.aiy);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
-            State child = new State(Swap(n, n.aix, n.aiy - 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy-1);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
-            State child = new State(Swap(n, n.aix, n.aiy + 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy + 1);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        return neighbors;
-    }
-
-    //Function that initializes all unknown spaces to -1 
-    private int[,] CreateInitDFSBoard() {
-        int size = board.GetLength(0);
-        int[,] tempBoard = new int[size - 1, size - 1];
-        //print(size);
-        for (int i = 0; i < size - 1; i++) {
-            for (int j = 0; j < size - 1; j++) {
-                if (boolBoard[i, j]) {
-                    tempBoard[i, j] = knownBoard[i, j];
-                }
-                else tempBoard[i, j] = -1;
-            }
-        }
-        return tempBoard;
-    }
-
+    //TODO: Add a better AI method instead of RandomWalk.
+    
+    //Choose a random unknown space on the board and then call AStar
+    //AStar will find the shortest path, with the known board data, to the location.
     private void RandomWalk() {
         List<Vector2> list = new List<Vector2>();
         for(int i = 0; i < board.GetLength(0); i++) {
@@ -276,6 +210,90 @@ public class Enemy : MovingObject {
         hitPlayer.LoseALife(playerDamage); //hit the player
     }
 
+    //Classes and functions in between these lines are mostly not utilized
+    //This is due to how it is largely composed of test code for a more advanced exploration AI
+    //------------------------------------------------------------------------------------------------------
+    
+    //A function created to check if the neighboring spacs are "valid"
+    //Spaces are valid if they are inside the board and if the space isn't a wall
+    private bool ValidNeighbor(int x, int y, int[,] state) {
+        if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
+            return false;
+        else if (state[x, y] != 0) {
+            return false;
+        }
+        else return true;
+    }
+
+    //Clone the board array
+    private int[,] Clone(int[,] board) {
+        int[,] copy = new int[board.GetLength(0), board.GetLength(0)];
+
+        for (int i = 0; i < board.GetLength(0); i++) {
+            for (int j = 0; j < board.GetLength(0); j++) {
+                copy[i, j] = board[i, j];
+            }
+        }
+        return copy;
+    }
+
+    //Swap two nodes (how the board keeps track of AI movement)
+    private int[,] Swap(Node n, int x, int y) {
+        int[,] cp = Clone(n.state);
+
+        int t = cp[x, y];
+        cp[x, y] = cp[n.aix, n.aiy];
+        cp[n.aix, n.aiy] = t;
+
+        return cp;
+    }
+
+    //Get the neighboring spaces of the node
+    private List<State> GetNeighbors(Node n) {
+        List<State> neighbors = new List<State>();
+        if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
+            State child = new State(Swap(n, n.aix - 1, n.aiy));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix-1, n.aiy);
+            //print(child.newlyExploredTiles);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
+            State child = new State(Swap(n, n.aix + 1, n.aiy));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix + 1, n.aiy);
+            //print(child.newlyExploredTiles);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
+            State child = new State(Swap(n, n.aix, n.aiy - 1));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy-1);
+            //print(child.newlyExploredTiles);
+            neighbors.Add(child);
+        }
+        if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
+            State child = new State(Swap(n, n.aix, n.aiy + 1));
+            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy + 1);
+            //print(child.newlyExploredTiles);
+            neighbors.Add(child);
+        }
+        return neighbors;
+    }
+
+    //Function that initializes all unknown spaces to -1 
+    private int[,] CreateInitDFSBoard() {
+        int size = board.GetLength(0);
+        int[,] tempBoard = new int[size - 1, size - 1];
+        //print(size);
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - 1; j++) {
+                if (boolBoard[i, j]) {
+                    tempBoard[i, j] = knownBoard[i, j];
+                }
+                else tempBoard[i, j] = -1;
+            }
+        }
+        return tempBoard;
+    }
+    //Node Class
     public class Node {
         public Node parent;
         public int[,] state;
@@ -296,6 +314,7 @@ public class Enemy : MovingObject {
         }
     }
 
+    //State class
     public class State {
         public int[,] board;
         public int newlyExploredTiles;
@@ -316,6 +335,7 @@ public class Enemy : MovingObject {
         }
     }
 
+    //Find the location of the AI on the board
     private Vector2 FindAi(State state) {
         for (int i = 0; i < state.board.GetLength(0); i++) {
             for (int j = 0; j < state.board.GetLength(0); j++) {
@@ -370,7 +390,8 @@ public class Enemy : MovingObject {
         //print("ModifiedDFS returned max: " + max + " root: " + root);
         return max;
     }
-
+    //------------------------------------------------------------------------------------------------------
+    
     //TODO: Remove the below code and refactor it.
     //It worked for our rushed-goal, but it's very inefficent and causes minor errors.
     public bool CanSeePlayer(int xDir, int yDir) {
