@@ -1,3 +1,4 @@
+*.meta
 *.dwlt
 # OS Stuff
 .DS_Store
