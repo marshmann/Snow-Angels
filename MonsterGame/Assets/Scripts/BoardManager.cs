@@ -1,7 +1,8 @@
 //Author: Nicholas Marshman, with the aid of a roguelike 2d unity tutorial. 
 //This class, along with the enemy class and the assets, recieved the most changes.
 using System.Collections.Generic; //Allows the use of lists
-using System; //Allows the use of "serializable", which allows us to modify how variables appear in the unity editor (and to show/hide them)
+using System; //Allows the use of "serializable", which allows us to modify how variables appear in the unity editor 
+    //(and to show/hide them)
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -24,7 +25,8 @@ public class BoardManager : MonoBehaviour {
     //Specify the size of the board, we can change them as the levels progress.  Default is 20x20.
     public int columns = 20;
     public int rows = 20;
-    //This creates a Count object that is used to specify how many walls are created in the level (not the border walls, just the internal ones).
+    //This creates a Count object that is used to specify how many walls are created in the level 
+      //(not the border walls, just the internal ones).
 
     //The amount of gems that'll appear in the level - min and max actually set in unity (the values here don't matter)
     public Count gemCount = new Count(3, 3);
@@ -32,7 +34,8 @@ public class BoardManager : MonoBehaviour {
     //Below are variables that hold the prefabs that are created in the Unity Engine (check the prefab folder)
     //Create the exit block
     public GameObject exit;
-    //Create the other objects (we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
+    //Create the other objects 
+      //(we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
     public GameObject[] floorTiles;
     //public GameObject[] wallTiles; //Currently depricated since we don't use the destructable walls
     public GameObject[] gemTiles;
@@ -43,7 +46,8 @@ public class BoardManager : MonoBehaviour {
     //basically going to just put all the board objects in this so there isn't as much clutter.
     private Transform boardHolder;
     //Track all the different possible positions on the gameboard, and track if an object has spawned there or not
-    //It's a list of Vector3, meaning it'll take 3 floats - the x, y, and z coordinates.  Z is always 0 since we're working in 2d.
+    //It's a list of Vector3, meaning it'll take 3 floats - the x, y, and z coordinates.  
+    //Z is always 0 since we're working in 2d.
     private List<Vector3> gridPositions = new List<Vector3>();
 
     //Maze generation was provided by: http://tutorials.daspete.at/unity3d/maze-runner
@@ -83,50 +87,35 @@ public class BoardManager : MonoBehaviour {
             //Loop through every direction and create 2 cells that aren't going to be walls 
             for (int i = 0; i < directions.Length; i++) {
                 if (directions[i] == 1) {
-                    if (y - 1 <= 0)
-                        continue;
-
+                    if (y - 1 <= 0) continue;
                     //If the two cells are not already a path
                     if (grid[x, y - 2] == false) {
                         grid[x, y - 2] = true;
                         grid[x, y - 1] = true;
-
                         CreateMaze(x, y - 2);
                     }
                 }
-
                 if (directions[i] == 2) {
-                    if (x - 1 <= 0)
-                        continue;
-
+                    if (x - 1 <= 0) continue;
                     if (grid[x - 2, y] == false) {
                         grid[x - 2, y] = true;
                         grid[x - 1, y] = true;
-
                         CreateMaze(x - 2, y);
                     }
                 }
-
                 if (directions[i] == 3) {
-                    if (x + 2 >= width - 1)
-                        continue;
-
+                    if (x + 2 >= width - 1) continue;
                     if (grid[x + 2, y] == false) {
                         grid[x + 2, y] = true;
                         grid[x + 1, y] = true;
-
                         CreateMaze(x + 2, y);
                     }
                 }
-
                 if (directions[i] == 4) {
-                    if (y + 2 >= height - 1)
-                        continue;
-
+                    if (y + 2 >= height - 1) continue;
                     if (grid[x, y + 2] == false) {
                         grid[x, y + 2] = true;
                         grid[x, y + 1] = true;
-
                         CreateMaze(x, y + 2);
                     }
                 }
@@ -137,7 +126,7 @@ public class BoardManager : MonoBehaviour {
     //Function to empty the gridPositions list and re-initalize it
     void InitializeList() {
         gridPositions.Clear(); 
-
+        
         for(int x = 1; x < 2*columns - 1; x++) {
             for(int y = 1; y < 2*rows - 1; y++) {
                 gridPositions.Add(new Vector3(x, y, 0f));
