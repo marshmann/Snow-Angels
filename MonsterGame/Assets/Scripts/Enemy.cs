@@ -371,6 +371,8 @@ public class Enemy : MovingObject {
         return max;
     }
 
+    //TODO: Remove the below code and refactor it.
+    //It worked for our rushed-goal, but it's very inefficent and causes minor errors.
     public bool CanSeePlayer(int xDir, int yDir) {
         if (GameManager.instance.isHiding) return false;
         if (xDir < 0 && target.position.x > transform.position.x) {
