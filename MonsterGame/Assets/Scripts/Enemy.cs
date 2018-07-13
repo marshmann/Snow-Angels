@@ -1,5 +1,5 @@
 ﻿//Authors: Nicholas Marshman - using Unity 2D roguelike tutorial as a base (and geeksforgeeks for DFS)
-//In addition: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
+//With minor aid from: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
 using System.Collections.Generic;
 using UnityEngine;
 
