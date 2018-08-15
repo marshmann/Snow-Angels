@@ -1,5 +1,5 @@
 # MonsterGame
-AI final project
+NOTE: The repository mostly just contains scripts at this point.  Pushing all of Unity's code tends to be redundant and leaves us with a lot of conflicts, so don't do it!
 
 Append your ideas (with your name, preferably) to this read me file, don't edit anyone else's ideas!  Also, separate your thoughts like I did with my name below, to allow for easy readability.
 
