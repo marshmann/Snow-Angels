@@ -1,5 +1,4 @@
 ﻿//Authors: Nicholas Marshman - using Unity 2D roguelike tutorial as a base (and geeksforgeeks for DFS)
-//With minor aid from: Kevin Bechman and Dave Kelly, due to this class being where the AI mostly is
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,47 +7,62 @@ public class Enemy : MovingObject {
     //The player damage value is set in Unity as a variable in the Enemy1 and Enemy2 prefab under the Enemy component
 
     private Animator animator; //the animator for the enemy
-    private Transform target; //use to store player position (where the enemies will move toward)
+    private Transform target; //used to store player position (where the enemies will move toward)
+    private Transform arrow; //used to store the enemy's arrow pointer
     private bool skipMove; //enemies move every other turn
 
-    private int perception; //Changed the initialization to happen in Start(), as we get null reference error otherwise.
+    private int perception; //how the enemy can see ahead of them
+    private int chaseValue; //radius the enemy will detect during chasing
+    private int chaseTurns; //amount of turns the increased detect radius lasts
+    private int chaseCount; //counter for chase turns
+
+    //Calculate the angles necessary for the arrow indicator's rotation and store them locally
+    //Do this now so we don't have to calculate it everytime the enemy moves
+    private Quaternion up = Quaternion.AngleAxis(90, Vector3.forward);
+    private Quaternion down = Quaternion.AngleAxis(-90, Vector3.forward);
+    private Quaternion left = Quaternion.AngleAxis(180, Vector3.forward);
+    private Quaternion right = Quaternion.AngleAxis(0, Vector3.forward);
 
     //Below are containers for the audio effects
     public AudioClip enemyAttack1;
     public AudioClip enemyAttack2;
 
-    private Queue<Vector2> path;
-    private Queue<Vector2> explorePath;
-    private bool brokeExploring = false;
-    private int lastSeenX = 0;
-    private int lastSeenY = 0;
+    private Queue<Vector2> path; //vector queue containing the path to player
+    private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
-    //Randomize these in start
-    private int lastMoveX;
-    private int lastMoveY;
+    private bool chasing = false;
+    private bool restartExploration = false; //if we see the player during exploration
+    //we need to restart exploration after we finish chasing the player (assuming game isn't over)
 
-    private int rwx;
-    private int rwy;
+    //The coordinates of the spot we last saw the player.
+    private int lastSeenX = 0; private int lastSeenY = 0;
 
-    //Testing
-    //private int num = 0;
+    //A coordinate pair that is used to represent the direction the AI is currently facing
+    private int lastMoveX; private int lastMoveY;
 
-    private bool omitRight = false;
-    private bool omitLeft = false;
+    //The coordinates of the space randomly chosen to walk to during exploration
+    private int rwx; private int rwy;
+
     protected override void Start() {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
-        animator = GetComponent<Animator>();
-        target = GameObject.FindGameObjectWithTag("Player").transform;
+        animator = GetComponent<Animator>(); //initalize animator
+        target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's location
+        arrow = transform.GetChild(0);
 
-        base.Start();
+        base.Start(); //call the super code's base
 
-        path = new Queue<Vector2>();
-        explorePath = new Queue<Vector2>();
-        perception = board.GetLength(0) / 2;
+        path = new Queue<Vector2>(); //init path queue
+        explorePath = new Queue<Vector2>(); //init explore queue
 
-        SetInitDirection();
+        perception = 7; //set the perception stat of the enemy (might need tuned)
+        chaseValue = 7; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
+        chaseTurns = 5; //the amount of turns the enemy will have an increased detection radius
+        chaseCount = 0; //initalize counter
+
+        SetInitDirection(); //init the direction the enemy Ai will face
     }
 
+    //Make sure we update the grid whenever possible
     private void Update() {
         UpdateGrid();
     }
@@ -60,11 +74,31 @@ public class Enemy : MovingObject {
         int val = Random.Range(0, direct.Length);
 
         switch (val) {
-            case 0: { lastMoveX = 1; lastMoveY = 0; break; }
-            case 1: { lastMoveX = -1; lastMoveY = 0; break; }
-            case 2: { lastMoveX = 0; lastMoveY = 1; break; }
-            case 3: { lastMoveX = 0; lastMoveY = -1; break; }
+            case 0: { lastMoveX = 1; lastMoveY = 0; break; } //facing right
+            case 1: { lastMoveX = -1; lastMoveY = 0; break; } //facing left
+            case 2: { lastMoveX = 0; lastMoveY = 1; break; } //facing up
+            case 3: { lastMoveX = 0; lastMoveY = -1; break; } //facing down
         }
+
+        SetDirArrow(); //Rotate the arrow indicator respective to where the enemy is facing
+    }
+
+    //Change the arrow's rotation depending on the direction the AI is facing
+    private void SetDirArrow() {
+        int dir = GetDirection();
+        if (dir == 0) arrow.rotation = right;
+        else if (dir == 1) arrow.rotation = left;
+        else if (dir == 2) arrow.rotation = up;
+        else if (dir == 3) arrow.rotation = down;
+    }
+
+    //Return a simple int representing the direction the AI is facing
+    /* 0 = right, 1 = left, 2 = up, 3 = down */ 
+    private int GetDirection() {
+        if (lastMoveX == 1) return 0; //facing right
+        else if (lastMoveX == -1) return 1; //facing left
+        else if (lastMoveY == 1) return 2; //facing up
+        else return 3; //lastMoveY == -1; facing down
     }
 
     //Enemy AI's move once every two "turns", or once every two steps the player takes.
@@ -78,6 +112,12 @@ public class Enemy : MovingObject {
 
     //Method to deep copy a queue
     private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
+        if (v == null) {
+            print("Error has occured with the queue.");
+            //print("There's no easy way to tell what the error is, it might be within AStar");
+            //print("However, in all likelyhood the error lies within the newInfo portion of the maze logic");
+            return new Queue<Vector2>(0);
+        }
         Queue<Vector2> cp = new Queue<Vector2>(v.Count);
         for (int i = 0; i < v.Count; i++) {
             cp.Enqueue(v.Dequeue());
@@ -90,119 +130,137 @@ public class Enemy : MovingObject {
         return board;
     }
 
-    //A method to find out how many newly explored tiles the AI found as he was exploring.
-    public int GetNewlyExploredInt(int[,] newBoard, int x, int y) {
-        List<Vector2> neighbors = InitList(x, y);
-        int max = 2 * GameManager.instance.boardScript.columns;
+    //TODO: Refactor and make sure the below code actually holds up (specifically the boolBoard portion).
+    //A lot of the RandomWalk code was rushed, as we wanted to do IDDFS instead for exploration,
+    //but couldn't get it to function in an efficent enough manner and replaced it literally 3 hours before
+    //the project was due.  And by "we" I mean "me." - Nick Marshman
 
-        int count = 0;
-        foreach (Vector2 pair in neighbors) {
-            int xVal = (int)pair.x; int yVal = (int)pair.y;
-            if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
-            else {
-                if ((newBoard[xVal, yVal] != board[xVal, yVal]) && newBoard[xVal, yVal] != 4) {
-                    newBoard[xVal, yVal] = board[xVal, yVal];
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    //TODO: Add a better AI method instead of RandomWalk.
-    
-    //Choose a random unknown space on the board and then call AStar
+    //Choose a random unknown space on the board and then call AStar to get a path to it.
     //AStar will find the shortest path, with the known board data, to the location.
     private void RandomWalk() {
-        List<Vector2> list = new List<Vector2>();
-        for(int i = 0; i < board.GetLength(0); i++) {
-            for(int j = 0; j< board.GetLength(0); j++) {
-                if(board[i,j]==1 && !boolBoard[i, j]) {
-                    list.Add(new Vector2(i, j));
+        List<Vector2> list = new List<Vector2>(); //List which will contain the unknown tiles
+
+        //Loop over the board to see what hasn't been explored yet
+        for (int i = 0; i < board.GetLength(0); i++) {
+            for (int j = 0; j < board.GetLength(0); j++) {
+                if (board[i, j] == 1 && !boolBoard[i, j]) {
+                    list.Add(new Vector2(i, j)); //add unexplored tiles to the list
                 }
             }
         }
 
-        int rand = Random.Range(0, list.Count - 1);
-        Vector2 chosenTile = list[rand];
-        AStar aStar = gameObject.AddComponent<AStar>();
+        int rand = Random.Range(0, list.Count - 1); //get a random number
+        Vector2 chosenTile = list[rand]; //use the random number to choose an unexplored tile
+        rwx = (int)chosenTile.x; rwy = (int)chosenTile.y; //store the coordinates for global use
 
-        rwx = (int)chosenTile.x; rwy = (int)chosenTile.y;
+        AStar aStar = gameObject.AddComponent<AStar>(); //Create the Astar Object        
 
+        //Store the path given by A* to the randomly chosen coordinate
         explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-            (int)transform.position.y, (int)chosenTile.x, (int)chosenTile.y));
+            (int)transform.position.y, rwx, rwy));
 
-        DestroyImmediate(aStar);
+        DestroyImmediate(aStar); //delete the Astar Object, as we don't need to keep it around
 
-        //print("Ai is going to " + chosenTile + " from " + transform.position.x + ", " + transform.position.y);
+        //Logging for test purposes.
+        //print("Ai is going to " + chosenTile + " from " + transform.position);
     }
 
     public void MoveEnemy() {
+        //Due to the fact the turn check is *before* the AI's detection, the AI is blind to the player's presence when it isn't their turn
+        //This allows for some counterplay with the hiding mechanic, so I decided to keep it this way
+        //even though logically, it would be better to have the AI still be able to detect the player.
+
+        if (skipMove) { //since we only allow the enemy to move once for every two spaces the player moves
+            skipMove = false; //skip the next enemy turn
+            return; //don't continue with the rest of the code
+        }
+
+        bool exploring = false; //Assume we aren't exploring initially
+        Vector2 move = new Vector2(0, 0); //Initalize the move vector
+
         //If we can see the player, We'll do Astar
         //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
         //Also, don't need to worry about newInfo here as it's accounted for
-        bool exploring = false;
-        Vector2 move = new Vector2(0, 0); //Initalize the move vector
-        if (CanSeePlayer(lastMoveX, lastMoveY)) {
-            int x = (int)target.position.x;
-            int y = (int)target.position.y;
+        if (CanSeePlayer()) {
+            int x = (int)target.position.x; int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
             AStar aStar = gameObject.AddComponent<AStar>();
             path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, x, y));
-            //print("We can see the player. Running Regular Astar");
-            DestroyImmediate(aStar);
-            brokeExploring = true;
+            DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
+
+            print("THEY SEE YOU BOY HAHAHAHA");
+            chasing = true; //the enemy is now chasing the player
+            chaseCount = 0; //reset counter
+            restartExploration = true; //make note that we need to reset the exploration path next time we explore
         }
         else { //enemy can't see player
-                // haven't seen player, and there is no current explore path or we recently stopped chasin
-            if (path.Count == 0 && (explorePath.Count == 0 || brokeExploring)) {
+            
+            //If we were chasing but arrived at the lastSeen location, set it so we aren't chasing anymore
+            if (chasing && FinishedChasing()) chasing = false;
+            
+            //haven't seen player, and there isn't a current explore path or we should restart exploration
+            if (!chasing && (explorePath.Count == 0 || restartExploration)) {
                 RandomWalk();
-                exploring = true;
+
+                exploring = true; //make note that we are exploring
+                restartExploration = false; //reset the boolean to represent we don't need to restart again
             }
-            // haven't seen player, and there is a current path we are exploring AND we haven't stopped to chase a player yet
-            else if (path.Count == 0 && explorePath.Count != 0 && !brokeExploring) {
-                if (newInfo) {
-                    //Do AStar again, but this time go to the spot last calculated by RandomWalk
+            //haven't seen player, and there is a current path we are exploring and we don't need to restart exploration
+            else if (!chasing && explorePath.Count != 0 && !restartExploration) {
+                if (newInfo) { //if the enemy AI learned more about the maze while exploring then
+                    //do AStar again, and recalculate the path to the spot calculated by RandomWalk
+                    //print("Recalculating RW path");
                     AStar aStar = gameObject.AddComponent<AStar>();
                     explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, rwx, rwy));
                     DestroyImmediate(aStar);
-                    //print("Recalculating RW");
                 }
-                exploring = true;
+
+                //if the enemy AI hasn't learned anything new, we don't need to do anything
+                exploring = true; //make note that we are exploring
+                //if (!newInfo) print("RWing");
             }
-            else { //We are on the path to the last place the player was seen
-                if (newInfo && explorePath.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
+            else if(chasing) { //We are on the path to the last place the player was seen
+                if (newInfo || path.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
                     AStar aStar = gameObject.AddComponent<AStar>();
                     //We don't know the player's current position, so we go to the last place he was seen
                     path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, lastSeenX, lastSeenY));
-                    //sprint("AStar with new Info");
                     DestroyImmediate(aStar);
-                    brokeExploring = true;
+
+                    restartExploration = true; //restart exploration when the AI starts exploring again
+                    print("Recalculated Chase Path to " + lastSeenX + "," + lastSeenY);
                 }
-               //Else if we got no new information and we are still on the path to the player
+                else { //we got no new information and we are still on the path to the player
+                    print("We're going to the player's last known spot " + lastSeenX + "," + lastSeenY);
+                }
+            }
+            else {
+                print("Error: Missing Logic for Enemy Movement");
+                print(chasing + "," + restartExploration + "," + path.Count + "," + explorePath.Count);
             }
         }
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
-        if (skipMove) {
-            skipMove = false;
-            return;
-        }
-        if (!exploring) {
-            move = path.Dequeue();
-        }
-        else if (exploring) {
-            print("Explore count before dequeue: " + explorePath.Count);
-            move = explorePath.Dequeue();
-        }
-        print(move);
-        //The enemy should never be standing still now, so if this is 0,0 then something's wrong
-        lastMoveX = (int)move.x; lastMoveY = (int)move.y;
-        AttemptMove<Player>((int)move.x, (int)move.y);
+        if (chasing) move = path.Dequeue(); //If we're chasing, we use the path queue
+        else if (exploring) move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
+
+        //The last move is indicative of the direction the Ai is currently facing
+        lastMoveX = (int)move.x; lastMoveY = (int)move.y; //update the direction the AI is facing
+
+        SetDirArrow(); //Rotate the arrow indicator to depict where the enemy was last facing
+
+        AttemptMove<Player>((int)move.x, (int)move.y); //tell the enemy to move
     }
 
+    //TODO: figure out what happens when an enemy can't move due to it running into another enemy
+    //If the enemy can't move, then it's likely because it ran into a player
+    //Potential way of figuring this out:
+    /*
+     * If the player is detected and is being chased by the enemy, attempt to move with the player in mind,
+     * if the player isn't detected, attempt to move with the enemy in mind, in other words if the enemy is in the way, retry movement
+     * Alternatively, we can make it so enemies can share a tile, though that might be hard to show in a script.
+     */
     protected override void OnCantMove<T>(T component) {
         Player hitPlayer = component as Player; //cast the component to be player
         animator.SetTrigger("enemyAttack"); //have the enemy visually attack the player
@@ -210,289 +268,86 @@ public class Enemy : MovingObject {
         hitPlayer.LoseALife(playerDamage); //hit the player
     }
 
-    //Classes and functions in between these lines are mostly not utilized
-    //This is due to how it is largely composed of test code for a more advanced exploration AI
-    //------------------------------------------------------------------------------------------------------
-    
-    //A function created to check if the neighboring spacs are "valid"
-    //Spaces are valid if they are inside the board and if the space isn't a wall
-    private bool ValidNeighbor(int x, int y, int[,] state) {
-        if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
-            return false;
-        else if (state[x, y] != 0) {
-            return false;
-        }
-        else return true;
-    }
-
-    //Clone the board array
-    private int[,] Clone(int[,] board) {
-        int[,] copy = new int[board.GetLength(0), board.GetLength(0)];
-
-        for (int i = 0; i < board.GetLength(0); i++) {
-            for (int j = 0; j < board.GetLength(0); j++) {
-                copy[i, j] = board[i, j];
-            }
-        }
-        return copy;
-    }
-
-    //Swap two nodes (how the board keeps track of AI movement)
-    private int[,] Swap(Node n, int x, int y) {
-        int[,] cp = Clone(n.state);
-
-        int t = cp[x, y];
-        cp[x, y] = cp[n.aix, n.aiy];
-        cp[n.aix, n.aiy] = t;
-
-        return cp;
-    }
-
-    //Get the neighboring spaces of the node
-    private List<State> GetNeighbors(Node n) {
-        List<State> neighbors = new List<State>();
-        if (ValidNeighbor(n.aix - 1, n.aiy, n.state)) {
-            State child = new State(Swap(n, n.aix - 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix-1, n.aiy);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix + 1, n.aiy, n.state)) {
-            State child = new State(Swap(n, n.aix + 1, n.aiy));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix + 1, n.aiy);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix, n.aiy - 1, n.state)) {
-            State child = new State(Swap(n, n.aix, n.aiy - 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy-1);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        if (ValidNeighbor(n.aix, n.aiy + 1, n.state)) {
-            State child = new State(Swap(n, n.aix, n.aiy + 1));
-            child.newlyExploredTiles = GetNewlyExploredInt(child.board, n.aix, n.aiy + 1);
-            //print(child.newlyExploredTiles);
-            neighbors.Add(child);
-        }
-        return neighbors;
-    }
-
-    //Function that initializes all unknown spaces to -1 
-    private int[,] CreateInitDFSBoard() {
-        int size = board.GetLength(0);
-        int[,] tempBoard = new int[size - 1, size - 1];
-        //print(size);
-        for (int i = 0; i < size - 1; i++) {
-            for (int j = 0; j < size - 1; j++) {
-                if (boolBoard[i, j]) {
-                    tempBoard[i, j] = knownBoard[i, j];
-                }
-                else tempBoard[i, j] = -1;
-            }
-        }
-        return tempBoard;
-    }
-    //Node Class
-    public class Node {
-        public Node parent;
-        public int[,] state;
-        public int aix;
-        public int aiy;
-        public int exploredTiles;
-
-        public Node(int[,] state, int aix, int aiy, Node parent, int exploredTiles) {
-            this.state = state;
-            this.aix = aix;
-            this.aiy = aiy;
-            this.parent = parent;
-            this.exploredTiles = exploredTiles;
-        }
-
-        public override string ToString() {
-            return aix + ", " + aiy + " | " + exploredTiles;
-        }
-    }
-
-    //State class
-    public class State {
-        public int[,] board;
-        public int newlyExploredTiles;
-
-        public State(int[,] board) {
-            this.board = board;
-        }
-
-        public override int GetHashCode() {
-            int hash = 0;
-
-            for (int i = 0; i < board.GetLength(0); i++) {
-                for (int j = 0; j < board.GetLength(0); j++) {
-                    hash = hash * 31 + board[i, j];
-                }
-            }
-            return hash;
-        }
-    }
-
-    //Find the location of the AI on the board
-    private Vector2 FindAi(State state) {
-        for (int i = 0; i < state.board.GetLength(0); i++) {
-            for (int j = 0; j < state.board.GetLength(0); j++) {
-                if (state.board[i, j] == 4) return new Vector2(i, j);
-            }
-        }
-        return new Vector2(-1, -1);
-    }
-
-    private void SetPath(Node n, Queue<Vector2> explorePath) {
-        if (n.parent == null) {
-            print("Node " + n);
-            print("has no parent -- returned null");
-            return;
-        }
-        SetPath(n.parent, path);
-        Vector2 vec = new Vector2(n.aix - n.parent.aix, n.aiy - n.parent.aiy);
-        explorePath.Enqueue(vec);
-    }
-
-    private void ExplorationAI(int[,] rootBoard, int aix, int aiy) {
-        Dictionary<State, Node> hm = new Dictionary<State, Node>();
-        rootBoard[aix, aiy] = 4;
-        Node root = new Node(rootBoard, aix, aiy, null, 0);
-        Node max = ModifiedDFS(root, 3, hm);
-
-        explorePath = new Queue<Vector2>(); //Empty the original queue
-        SetPath(max, explorePath);
-    }
-
-    //It will ALWAYS finish it's path, which means we should cut at an early depth
-    private Node ModifiedDFS(Node root, int depth, Dictionary<State, Node> hm) {
-        Stack<Node> stack = new Stack<Node>();
-        Node max = root;
-        stack.Push(root);
-        while (stack.Count != 0 && depth != 0) {
-            Node parent = stack.Pop();
-            if (parent.exploredTiles > max.exploredTiles) {
-                max = parent;
-            }
-            foreach (State neighbor in GetNeighbors(parent)) {
-                if (!hm.ContainsKey(neighbor)) {
-                    Vector2 coord = FindAi(neighbor);
-                    if ((int)coord.x == -1) print("Error: enemy returned coord: " + coord);
-                    Node temp = new Node(neighbor.board, (int)coord.x, (int)coord.y, parent, parent.exploredTiles + neighbor.newlyExploredTiles);
-                    stack.Push(temp);
-                    hm[neighbor] = temp;
-                }
-            }
-            depth -= 1;
-        }
-        //print("ModifiedDFS returned max: " + max + " root: " + root);
-        return max;
-    }
-    //------------------------------------------------------------------------------------------------------
-    
-    //TODO: Remove the below code and refactor it.
-    //It worked for our rushed-goal, but it's very inefficent and causes minor errors.
-    public bool CanSeePlayer(int xDir, int yDir) {
+    //Detect if the player can be seen or not by the enemy.
+    private bool CanSeePlayer() {
+        //If the player is hiding, he can't be detected
         if (GameManager.instance.isHiding) return false;
-        if (xDir < 0 && target.position.x > transform.position.x) {
-            return false;
-        }
-        else if (xDir > 0 && target.position.x < transform.position.x) {
-            return false;
-        }
-        else if (Mathf.Abs(target.position.x - transform.position.x) > (perception + float.Epsilon)) {
-            return false;
-        }
-        else if (yDir < 0 && target.position.y > transform.position.y) {
-            return false;
-        }
-        else if (yDir > 0 && target.position.y < transform.position.y) {
-            return false;
-        }
-        else if (Mathf.Abs(target.position.y - transform.position.y) > (perception + float.Epsilon)) {
-            return false;
-        }
-        if ((int)transform.position.x == 0 && xDir == -1 ||
-            (int)transform.position.x == board.GetLength(0) - 1 && xDir == 1 ||
-            (int)transform.position.y == 0 && yDir == -1 ||
-            (int)transform.position.y == board.GetLength(0) - 1 && yDir == 1) {
-            omitRight = true;
-        }
-        else if ((int)transform.position.x == 0 && xDir == 1 ||
-                 (int)transform.position.x == board.GetLength(0) - 1 && xDir == -1 ||
-                 (int)transform.position.y == 0 && yDir == 1 ||
-                 (int)transform.position.y == board.GetLength(0) - 1 && yDir == -1) {
-            omitLeft = true;
-        }
-        return CanSeePlayer(xDir, yDir, 1);
 
-        //return true;
+        //Simple short-hands for the position coordinates of the enemy AI and the Player
+        int posx = (int)transform.position.x; int posy = (int)transform.position.y;
+        int tarx = (int)target.position.x; int tary = (int)target.position.y;
+        print(transform.position + " , " + target.position);
+        
+        if (chasing && (chaseTurns > chaseCount)) {
+            chaseCount++;
+            //If the target's coords fall into range of the enemy's detection radius while chasing, continue having an increased detection radius
+            if (((tary - chaseValue) <= posy && posy <= (tary + chaseValue)) && ((tarx - chaseValue) <= posx && posx <= (tarx + chaseValue)))
+                return true;          
+            else return false; //else return false and reduce the detection radius back to normal
+        }
+
+        //If the target is on one of the blocks surrounding the AI then he's going to be detected
+        foreach (Vector2 pair in InitList(posx, posy)) if (tarx == pair.x && tary == pair.y) return true;
+
+        //Get the direction the target is moving and detect accordingly
+        int direction = GetDirection();
+        switch (direction) {
+            case 0: case 1: { //facing right or facing left
+                //If the target's y value is within a block of the enemy's
+                if(posy-1 <= tary && tary <= posy+1) {
+                    int tileCount = Mathf.Abs(tarx - posx); //calculate how many tiles are between the enemy and the player
+                    if (tileCount > perception) return false; //if they are further than the enemy's perception then the enemy can't see them
+
+                    int dir; //calculate the direction in terms of positive/negative
+                    if (direction == 0) dir = 1;
+                    else dir = -1;
+                    
+                    //check for walls up until the player's location
+                    for (int i = 0; i <= tileCount; i++) {
+                        int curPos = posx + (dir*i); //the current tile or position being inspected
+
+                        if (curPos >= board.GetLength(0) || curPos < 0) return false; //out of bounds
+
+                        int tile = board[curPos, tary]; //get the tile
+                        if (tile == 1 || tile == 2) return false; //there's a wall tile between the player and the AI
+                    }
+                    return true; //if they made it out of the loop, then there are no walls between the player and AI
+                }
+                else return false; //player isn't in the y range of the enemy
+            }
+            case 2: case 3: { //facing up  or facing down 
+                //If the target's x value is within a block of the enemy's
+                if (posx-1 <= tarx && tarx <= posx+1) {
+                    //check up until perception limit or you hit a wall
+                    int tileCount = Mathf.Abs(tary - posy);
+                    if (tileCount > perception) return false;
+
+                    int dir; //Positive if facing up, negative if facing down
+                    if (direction == 2) dir = 1;
+                    else dir = -1;
+
+                    //check for walls up until the player's location
+                    for (int i = 0; i <= tileCount; i++) {
+                        int curPos = posy + (dir*i); //the current tile or position being inspected
+
+                        if (curPos >= board.GetLength(0) || curPos < 0) return false; //out of bounds
+
+                        int tile = board[tarx, curPos]; //get the tile
+                        if (tile == 1 || tile == 2) return false; //there's a wall tile between the player and the AI
+                    }
+                    return true; //if they made it out of the loop, then there are no walls between the player and AI
+                }
+                else return false; //player isn't in the x range of the enemy
+            }
+        }
+        return false;
     }
 
-    public bool CanSeePlayer(int xDir, int yDir, int len) {
-        // print("We are in recursive call number " + ++num);
-        // print("xPos, yPos: " + ((int)transform.position.x)) + "  " + ((int)transform.position.y);
-        // print("xDir, yDir: " + xDir + " " + yDir);
-        // print("Len: " + len);
-        // print("xTransform, yTransform: " + ((int)transform.position.x + (xDir * len)) + " " + ((int)transform.position.y + (yDir * len)));
-        if (len == perception) {
-            return false;
+    private bool FinishedChasing() {
+        if (lastSeenX == transform.position.x && lastSeenY == transform.position.y) {
+            //print("Enemy has arrived at the player's last seen location");
+            return true;
         }
-        else if ((int)transform.position.x + (xDir * len) < 0 ||
-                 (int)transform.position.x + (xDir * len) > board.GetLength(0) - 1 ||
-                 (int)transform.position.y + (yDir * len) < 0 ||
-                 (int)transform.position.y + (yDir * len) > board.GetLength(0) - 1) {
-            return false;
-        }
-        else if (board[(int)transform.position.x + (xDir * len), (int)transform.position.y + (yDir * len)] == 1) {
-            return false;
-        }
-        else {
-            return IsThePlayerHere(xDir, yDir, len) || CanSeePlayer(xDir, yDir, len + 1);
-        }
-    }
-   
-    public bool IsThePlayerHere(int xDir, int yDir, int len) {
-        if (omitRight && omitLeft) {
-            return (int)transform.position.x + (xDir * len) == (int)target.position.x && (int)transform.position.y + (yDir * len) == (int)target.position.y;
-        }
-        else if (omitRight) {
-            if ((yDir > 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) || 
-                (yDir < 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) || 
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                    omitLeft = true;
-            }
-            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
-                        (int)transform.position.x - yDir == (int)target.position.x) && 
-                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
-                        (int)transform.position.y - xDir == (int)target.position.y);
-        }
-        else if (omitLeft) {    
-            if ((yDir < 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) ||
-                (yDir > 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                    omitRight = true;
-            }
-            return ((int)transform.position.x + (xDir * len) == (int)target.position.x || 
-                        (int)transform.position.x + yDir == (int)target.position.x) && 
-                   ((int)transform.position.y + (yDir * len) == (int)target.position.y || 
-                        (int)transform.position.y + xDir == (int)target.position.y);
-        }
-        else {
-            if ((yDir > 0 && board[(int)transform.position.x-1, (int)transform.position.y] == 1) || 
-                (yDir < 0 && board[(int)transform.position.x+1, (int)transform.position.y] == 1) || 
-                (xDir < 0 && board[(int)transform.position.x, (int)transform.position.y-1] == 1) ||
-                (xDir > 0 && board[(int)transform.position.x, (int)transform.position.y+1] == 1)) {
-                omitLeft = true;
-            }
-                return ((int)transform.position.x + (xDir * len) == (int)target.position.x ||
-                            (int)transform.position.x - yDir == (int)target.position.x) &&
-                       ((int)transform.position.y + (yDir * len) == (int)target.position.y ||
-                            (int)transform.position.y - xDir == (int)target.position.y);
-        }
+        else return false;
     }
 }

@@ -1,5 +1,4 @@
-﻿//using System.Collections.Generic;
-using System.Collections;
+﻿using System.Collections;
 public class Node : IDenumerable, IComparer {
     public Node parent;
     public int[,] state;

@@ -26,11 +26,11 @@ public class GameManager : MonoBehaviour {
     private GameObject levelImage; //store a reference to the level image
     private bool doingSetUp; //a boolean dedicated to making the user not move during the level transition
 
-    [HideInInspector] public int[,] board; 
+    [HideInInspector] public int[,] board;
     /* The above 2d array is the board state where
      * 0 is a floor, 1 is a wall, 2 is a broken wall and 3 is the exit */
 
-    void Awake () {
+    void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
         //If there does happen to be more than one instance of it, it'll destroy it
         if (instance == null)
@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
+    void Update() {
         time += Time.deltaTime;
         if ((playersTurn && isHiding) && (time >= hideTime)) {
             time = 0.0f;
@@ -118,16 +118,16 @@ public class GameManager : MonoBehaviour {
     }
 
     IEnumerator MoveEnemies() {
-        enemiesMoving = true; 
+        enemiesMoving = true;
         yield return new WaitForSeconds(turnDelay); //'sleep' for turnDelay
 
-        if(enemies.Count == 0) {
+        if (enemies.Count == 0) {
             yield return new WaitForSeconds(turnDelay);
         }
 
         //Issue the move enemy command on every enemy in the list
         //Then wait for an arbitrarily small amount of time at the end of the turn
-        for(int i = 0; i< enemies.Count; i++) {
+        for (int i = 0; i < enemies.Count; i++) {
             enemies[i].MoveEnemy();
             yield return new WaitForSeconds(enemies[i].moveTime);
         }

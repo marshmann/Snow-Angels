@@ -2,7 +2,7 @@
 //This class, along with the enemy class and the assets, recieved the most changes.
 using System.Collections.Generic; //Allows the use of lists
 using System; //Allows the use of "serializable", which allows us to modify how variables appear in the unity editor 
-    //(and to show/hide them)
+              //(and to show/hide them)
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -17,16 +17,16 @@ public class BoardManager : MonoBehaviour {
         public int maximum;
 
         public Count(int min, int max) {
-            this.minimum = min; 
+            this.minimum = min;
             this.maximum = max;
-        }       
+        }
     }
 
     //Specify the size of the board, we can change them as the levels progress.  Default is 20x20.
     public int columns = 20;
     public int rows = 20;
     //This creates a Count object that is used to specify how many walls are created in the level 
-      //(not the border walls, just the internal ones).
+    //(not the border walls, just the internal ones).
 
     //The amount of gems that'll appear in the level - min and max actually set in unity (the values here don't matter)
     public Count gemCount = new Count(3, 3);
@@ -35,7 +35,7 @@ public class BoardManager : MonoBehaviour {
     //Create the exit block
     public GameObject exit;
     //Create the other objects 
-      //(we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
+    //(we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
     public GameObject[] floorTiles;
     //public GameObject[] wallTiles; //Currently depricated since we don't use the destructable walls
     public GameObject[] gemTiles;
@@ -54,18 +54,18 @@ public class BoardManager : MonoBehaviour {
     public class Maze {
         int width; int height; //width and height of the board
         bool[,] grid; //grid (true = no wall, false = wall)
-        System.Random random; 
+        System.Random random;
         int startX; int startY; //start pos of the player
 
         //constructor
         public Maze(int width, int height, System.Random random) {
-            this.width = width; 
+            this.width = width;
             this.height = height;
             this.random = random;
         }
 
         //Getter for grid
-        public bool[,] Grid(){
+        public bool[,] Grid() {
             return grid;
         }
 
@@ -80,7 +80,7 @@ public class BoardManager : MonoBehaviour {
         }
 
         //Depth first search maze generator
-        void CreateMaze(int x, int y) {            
+        void CreateMaze(int x, int y) {
             //Create a direction array in one of four directions and shuffle it
             int[] directions = new int[] { 1, 2, 3, 4 };
             Tools.Shuffle(directions, random); //shuffle the directions
@@ -125,10 +125,10 @@ public class BoardManager : MonoBehaviour {
 
     //Function to empty the gridPositions list and re-initalize it
     void InitializeList() {
-        gridPositions.Clear(); 
-        
-        for(int x = 1; x < 2*columns - 1; x++) {
-            for(int y = 1; y < 2*rows - 1; y++) {
+        gridPositions.Clear();
+
+        for (int x = 1; x < 2 * columns - 1; x++) {
+            for (int y = 1; y < 2 * rows - 1; y++) {
                 gridPositions.Add(new Vector3(x, y, 0f));
             }
         }
@@ -144,7 +144,7 @@ public class BoardManager : MonoBehaviour {
         bool exitPlaced = false;
 
         int col = 2 * columns; int row = 2 * rows;
-        for(int x = -1; x < col; x++) {
+        for (int x = -1; x < col; x++) {
             for (int y = -1; y < row; y++) {
                 GameObject chosenTile; //The tile that we will randomly choose to put on the board
 
@@ -198,16 +198,16 @@ public class BoardManager : MonoBehaviour {
         for (int i = 0; i < count; i++) {
             Vector3 randomPos = RandomPosition(); //choose a random position
             //Find a non-wall tile
-            while(!grid[(int)randomPos.x/2, (int)randomPos.y/2]) {
+            while (!grid[(int)randomPos.x / 2, (int)randomPos.y / 2]) {
                 randomPos = RandomPosition();
             }
             GameObject tileChoice = tileArray[Random.Range(0, tileArray.Length)]; //choose a random tile
             //Instantiate the random tile we chose at the random position (with no rotation)
-            Instantiate(tileChoice, randomPos, Quaternion.identity); 
+            Instantiate(tileChoice, randomPos, Quaternion.identity);
         }
     }
 
-    private void AddMissingCorners(int row, int col) { 
+    private void AddMissingCorners(int row, int col) {
         int rand1 = Random.Range(0, outerWallTiles.Length);
         GameObject wallChoice1 = outerWallTiles[rand1];
         GameObject instance1 = Instantiate(wallChoice1, new Vector3(-1, row, 0f), Quaternion.identity);
@@ -229,9 +229,9 @@ public class BoardManager : MonoBehaviour {
 
         int[,] board = BoardSetup(grid); //set up the outerwall and the floor
         int twocol = 2 * columns; int tworow = 2 * rows;
-        for(int i = 0; i<= twocol; i++) {
-            for(int j = 0; j<= tworow; j++) {
-                if (!grid[i/2, j/2]) {
+        for (int i = 0; i <= twocol; i++) {
+            for (int j = 0; j <= tworow; j++) {
+                if (!grid[i / 2, j / 2]) {
                     int rand = Random.Range(0, outerWallTiles.Length);
                     GameObject wallChoice = outerWallTiles[rand];
                     GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
@@ -257,8 +257,8 @@ public class BoardManager : MonoBehaviour {
         GameManager.instance.SetBoard(board);
 
         //monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
-        int enemyCount = (int)Mathf.Log((level+1), 2f);
+        int enemyCount = (int)Mathf.Log((level + 1), 2f);
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
-        LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount,grid); //put the specified amount of enemies on the board
+        LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
     }
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+}

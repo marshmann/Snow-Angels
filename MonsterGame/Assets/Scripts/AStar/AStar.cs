@@ -1,4 +1,4 @@
-//Author: Nicholas Marshman
+﻿//Author: Nicholas Marshman
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -149,10 +149,10 @@ public class AStar : MonoBehaviour {
                 Node n = new Node(neighbor.board, (int)coord.x, (int)coord.y, data) {
                     g = data.g + 1, //initalize the g value to be the parent's + 1
                     inFrontier = true //set it to be in the frontier
-                }
-                
+                };
+
                 n.h = Heuristic(n); //Calculate the heuristic and store it
-                
+
                 //If the neighbor's state is a new state that hasn't been seen before
                 if (!hashmap.ContainsKey(neighbor)) {
                     n.parent = data; //set it's parent

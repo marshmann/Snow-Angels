@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Sedgewick's MinPQ code from Java converted into C#
+using System;
 using System.Collections;
 
 public class MinPQ<Key> where Key : IComparer, IDenumerable {

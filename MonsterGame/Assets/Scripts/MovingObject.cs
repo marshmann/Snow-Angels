@@ -11,17 +11,16 @@ public abstract class MovingObject : MonoBehaviour {
     //We put walls, enemies and the player on this layer
     public LayerMask blockingLayer;
 
-    private BoxCollider2D boxCollider;
+    private BoxCollider2D boxCollider; //boxCollider allows the use of hitboxes
     private Rigidbody2D rb2d; //store the component reference of the object we're moving
     private float inverseMoveTime; //makes movement calculations "more efficent"
-    [HideInInspector] public int[,] knownBoard;
-    [HideInInspector] public int[,] board;
-    [HideInInspector] public bool[,] boolBoard;
-    //[HideInInspector] public int[,] map;
-    //[HideInInspector] public int numUnexplored;
-    //private int unexploredRemaining;
-    [HideInInspector] public bool newInfo;
 
+    [HideInInspector] public int[,] knownBoard; //the known board for the moving object
+    [HideInInspector] public int[,] board; //the actual board
+    [HideInInspector] public bool[,] boolBoard; //a boolean representation of what tiles have been explored
+    [HideInInspector] public bool newInfo; //boolean depicting if the object updated it's known board
+
+    //returns a list with coordinates of a given tile's neighbors
     public List<Vector2> InitList(int x, int y) {
         List<Vector2> list = new List<Vector2>(8) {
             new Vector2(x - 1, y - 1), new Vector2(x - 1, y),
@@ -32,45 +31,26 @@ public abstract class MovingObject : MonoBehaviour {
 
         return list;
     }
-    /*
-    public void ResetMap() {
-        int col = 2 * GameManager.instance.boardScript.columns;
-        int row = 2 * GameManager.instance.boardScript.rows;
-        for (int i = 0; i < col; i++) {
-            for (int j = 0; j < row; j++) {
-                if (map[i,j] != 2) {
-                    map[i,j] = 0;
-                }
-            }
-        }
-        unexploredRemaining = numUnexplored - 1;
-    }
-    */
 
+    //update the known board by changing bools if necessary
     public void UpdateGrid() {
-        Vector2 position = transform.position;
-        int x = (int)position.x; int y = (int)position.y;
-        int max = 2 * GameManager.instance.boardScript.columns;
-        List<Vector2> neighbors = InitList(x,y);
-        foreach (Vector2 pair in neighbors) {
-            int xVal = (int)pair.x; int yVal = (int)pair.y;
-            if (xVal <= -1 || xVal >= max || yVal >= max || yVal <= -1) continue;
-            else {
-                if (knownBoard[xVal, yVal] != board[xVal, yVal]) {
-                    newInfo = true;
-                    knownBoard[xVal, yVal] = board[xVal, yVal];
-                }
-                boolBoard[xVal, yVal] = true;
-            }
-            /*
-            if (map[xVal, yVal] == 0) {
-                map[xVal, yVal] = 1;
-                unexploredRemaining--;
-                if(unexploredRemaining == 0) {
-                    ResetMap();
+        if (transform.tag == "Player") return; //We don't need to bother updating the player's grid (no minimap as of now)
+
+        int x = (int)transform.position.x; int y = (int)transform.position.y; //Get the X and Y coordinates of the object
+        int max = 2 * GameManager.instance.boardScript.columns; //max value to make sure we don't go OOB.
+        List<Vector2> neighbors = InitList(x, y); //Initialize a list to have vectors with the neighbor's coords
+        foreach (Vector2 pair in neighbors) { //loop over every neighbor
+            if (pair.x <= -1 || pair.x >= max || pair.y >= max || pair.y <= -1) continue; //if a coord is OOB, ignore it
+            else { //if we are not OOB
+                if (knownBoard[(int)pair.x, (int)pair.y] != board[(int)pair.x, (int)pair.y]) { //if the board hasn't been explored yet
+                    //if the only thing being updated is the location of the AI on the board, we can ignore it.  However, if not - we need to
+                    //make note of the fact that new information about the maze was found
+                    if (knownBoard[(int)pair.x, (int)pair.y] != 4 && board[(int)pair.x, (int)pair.y] != 4) newInfo = true;
+
+                    knownBoard[(int)pair.x, (int)pair.y] = board[(int)pair.x, (int)pair.y]; //update the known board
+                    boolBoard[(int)pair.x, (int)pair.y] = true; //set tiles to show they have been explored
                 }
             }
-            */
         }
     }
 
@@ -87,28 +67,16 @@ public abstract class MovingObject : MonoBehaviour {
 
         knownBoard = new int[col, row];
         boolBoard = new bool[col, row];
-        //map = new int[col, row];
-        board = GameManager.instance.board;
 
-        /*
-        fullyExplored = false;
-        numUnexplored = row * col;
-        for (int i = 0; i < col; i++) {
-            for (int j = 0; j < row; j++) {
-                if (board[i,j] != 0 && board[i,j] != 3) {
-                    map[i,j] = 2;
-                    numUnexplored--;
-                }
-            }
-        }*/
+        board = GameManager.instance.board;
     }
 
     /*
     * The out keyword allows an object to be passed by reference
     * In other words, we can alter an object in this function and then return that same object
     * while also returning the boolean value we want to return
-    * In other words, we return a boolean on if we can move or not
-    * and we also return a RaycastHit2D object
+    * This means we can return a boolean on if we can move or not
+    * as we also return a RaycastHit2D object
     */
     protected bool Move(int xDir, int yDir, out RaycastHit2D hit) {
         Vector2 start = transform.position; //the current position
@@ -131,12 +99,12 @@ public abstract class MovingObject : MonoBehaviour {
 
     //Use this to move units from one space to the next.  Pass it a Vector3 of where to move to (end).
     //It creates the movement animation (sliding from a tile to the next)
-    protected IEnumerator SmoothMovement (Vector3 end) {
+    protected IEnumerator SmoothMovement(Vector3 end) {
         //calculate the remaining distance to move based on the square magnitude
         float sqrRemainingDistance = (transform.position - end).sqrMagnitude;
 
         //While the remaining distance is greater than a number that is basically zero (float.Epsilon)
-        while(sqrRemainingDistance > float.Epsilon) {
+        while (sqrRemainingDistance > float.Epsilon) {
             //move toward the end position from the start position, in a straight line
             //inverseMoveTime*Time.deltaTime represents how many units closer the object is to it's destination spot
             Vector3 newPosition = Vector3.MoveTowards(rb2d.position, end, inverseMoveTime * Time.deltaTime);
@@ -162,5 +130,5 @@ public abstract class MovingObject : MonoBehaviour {
             OnCantMove(hitComponent);
     }
 
-    protected abstract void OnCantMove<T> (T component) where T : Component;
+    protected abstract void OnCantMove<T>(T component) where T : Component;
 }
