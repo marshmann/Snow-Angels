@@ -41,7 +41,7 @@ public class BoardManager : MonoBehaviour {
     public GameObject[] gemTiles;
     public GameObject[] enemyTiles;
     public GameObject[] outerWallTiles; //undestructable, currently using them for the maze, not just the outerwall
-
+    
     //used to keep the hierarchy clean (the list of game objects on the left of unity)
     //basically going to just put all the board objects in this so there isn't as much clutter.
     private Transform boardHolder;
@@ -144,6 +144,7 @@ public class BoardManager : MonoBehaviour {
         bool exitPlaced = false;
 
         int col = 2 * columns; int row = 2 * rows;
+        int floorCount = 0;
         for (int x = -1; x < col; x++) {
             for (int y = -1; y < row; y++) {
                 GameObject chosenTile; //The tile that we will randomly choose to put on the board
@@ -175,12 +176,14 @@ public class BoardManager : MonoBehaviour {
                 }
                 else if (grid[xVal, yVal]) {
                     //else choose a random floor tile from the floorTile array
+                    floorCount++;
                     chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                 }
             }
         }
+        GameManager.instance.SetFloorCount(floorCount); //Set the amount of floor tiles generated
         return board;
     }
 
@@ -235,7 +238,6 @@ public class BoardManager : MonoBehaviour {
                     int rand = Random.Range(0, outerWallTiles.Length);
                     GameObject wallChoice = outerWallTiles[rand];
                     GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
-
                     instance.transform.SetParent(boardHolder);
 
                     //Below code will make it so the entire board is just floors; good for testing enemy ai

@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MovingObject {
+    [HideInInspector] public bool stunned = false; //is the enemy stunned?
+    [HideInInspector] public int stunLength; //how long is he stunned for?
+
+    //Depricated idea: player damage
     public int playerDamage; //Amount of food damage the player loses when hit by this enemy
     //The player damage value is set in Unity as a variable in the Enemy1 and Enemy2 prefab under the Enemy component
 
     private Animator animator; //the animator for the enemy
     private Transform target; //used to store player position (where the enemies will move toward)
-    private Transform arrow; //used to store the enemy's arrow pointer
     private bool skipMove; //enemies move every other turn
 
     private int perception; //how the enemy can see ahead of them
@@ -16,16 +19,8 @@ public class Enemy : MovingObject {
     private int chaseTurns; //amount of turns the increased detect radius lasts
     private int chaseCount; //counter for chase turns
 
-    //Calculate the angles necessary for the arrow indicator's rotation and store them locally
-    //Do this now so we don't have to calculate it everytime the enemy moves
-    private Quaternion up = Quaternion.AngleAxis(90, Vector3.forward);
-    private Quaternion down = Quaternion.AngleAxis(-90, Vector3.forward);
-    private Quaternion left = Quaternion.AngleAxis(180, Vector3.forward);
-    private Quaternion right = Quaternion.AngleAxis(0, Vector3.forward);
-
     //Below are containers for the audio effects
-    public AudioClip enemyAttack1;
-    public AudioClip enemyAttack2;
+    public AudioClip enemyAttack1; public AudioClip enemyAttack2;
 
     private Queue<Vector2> path; //vector queue containing the path to player
     private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
@@ -37,9 +32,6 @@ public class Enemy : MovingObject {
     //The coordinates of the spot we last saw the player.
     private int lastSeenX = 0; private int lastSeenY = 0;
 
-    //A coordinate pair that is used to represent the direction the AI is currently facing
-    private int lastMoveX; private int lastMoveY;
-
     //The coordinates of the space randomly chosen to walk to during exploration
     private int rwx; private int rwy;
 
@@ -47,7 +39,6 @@ public class Enemy : MovingObject {
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
         animator = GetComponent<Animator>(); //initalize animator
         target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's location
-        arrow = transform.GetChild(0);
 
         base.Start(); //call the super code's base
 
@@ -55,7 +46,7 @@ public class Enemy : MovingObject {
         explorePath = new Queue<Vector2>(); //init explore queue
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
-        chaseValue = 7; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
+        chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
         chaseTurns = 5; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
@@ -80,25 +71,7 @@ public class Enemy : MovingObject {
             case 3: { lastMoveX = 0; lastMoveY = -1; break; } //facing down
         }
 
-        SetDirArrow(); //Rotate the arrow indicator respective to where the enemy is facing
-    }
-
-    //Change the arrow's rotation depending on the direction the AI is facing
-    private void SetDirArrow() {
-        int dir = GetDirection();
-        if (dir == 0) arrow.rotation = right;
-        else if (dir == 1) arrow.rotation = left;
-        else if (dir == 2) arrow.rotation = up;
-        else if (dir == 3) arrow.rotation = down;
-    }
-
-    //Return a simple int representing the direction the AI is facing
-    /* 0 = right, 1 = left, 2 = up, 3 = down */ 
-    private int GetDirection() {
-        if (lastMoveX == 1) return 0; //facing right
-        else if (lastMoveX == -1) return 1; //facing left
-        else if (lastMoveY == 1) return 2; //facing up
-        else return 3; //lastMoveY == -1; facing down
+        SetDirArrow(lastMoveX, lastMoveY, arrow); //Rotate the arrow indicator respective to where the enemy is facing
     }
 
     //Enemy AI's move once every two "turns", or once every two steps the player takes.
@@ -189,7 +162,7 @@ public class Enemy : MovingObject {
                 (int)transform.position.y, x, y));
             DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
 
-            print("THEY SEE YOU BOY HAHAHAHA");
+            //print("THEY SEE YOU BOY HAHAHAHA");
             chasing = true; //the enemy is now chasing the player
             chaseCount = 0; //reset counter
             restartExploration = true; //make note that we need to reset the exploration path next time we explore
@@ -230,10 +203,10 @@ public class Enemy : MovingObject {
                     DestroyImmediate(aStar);
 
                     restartExploration = true; //restart exploration when the AI starts exploring again
-                    print("Recalculated Chase Path to " + lastSeenX + "," + lastSeenY);
+                    //print("Recalculated Chase Path to " + lastSeenX + "," + lastSeenY);
                 }
                 else { //we got no new information and we are still on the path to the player
-                    print("We're going to the player's last known spot " + lastSeenX + "," + lastSeenY);
+                    //print("We're going to the player's last known spot " + lastSeenX + "," + lastSeenY);
                 }
             }
             else {
@@ -248,7 +221,7 @@ public class Enemy : MovingObject {
         //The last move is indicative of the direction the Ai is currently facing
         lastMoveX = (int)move.x; lastMoveY = (int)move.y; //update the direction the AI is facing
 
-        SetDirArrow(); //Rotate the arrow indicator to depict where the enemy was last facing
+        SetDirArrow(lastMoveX, lastMoveY, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
 
         AttemptMove<Player>((int)move.x, (int)move.y); //tell the enemy to move
     }
@@ -270,13 +243,13 @@ public class Enemy : MovingObject {
 
     //Detect if the player can be seen or not by the enemy.
     private bool CanSeePlayer() {
-        //If the player is hiding, he can't be detected
+        //If the player is hiding, he can't be detected - or the AI is stunned
         if (GameManager.instance.isHiding) return false;
 
         //Simple short-hands for the position coordinates of the enemy AI and the Player
         int posx = (int)transform.position.x; int posy = (int)transform.position.y;
         int tarx = (int)target.position.x; int tary = (int)target.position.y;
-        print(transform.position + " , " + target.position);
+        //print(transform.position + " , " + target.position);
         
         if (chasing && (chaseTurns > chaseCount)) {
             chaseCount++;
@@ -290,7 +263,7 @@ public class Enemy : MovingObject {
         foreach (Vector2 pair in InitList(posx, posy)) if (tarx == pair.x && tary == pair.y) return true;
 
         //Get the direction the target is moving and detect accordingly
-        int direction = GetDirection();
+        int direction = GetDirection(lastMoveX, lastMoveY);
         switch (direction) {
             case 0: case 1: { //facing right or facing left
                 //If the target's y value is within a block of the enemy's

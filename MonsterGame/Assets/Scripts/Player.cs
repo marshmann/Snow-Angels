@@ -7,6 +7,8 @@ public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
     public float restartLevelDelay = 1f;
     public Text bottomText;
+    public Slider floorSlider;
+    public GameObject bullet;
 
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
@@ -17,18 +19,15 @@ public class Player : MovingObject {
     public int stealthRadius = 3;
 
     //Below are containers for the sound effects related to the player
-    public AudioClip moveSound1;
-    public AudioClip moveSound2;
+    public AudioClip moveSound1; public AudioClip moveSound2;
     public AudioClip gameOverSound;
 
     //These sound effects are still being used, even though they really shouldn't be since we aren't finding food anymore
-    public AudioClip eatSound1; 
-    public AudioClip eatSound2;
+    public AudioClip eatSound1; public AudioClip eatSound2;
 
     //depricated sound effects (no longer finding drinks in the level)
-    public AudioClip drinkSound1;
-    public AudioClip drinkSound2;
-   
+    public AudioClip drinkSound1;public AudioClip drinkSound2;  
+
     //Simple function that prints an updated score message
     private void PrintText() {
         string str = "";
@@ -37,9 +36,7 @@ public class Player : MovingObject {
     }
 
     //Function created to check if the player has enough gems to advance levels
-    private bool CheckGems() {
-        return gems >= 3 ? true : false;
-    }
+    private bool CheckGems() { return gems >= 3 ? true : false; }
     
     //This'll be called whenever the player first loads onto the level
     protected override void Start() {
@@ -47,6 +44,10 @@ public class Player : MovingObject {
         lives = GameManager.instance.playerLifeTotal; //set the player lives (it's set to 3)
         PrintText(); //print the game text
         base.Start(); //Call the MovingObject's start function
+
+        lastMoveX = 1; lastMoveY = 0; //initalize the last move to be to the right of the player
+
+        AlterFloor(new Vector2(0,0)); //Change the tile the player starts on to be "shoveled"
     }
 
     //This'll be called whenever the game moves on to the next level
@@ -58,14 +59,20 @@ public class Player : MovingObject {
     private void Update() {
         if (GameManager.instance == null || !GameManager.instance.playersTurn) return; //make sure it's the player's turn
 
+        floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
+
         bool isHiding = GameManager.instance.isHiding; //check to see if the player is hiding or not
         int horizontal = 0; //the direction we want to move horizontally
         int vertical = 0; //the direction we want to move vertically
 
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3;
-            PrintText();
+            gems = 3; lives = 3; PrintText(); GameManager.instance.CheatFloorScore();
+        }
+
+        //The player hits the attack keybind
+        if (Input.GetKeyDown(KeyCode.R)) {
+            ShootProjectile();
         }
 
         //If the player isn't hiding and hits the keybind to hide...
@@ -119,9 +126,21 @@ public class Player : MovingObject {
                     vertical = 0; //set it so vertical is 0; this ensures we have no diagnal movement
 
                 if (isHiding) bottomText.text = "You cannot move while hiding!"; //don't allow the player to move if he is hiding
-                else AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
+                else {
+                    SetDirArrow(horizontal, vertical, arrow); //Rotate the arrow indicator
+                    lastMoveX = horizontal; lastMoveY = vertical;
+                    AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
+                }
             }
         }
+    }
+
+    private void ShootProjectile() {
+        Vector3 pos = transform.position;
+        pos.x += lastMoveX; pos.y += lastMoveY; //move the projectile over one tile
+
+        //Create the bullet and fire it
+        Instantiate(bullet, pos, Quaternion.identity, transform);
     }
 
     //A function that will attempt to move the player, given some sort of obstruction object T
@@ -133,6 +152,7 @@ public class Player : MovingObject {
         RaycastHit2D hit; //Here we can do audio-related calls if we want
         if (Move(xDir, yDir, out hit)) { //if we can move
             SoundManager.instance.RandomizeSFX(moveSound1, moveSound2); //play a random move sound
+            checkFloor = true; //the next time Move is called, it'll check to see if the floor sprites need updated
         }
 
         CheckIfGameOver(); //self explanatory

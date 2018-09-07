@@ -20,7 +20,10 @@ public class GameManager : MonoBehaviour {
     private float hideTime = 1f; //Enemies will move every half-second the player is hiding
 
     private bool enemiesMoving;
-    private int level = 1; //Level 2 is when a single enemy will spawn on the board
+    private int level = 1; //Level 1 is when a single enemy will spawn on the board
+
+    private int floorCount = 0; //how many floor tiles are on the board
+    private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
 
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
@@ -29,6 +32,15 @@ public class GameManager : MonoBehaviour {
     [HideInInspector] public int[,] board;
     /* The above 2d array is the board state where
      * 0 is a floor, 1 is a wall, 2 is a broken wall and 3 is the exit */
+
+    //Below are containers for the sound effects related to the player
+    public AudioClip moveSound1; public AudioClip moveSound2;
+
+    public void SetFloorCount(int count) { floorCount = count; }
+    public void SetFloorScore() { floorScore++; }
+    public float GetFloorScore() {return (float)floorScore/floorCount; }
+    public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
+    public void CheatFloorScore() { floorScore = floorCount; }
 
     void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
@@ -49,9 +61,10 @@ public class GameManager : MonoBehaviour {
     }
 
     //The below function is depricated, but I couldn't find an easy replacement; it still works though.
-    //Apart of the Unity UI API; is called whenever a scene is loaded
+    //Apart of the Unity UI API; is called whenever a scene is loaded TODO: Replace with scenemanager code
     private void OnLevelWasLoaded(int index) {
         level++; //increment the level count
+        floorScore = 0; //reset floor score
         InitGame();
     }
 
@@ -105,7 +118,7 @@ public class GameManager : MonoBehaviour {
         else if ((playersTurn && !isHiding) || enemiesMoving || doingSetUp)
             return;
 
-        //If it's not the players turn and it should be the enemies turn, call the move enemies function
+        //If it's not the players turn and it should be the enemies turn, call the move enemies function        
         StartCoroutine(MoveEnemies());
     }
 
@@ -124,12 +137,19 @@ public class GameManager : MonoBehaviour {
         if (enemies.Count == 0) {
             yield return new WaitForSeconds(turnDelay);
         }
-
+        
         //Issue the move enemy command on every enemy in the list
         //Then wait for an arbitrarily small amount of time at the end of the turn
         for (int i = 0; i < enemies.Count; i++) {
-            enemies[i].MoveEnemy();
-            yield return new WaitForSeconds(enemies[i].moveTime);
+            if (!enemies[i].stunned) { //if the enemy isn't stunned
+                enemies[i].MoveEnemy(); //move him
+                yield return new WaitForSeconds(enemies[i].moveTime); //wait for a small turn delay
+            }
+            else { //the enemy is stunned
+                enemies[i].stunLength--; //reduce stun timer
+                if (enemies[i].stunLength == 0) enemies[i].stunned = false; //if stun timer is 0 then enemy is no longer stunned
+                yield return new WaitForSeconds(turnDelay); //wait for turn delay
+            }
         }
 
         playersTurn = true;
