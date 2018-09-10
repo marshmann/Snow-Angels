@@ -175,9 +175,13 @@ public class BoardManager : MonoBehaviour {
                     board[x, y] = 3; //indicate that there is an exit
                 }
                 else if (grid[xVal, yVal]) { //else choose a random floor tile from the floorTile array
-                    floorCount++; //increment a counter on how many floor tiles are generated
                     chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
+
+                    if (x == 0 && y == 0) instance.GetComponent<Floor>().SetNotTrapped(); //force the tile where the player spawns to not be a trap
+                    //if the floor is trapped we won't count it as having the posibilty of being shoveled
+                    if (!instance.GetComponent<Floor>().IsTrapped()) floorCount++; //increment a counter on how many floor tiles are generated
+
                     instance.transform.SetParent(boardHolder);
                 }
             }

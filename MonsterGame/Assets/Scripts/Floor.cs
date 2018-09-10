@@ -11,16 +11,17 @@ public class Floor : MonoBehaviour {
         spriteRenderer = GetComponent<SpriteRenderer>();
         float value = Random.Range(0, 100);
 
-        if (value >= 50) trapped = true;
+        if (value >= 95) {
+            trapped = true;
+            spriteRenderer.color = Color.green;
+        }
     }
 
-    public bool IsTrapped() {
-        if(trapped) print("trapped tile");
-        return trapped;
-    }
+    public bool IsTrapped() {  return trapped; }
+    public void SetNotTrapped() { trapped = false; }
 
     public void AlterFloor() {
-        if (!changed) {
+        if (!changed && !trapped) {
             //spriteRenderer.sprite = alteredFloor; //alter the floor sprite
             spriteRenderer.color = Color.blue; //temporary alteration to the floor
             changed = true; //set it so the floor can't be changed again

@@ -171,7 +171,9 @@ public abstract class MovingObject : MonoBehaviour {
                 hitComponent.AlterFloor();
 
                 if(pair == pos) { //Check if the tile we're standing on is trapped
-                    if (!hitComponent.IsTrapped()) print("we good");
+                    if (hitComponent.IsTrapped()) {
+                        //do something!
+                    }
                 }
             } 
         }
