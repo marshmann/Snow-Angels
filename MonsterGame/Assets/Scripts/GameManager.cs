@@ -1,6 +1,6 @@
 ﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
 using System.Collections;
-using System.Collections.Generic;
+//using System.Collections.Generic; //Use this when we want to use Lists
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour {
 
     /* Snow Angels: we only have one enemy to worry about, thus this code doesn't apply. Use SetEnemy instead.
      * I am keeping all the code related to having multiple enemies for the time being,
-     * as it wouldn't be benefitical to delete them in case we decide on having more-than-one agin.
+     * as it wouldn't be benefitical to delete them in case we decide on having more-than-one again.
     public void AddEnemyToList(Enemy script) {
         enemies.Add(script);
     }
