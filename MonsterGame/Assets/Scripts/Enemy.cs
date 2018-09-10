@@ -14,10 +14,10 @@ public class Enemy : MovingObject {
     private Transform target; //used to store player position (where the enemies will move toward)
     private bool skipMove; //enemies move every other turn
 
-    private int perception; //how the enemy can see ahead of them
-    private int chaseValue; //radius the enemy will detect during chasing
-    private int chaseTurns; //amount of turns the increased detect radius lasts
-    private int chaseCount; //counter for chase turns
+    //private int perception; //how the enemy can see ahead of them
+    //private int chaseValue; //radius the enemy will detect during chasing
+    //private int chaseTurns; //amount of turns the increased detect radius lasts
+    //private int chaseCount; //counter for chase turns
 
     //Below are containers for the audio effects
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
@@ -49,10 +49,10 @@ public class Enemy : MovingObject {
         path = new Queue<Vector2>(); //init path queue
         explorePath = new Queue<Vector2>(); //init explore queue
 
-        perception = 7; //set the perception stat of the enemy (might need tuned)
-        chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
-        chaseTurns = 5; //the amount of turns the enemy will have an increased detection radius
-        chaseCount = 0; //initalize counter
+        //perception = 7; //set the perception stat of the enemy (might need tuned)
+        //chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
+        //chaseTurns = 5; //the amount of turns the enemy will have an increased detection radius
+        //chaseCount = 0; //initalize counter
 
         SetInitDirection(); //init the direction the enemy Ai will face
     }
@@ -167,7 +167,7 @@ public class Enemy : MovingObject {
             DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
             
             chasing = true; //the enemy is now chasing the player
-            chaseCount = 0; //reset counter
+            //chaseCount = 0; //reset counter
             restartExploration = true; //make note that we need to reset the exploration path next time we explore
         }
         else { //enemy can't see player

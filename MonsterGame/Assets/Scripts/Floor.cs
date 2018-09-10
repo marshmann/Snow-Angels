@@ -5,9 +5,18 @@ public class Floor : MonoBehaviour {
 
     private SpriteRenderer spriteRenderer;
     private bool changed = false;
+    private bool trapped = false;
 
-    void Awake() {
+    private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        float value = Random.Range(0, 100);
+
+        if (value >= 50) trapped = true;
+    }
+
+    public bool IsTrapped() {
+        if(trapped) print("trapped tile");
+        return trapped;
     }
 
     public void AlterFloor() {

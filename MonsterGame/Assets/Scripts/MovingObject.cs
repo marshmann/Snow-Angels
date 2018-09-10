@@ -155,7 +155,6 @@ public abstract class MovingObject : MonoBehaviour {
             OnCantMove(hitComponent);
     }
 
-    //Note: Might want to edit this to make it so walking over floors also shovels neighboring tiles
     public void AlterFloor(Vector2 pos) {
         int x = (int)pos.x; int y = (int)pos.y;
         List<Vector2> neighbors = new List<Vector2>(5) {
@@ -168,9 +167,12 @@ public abstract class MovingObject : MonoBehaviour {
         foreach (Vector2 pair in neighbors) {
             RaycastHit2D hit = Physics2D.Linecast(pair, pair, floorLayer); //calculate if we hit anything as we moved
             if (hit.transform != null) {
-                //print(hit.transform);
                 Floor hitComponent = hit.transform.GetComponent<Floor>();
                 hitComponent.AlterFloor();
+
+                if(pair == pos) { //Check if the tile we're standing on is trapped
+                    if (!hitComponent.IsTrapped()) print("we good");
+                }
             } 
         }
 
