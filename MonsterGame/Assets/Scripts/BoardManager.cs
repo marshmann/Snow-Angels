@@ -72,8 +72,7 @@ public class BoardManager : MonoBehaviour {
         //Generate the grid
         public void Generate() {
             grid = new bool[width, height];
-            startX = 0;
-            startY = 0;
+            startX = 0; startY = 0;
 
             grid[startX, startY] = true;
             CreateMaze(startX, startY);
@@ -89,33 +88,29 @@ public class BoardManager : MonoBehaviour {
                 if (directions[i] == 1) {
                     if (y - 1 <= 0) continue;
                     //If the two cells are not already a path
-                    if (grid[x, y - 2] == false) {
-                        grid[x, y - 2] = true;
-                        grid[x, y - 1] = true;
+                    if (!grid[x, y - 2]) {
+                        grid[x, y - 2] = true; grid[x, y - 1] = true;
                         CreateMaze(x, y - 2);
                     }
                 }
                 if (directions[i] == 2) {
                     if (x - 1 <= 0) continue;
-                    if (grid[x - 2, y] == false) {
-                        grid[x - 2, y] = true;
-                        grid[x - 1, y] = true;
+                    if (!grid[x - 2, y]) {
+                        grid[x - 2, y] = true; grid[x - 1, y] = true;
                         CreateMaze(x - 2, y);
                     }
                 }
                 if (directions[i] == 3) {
                     if (x + 2 >= width - 1) continue;
-                    if (grid[x + 2, y] == false) {
-                        grid[x + 2, y] = true;
-                        grid[x + 1, y] = true;
+                    if (!grid[x + 2, y]) {
+                        grid[x + 2, y] = true; grid[x + 1, y] = true;
                         CreateMaze(x + 2, y);
                     }
                 }
                 if (directions[i] == 4) {
                     if (y + 2 >= height - 1) continue;
-                    if (grid[x, y + 2] == false) {
-                        grid[x, y + 2] = true;
-                        grid[x, y + 1] = true;
+                    if (!grid[x, y + 2]) {
+                        grid[x, y + 2] = true; grid[x, y + 1] = true;
                         CreateMaze(x, y + 2);
                     }
                 }

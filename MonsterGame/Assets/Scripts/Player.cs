@@ -151,6 +151,7 @@ public class Player : MovingObject {
         }
     }
 
+    //Create the projectile object and fire it in the direction the player is facing
     private void ShootProjectile() {
         Vector3 pos = transform.position;
         pos.x += lastMoveX; pos.y += lastMoveY; //move the projectile over one tile
@@ -200,6 +201,7 @@ public class Player : MovingObject {
     }
 
     //Depricated code since we removed the destroyable wall feature in the current version
+    //Due to the fact no walls are destructable, this will never actually be called.
     protected override void OnCantMove<T>(T component) {
         Wall hitWall = component as Wall; //store the passed component param as a wall object
         hitWall.DamageWall(wallDamage); //damage the wall
