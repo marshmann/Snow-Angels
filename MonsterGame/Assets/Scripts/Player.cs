@@ -77,11 +77,13 @@ public class Player : MovingObject {
 
         //If the player isn't hiding and hits the keybind to hide...
         if (isHiding == false && Input.GetKeyDown(KeyCode.F)) {
-            bool playerCanStealth = true; //we'll assume the player can stealth initially
-
             //Check to see if any enemy is too close to the player
             //At the moment, we're ignoring walls in this check - so if an enemy is on the other side of a wall
             //but is still within the radius of the player, he won't be able to hide.
+
+            bool playerCanStealth = true; //we'll assume the player can stealth initially
+
+            /* Depricated: We only have ONE enemy now, so we don't need to check the list of enemies
             foreach (Enemy enemy in GameManager.instance.enemies) {
                 //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
                 //Get the absolute difference between the enemy's and the player's x and y coordinates
@@ -97,6 +99,20 @@ public class Player : MovingObject {
                     break; //if one enemy is within the radius, we don't need to continue checking the other enemies.
                 }
             }
+            */
+
+            Enemy enemy = GameManager.instance.enemy; //get reference to the enemy object
+
+            //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
+            //Get the absolute difference between the enemy's and the player's x and y coordinates
+            int xDif = (int)System.Math.Abs(enemy.transform.position.x - transform.position.x);
+            int yDif = (int)System.Math.Abs(enemy.transform.position.y - transform.position.y);
+
+            //c = sqrt( a^2 + b^2 ) | Think of xDif as a, yDif as b, and the forming hypotenuse (which would be total) as c
+            int total = (int)System.Math.Sqrt(System.Math.Pow(xDif, 2) + System.Math.Pow(yDif, 2));
+
+            //If the total distance is less than set stealthRadius
+            if (total <= stealthRadius) { playerCanStealth = false; } //the player can't stealth, player's too close to the enemy
 
             //If the player can stealth, then we'll let them know and change their sprite
             if (playerCanStealth) {

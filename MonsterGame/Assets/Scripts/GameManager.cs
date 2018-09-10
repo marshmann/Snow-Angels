@@ -13,7 +13,9 @@ public class GameManager : MonoBehaviour {
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
 
-    [HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
+    //In Snow Angels, we will only have one enemy.  As such, we don't need the list of enemies.
+    //[HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
+    public Enemy enemy; //The one enemy in the level
 
     [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
     private float time = 0.0f; //initalizer for time
@@ -36,26 +38,37 @@ public class GameManager : MonoBehaviour {
     //Below are containers for the sound effects related to the player
     public AudioClip moveSound1; public AudioClip moveSound2;
 
-    public void SetFloorCount(int count) { floorCount = count; }
-    public void SetFloorScore() { floorScore++; }
-    public float GetFloorScore() {return (float)floorScore/floorCount; }
+    public void SetFloorCount(int count) { floorCount = count; } //set the amount of floor tiles
+    public void SetFloorScore() { floorScore++; } //increment the player's total floor score
+    public float GetFloorScore() {return (float)floorScore/floorCount; } //return the calculated floor score
     public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
-    public void CheatFloorScore() { floorScore = floorCount; }
+
+    public void SetEnemy(Enemy script) { enemy = script; } //set the enemy that we will be using in this map
+    public void SetBoard(int[,] grid) { board = grid; } //store the board layout
+
+    public void CheatFloorScore() { floorScore = floorCount; } //Remove this before game goes live ;) - Testing Function
+
+    /* Snow Angels: we only have one enemy to worry about, thus this code doesn't apply. Use SetEnemy instead.
+     * I am keeping all the code related to having multiple enemies for the time being,
+     * as it wouldn't be benefitical to delete them in case we decide on having more-than-one agin.
+    public void AddEnemyToList(Enemy script) {
+        enemies.Add(script);
+    }
+    */
 
     void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
         //If there does happen to be more than one instance of it, it'll destroy it
-        if (instance == null)
-            instance = this;
-        else if (instance != this)
-            Destroy(gameObject);
+        if (instance == null) instance = this;
+        else if (instance != this) Destroy(gameObject);
 
         /* When a new scene is loaded, normally all objects in the hierarchy will be destroyed
          * DontDestroyOnLoad makes it so this object stays and isn't deleted.
          * We want this since this allows us to keep track of score between scenes
          */
         DontDestroyOnLoad(gameObject);
-        enemies = new List<Enemy>();
+
+        //enemies = new List<Enemy>(); //initialize the enemy list to be empty
         boardScript = GetComponent<BoardManager>();
         InitGame();
     }
@@ -77,7 +90,8 @@ public class GameManager : MonoBehaviour {
         levelImage.SetActive(true); //Display the image
         Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
 
-        enemies.Clear(); //Make sure the enemy list is empty when a new level starts
+        //enemies.Clear(); //Make sure the enemy list is empty when a new level starts
+        enemy = null;
         boardScript.SetupScene(level);
     }
 
@@ -122,18 +136,11 @@ public class GameManager : MonoBehaviour {
         StartCoroutine(MoveEnemies());
     }
 
-    public void AddEnemyToList(Enemy script) {
-        enemies.Add(script);
-    }
-
-    public void SetBoard(int[,] grid) {
-        board = grid;
-    }
-
     IEnumerator MoveEnemies() {
         enemiesMoving = true;
         yield return new WaitForSeconds(turnDelay); //'sleep' for turnDelay
 
+        /* Multiple Enemies
         if (enemies.Count == 0) {
             yield return new WaitForSeconds(turnDelay);
         }
@@ -149,6 +156,21 @@ public class GameManager : MonoBehaviour {
                 enemies[i].stunLength--; //reduce stun timer
                 if (enemies[i].stunLength == 0) enemies[i].stunned = false; //if stun timer is 0 then enemy is no longer stunned
                 yield return new WaitForSeconds(turnDelay); //wait for turn delay
+            }
+        }
+        */
+
+        //Single Enemy
+        if (enemy == null) yield return new WaitForSeconds(turnDelay);
+        else {
+            if (enemy.stunned) {
+                enemy.stunLength--;
+                if (enemy.stunLength == 0) enemy.stunned = false;
+                yield return new WaitForSeconds(turnDelay);
+            }
+            else {
+                enemy.MoveEnemy();
+                yield return new WaitForSeconds(enemy.moveTime);
             }
         }
 

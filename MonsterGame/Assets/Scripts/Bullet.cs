@@ -41,8 +41,10 @@ public class Bullet : MovingObject {
                         //TODO: Display Enemy Death animation
                         //TODO: Display "angel player" model for the rest of the level
 
-                        GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
+                        //Depricated: we are only using one enemy not multiple now
+                        //GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
 
+                        GameManager.instance.enemy = null; //set the enemy to null
                         DestroyImmediate(hit.transform.gameObject); //destroy the bullet
                     }
                     else { //Stun the Enemy

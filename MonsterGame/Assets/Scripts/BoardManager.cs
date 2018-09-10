@@ -40,7 +40,7 @@ public class BoardManager : MonoBehaviour {
     //public GameObject[] wallTiles; //Currently depricated since we don't use the destructable walls
     public GameObject[] gemTiles;
     public GameObject[] enemyTiles;
-    public GameObject[] outerWallTiles; //undestructable, currently using them for the maze, not just the outerwall
+    public GameObject[] wallTiles; //undestructable, currently using them for the maze, not just the outerwall
     
     //used to keep the hierarchy clean (the list of game objects on the left of unity)
     //basically going to just put all the board objects in this so there isn't as much clutter.
@@ -52,10 +52,10 @@ public class BoardManager : MonoBehaviour {
 
     //Maze generation was provided by: http://tutorials.daspete.at/unity3d/maze-runner
     public class Maze {
-        int width; int height; //width and height of the board
-        bool[,] grid; //grid (true = no wall, false = wall)
-        System.Random random;
-        int startX; int startY; //start pos of the player
+        private int width; private int height; //width and height of the board
+        private bool[,] grid; //grid (true = no wall, false = wall)
+        private System.Random random; //Random object
+        private int startX; private int startY; //start pos of the player
 
         //constructor
         public Maze(int width, int height, System.Random random) {
@@ -80,7 +80,7 @@ public class BoardManager : MonoBehaviour {
         }
 
         //Depth first search maze generator
-        void CreateMaze(int x, int y) {
+        private void CreateMaze(int x, int y) {
             //Create a direction array in one of four directions and shuffle it
             int[] directions = new int[] { 1, 2, 3, 4 };
             Tools.Shuffle(directions, random); //shuffle the directions
@@ -124,7 +124,7 @@ public class BoardManager : MonoBehaviour {
     }
 
     //Function to empty the gridPositions list and re-initalize it
-    void InitializeList() {
+    private void InitializeList() {
         gridPositions.Clear();
 
         for (int x = 1; x < 2 * columns - 1; x++) {
@@ -136,19 +136,20 @@ public class BoardManager : MonoBehaviour {
 
     //Function to set up outerwalls and the floor of the game board
     private int[,] BoardSetup(bool[,] grid) {
-        /* The reason this loop is from -1 to columns +1 (same for rows)
-         * is because we are building a border around the gameboard for the outerwall 
-         */
-        int[,] board = new int[2 * columns + 1, 2 * rows + 1];
-        boardHolder = new GameObject("Board").transform; //initalize the boardHolder
-        bool exitPlaced = false;
-
         int col = 2 * columns; int row = 2 * rows;
+        int[,] board = new int[col + 1, row + 1];
+        boardHolder = new GameObject("Board").transform; //initalize the boardHolder
+        bool exitPlaced = false;   
         int floorCount = 0;
+        /* The reason this loop is from -1 to columns (same for rows)
+         * is because we are building a border around the gameboard for the outerwall */
         for (int x = -1; x < col; x++) {
             for (int y = -1; y < row; y++) {
                 GameObject chosenTile; //The tile that we will randomly choose to put on the board
 
+                //The grid is smaller than the board, due to the fact the maze generation creates small corridors and not big ones
+                //thus, we scale the board by doing int division, allowing us to have two-four tiles on the board be associated
+                //with one tile on the grid.
                 int xVal = x / 2; int yVal = y / 2;
 
                 /* In the if statements below, we take our chosen tile and instantiate it.  
@@ -160,35 +161,33 @@ public class BoardManager : MonoBehaviour {
                  * Then, we cast it to be a GameObject (with "as GameObject")
                  * Finally we set the parent of the instantiated object to be the board
                  */
-
-                //If the tile is on the edge, choose a random outer wall tile
-                if (x == -1 || y == -1) {
-                    chosenTile = outerWallTiles[Random.Range(0, outerWallTiles.Length)];
+                 
+                if (x == -1 || y == -1) { //If the tile is on the edge, choose a random outer wall tile
+                    chosenTile = wallTiles[Random.Range(0, wallTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                 }
-                else if (!exitPlaced && x >= columns && y >= columns && (grid[xVal, yVal])) {
-                    GameObject instance = Instantiate(exit, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
+                else if (!exitPlaced && x >= columns && y >= columns && (grid[xVal, yVal])) { //if the exit is not placed and we are around the center of the board
+                    GameObject instance = Instantiate(exit, new Vector3(x, y, 0f), Quaternion.identity) as GameObject; //set the exit
                     instance.transform.SetParent(boardHolder);
                     exitPlaced = true; //we only set the exit once
 
                     board[x, y] = 3; //indicate that there is an exit
                 }
-                else if (grid[xVal, yVal]) {
-                    //else choose a random floor tile from the floorTile array
-                    floorCount++;
+                else if (grid[xVal, yVal]) { //else choose a random floor tile from the floorTile array
+                    floorCount++; //increment a counter on how many floor tiles are generated
                     chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                 }
             }
         }
-        GameManager.instance.SetFloorCount(floorCount); //Set the amount of floor tiles generated
+        GameManager.instance.SetFloorCount(floorCount); //Set the amount of floor tiles generated in the GameManager.
         return board;
     }
 
     //Returns a random position on the grid/gameboard 
-    Vector3 RandomPosition() {
+    private Vector3 RandomPosition() {
         int randomIndex = Random.Range(0, gridPositions.Count);
         Vector3 randomPos = gridPositions[randomIndex];
         gridPositions.RemoveAt(randomIndex);
@@ -196,7 +195,7 @@ public class BoardManager : MonoBehaviour {
     }
 
     //Spawn tiles for a given GameObject array at a randomly chosen position
-    void LayoutObjectAtRandom(GameObject[] tileArray, int min, int max, bool[,] grid) {
+    private void LayoutObjectAtRandom(GameObject[] tileArray, int min, int max, bool[,] grid) {
         int count = Random.Range(min, max + 1);
         for (int i = 0; i < count; i++) {
             Vector3 randomPos = RandomPosition(); //choose a random position
@@ -210,13 +209,15 @@ public class BoardManager : MonoBehaviour {
         }
     }
 
+    //There are missing corners due to the for-loop not being all-encompassing in it's scaling.
+    //Instead of fixing the loop, it was easier to just put the two corner objects down seperately
     private void AddMissingCorners(int row, int col) {
-        int rand1 = Random.Range(0, outerWallTiles.Length);
-        GameObject wallChoice1 = outerWallTiles[rand1];
+        int rand1 = Random.Range(0, wallTiles.Length);
+        GameObject wallChoice1 = wallTiles[rand1];
         GameObject instance1 = Instantiate(wallChoice1, new Vector3(-1, row, 0f), Quaternion.identity);
 
-        int rand2 = Random.Range(0, outerWallTiles.Length);
-        GameObject wallChoice2 = outerWallTiles[rand2];
+        int rand2 = Random.Range(0, wallTiles.Length);
+        GameObject wallChoice2 = wallTiles[rand2];
         GameObject instance2 = Instantiate(wallChoice2, new Vector3(row, -1, 0f), Quaternion.identity);
 
         instance1.transform.SetParent(boardHolder);
@@ -225,42 +226,52 @@ public class BoardManager : MonoBehaviour {
 
     //Function that is called by the game manager to set up the board
     public void SetupScene(int level) {
-        //Generate the maze
-        Maze maze = new Maze(columns + 1, rows + 1, new System.Random());
-        maze.Generate();
-        bool[,] grid = maze.Grid();
-
+        Maze maze = new Maze(columns + 1, rows + 1, new System.Random()); //Create a maze object
+        maze.Generate(); //Generate the maze
+        bool[,] grid = maze.Grid(); //get the maze's grid
         int[,] board = BoardSetup(grid); //set up the outerwall and the floor
-        int twocol = 2 * columns; int tworow = 2 * rows;
+        int twocol = 2 * columns; int tworow = 2 * rows; //scale the board to be twice the size of the grid
         for (int i = 0; i <= twocol; i++) {
             for (int j = 0; j <= tworow; j++) {
-                if (!grid[i / 2, j / 2]) {
-                    int rand = Random.Range(0, outerWallTiles.Length);
-                    GameObject wallChoice = outerWallTiles[rand];
-                    GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
-                    instance.transform.SetParent(boardHolder);
+                if (!grid[i / 2, j / 2]) { //associate one grid tile with four board tiles
+
+                    //We are not generating the outerwall here: we are using the outerWall tiles throughout the board instead of the regular wall tiles.
+                    //This is because we removed the idea of having destructable walls, which the regular wall tiles have.
+                    int rand = Random.Range(0, wallTiles.Length); //randomly generate a number
+                    GameObject wallChoice = wallTiles[rand]; //randomly choose an outer-wall tile
+                    GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity); //place it on the board
+                    instance.transform.SetParent(boardHolder); //for organization sake, make it a child of the boardHolder object
 
                     //Below code will make it so the entire board is just floors; good for testing enemy ai
                     //int rand = Random.Range(0, floorTiles.Length);
                     //GameObject wallChoice = floorTiles[rand];
                     //Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
-
+                    
                     if (i != twocol && j != tworow) {
-                        if (rand == 3) board[i, j] = 2;
-                        else board[i, j] = 1;
-                    }
+                        /* This is a remnant of depricated code.  It would rarely make it so one of the wall tiles is destructable.
+                        if (rand == 3) board[i, j] = 2; //1 in 3 chance of being a destructable wall
+                        else board[i, j] = 1; //else it's just a regular wall
+                        */
+                        board[i, j] = 1; //regular wall = 1
+                    }                    
                 }
             }
         }
 
-        AddMissingCorners(tworow, twocol);
+        AddMissingCorners(tworow, twocol); //fix the corners of the board
 
         InitializeList(); //reset the gridPos list
-        GameManager.instance.SetBoard(board);
+        GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout
 
-        //monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
-        int enemyCount = (int)Mathf.Log((level + 1), 2f);
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
+
+        /* Depricated idea: monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
+         * also the monster would be randomly put on the board, instead of appearing behind the player.
+        int enemyCount = (int)Mathf.Log((level + 1), 2f);
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
+        */
+
+        //TODO: we won't be putting it at random in the end.  The monster should spawn behind the player.
+        LayoutObjectAtRandom(enemyTiles, 1, 1, grid); //put the specified amount of enemies on the board
     }
 }

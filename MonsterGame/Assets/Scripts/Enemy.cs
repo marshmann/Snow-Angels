@@ -36,7 +36,11 @@ public class Enemy : MovingObject {
     private int rwx; private int rwy;
 
     protected override void Start() {
-        GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
+
+        //Depricated: for multiple enemies, we need to add this to the list.  For a singular one, however, we can just use a setter.
+        //GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
+
+        GameManager.instance.SetEnemy(this);
         animator = GetComponent<Animator>(); //initalize animator
         target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's location
 
@@ -161,8 +165,7 @@ public class Enemy : MovingObject {
             path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, x, y));
             DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
-
-            //print("THEY SEE YOU BOY HAHAHAHA");
+            
             chasing = true; //the enemy is now chasing the player
             chaseCount = 0; //reset counter
             restartExploration = true; //make note that we need to reset the exploration path next time we explore
@@ -244,8 +247,12 @@ public class Enemy : MovingObject {
     //Detect if the player can be seen or not by the enemy.
     private bool CanSeePlayer() {
         //If the player is hiding, he can't be detected - or the AI is stunned
+        //TODO: make hiding useful in the context when the AI can always see the player
         if (GameManager.instance.isHiding) return false;
-
+        else return true;
+        /* Depricated code: this code is the logic that dictates if the enemy can see the player or not
+         * however, we decided the enemy should always chase the player, so this code is now depricated.
+        
         //Simple short-hands for the position coordinates of the enemy AI and the Player
         int posx = (int)transform.position.x; int posy = (int)transform.position.y;
         int tarx = (int)target.position.x; int tary = (int)target.position.y;
@@ -314,6 +321,7 @@ public class Enemy : MovingObject {
             }
         }
         return false;
+        */
     }
 
     private bool FinishedChasing() {
