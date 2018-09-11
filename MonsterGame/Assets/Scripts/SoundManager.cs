@@ -12,10 +12,8 @@ public class SoundManager : MonoBehaviour {
 
     private void Awake() {
         //Same code here as in GameManager - only allow one instance of this manager at a time
-        if (instance == null)
-            instance = this;
-        else if (instance != this)
-            Destroy(gameObject);
+        if (instance == null) instance = this;
+        else if (instance != this) Destroy(gameObject);
 
         DontDestroyOnLoad(gameObject);
     }

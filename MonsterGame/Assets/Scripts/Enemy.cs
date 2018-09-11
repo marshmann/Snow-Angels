@@ -14,10 +14,10 @@ public class Enemy : MovingObject {
     private Transform target; //used to store player position (where the enemies will move toward)
     private bool skipMove; //enemies move every other turn
 
-    //private int perception; //how the enemy can see ahead of them
-    //private int chaseValue; //radius the enemy will detect during chasing
-    //private int chaseTurns; //amount of turns the increased detect radius lasts
-    //private int chaseCount; //counter for chase turns
+    private int perception; //how the enemy can see ahead of them
+    private int chaseValue; //radius the enemy will detect during chasing
+    private int chaseTurns; //amount of turns the increased detect radius lasts
+    private int chaseCount; //counter for chase turns
 
     //Below are containers for the audio effects
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
@@ -49,10 +49,10 @@ public class Enemy : MovingObject {
         path = new Queue<Vector2>(); //init path queue
         explorePath = new Queue<Vector2>(); //init explore queue
 
-        //perception = 7; //set the perception stat of the enemy (might need tuned)
-        //chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
-        //chaseTurns = 5; //the amount of turns the enemy will have an increased detection radius
-        //chaseCount = 0; //initalize counter
+        perception = 7; //set the perception stat of the enemy (might need tuned)
+        chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
+        chaseTurns = 8; //the amount of turns the enemy will have an increased detection radius
+        chaseCount = 0; //initalize counter
 
         SetInitDirection(); //init the direction the enemy Ai will face
     }
@@ -249,10 +249,10 @@ public class Enemy : MovingObject {
         //If the player is hiding, he can't be detected - or the AI is stunned
         //TODO: make hiding useful in the context when the AI can always see the player
         if (GameManager.instance.isHiding) return false;
-        else return true;
+        //else return true;
         /* Depricated code: this code is the logic that dictates if the enemy can see the player or not
          * however, we decided the enemy should always chase the player, so this code is now depricated.
-        
+        */
         //Simple short-hands for the position coordinates of the enemy AI and the Player
         int posx = (int)transform.position.x; int posy = (int)transform.position.y;
         int tarx = (int)target.position.x; int tary = (int)target.position.y;
@@ -321,7 +321,7 @@ public class Enemy : MovingObject {
             }
         }
         return false;
-        */
+        
     }
 
     private bool FinishedChasing() {

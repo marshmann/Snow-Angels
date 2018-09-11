@@ -7,28 +7,26 @@ using UnityEngine;
 public abstract class MovingObject : MonoBehaviour {
     public float moveTime = 0.1f; //the amount of time for an object to move
 
-    protected Transform arrow;
+    protected Transform arrow; //the arrow that rotates around the enemy/player depending on the direction they are facing
 
     //A coordinate pair that is used to represent the direction the AI/Player is currently facing
     [HideInInspector] public int lastMoveX;
     [HideInInspector] public int lastMoveY;
 
-    //layer we specified when we created our prefabs in order to check for colisions 
-    //We put walls, enemies and the player on this layer
-    public LayerMask blockingLayer;
-
-    public LayerMask floorLayer;
+    //layers we specified when we created our prefabs in order to check for colisions
+    public LayerMask blockingLayer; //layer for walls, enemies, and player    
+    public LayerMask floorLayer; //layer for floor tiles
 
     protected BoxCollider2D boxCollider; //boxCollider allows the use of hitboxes
     protected Rigidbody2D rb2d; //store the component reference of the object we're moving
     [HideInInspector] public float inverseMoveTime; //makes movement calculations "more efficent"
 
-    public int[,] knownBoard; //the known board for the moving object
-    public int[,] board; //the actual board
-    public bool[,] boolBoard; //a boolean representation of what tiles have been explored
-    public bool newInfo; //boolean depicting if the object updated it's known board
+    [HideInInspector] public int[,] knownBoard; //the known board for the moving object
+    [HideInInspector] public int[,] board; //the actual board
+    [HideInInspector] public bool[,] boolBoard; //a boolean representation of what tiles have been explored
+    [HideInInspector] public bool newInfo; //boolean depicting if the object updated it's known board
 
-    public bool checkFloor = true; //boolean depiciting if the floor tiles around the player should be checked
+    [HideInInspector] public bool checkFloor = true; //boolean depiciting if the floor tiles around the player should be checked
 
     //Calculate the angles necessary for the arrow indicator's rotation and store them locally
     //Do this now so we don't have to calculate it everytime the player/enemy moves
@@ -110,13 +108,13 @@ public abstract class MovingObject : MonoBehaviour {
 
         if (hit.transform == null) { //if we don't collide with anything
             StartCoroutine(SmoothMovement(end));
-            UpdateGrid();
-
             //We only want to check floors to alter once in every two calls (Due to the function being called more than once)
             //hence the checkFloor boolean, which is changed to true in Player.cs
             if (transform.tag == "Player" && checkFloor) {
-                checkFloor = false; 
-                AlterFloor(end); //Alter the Floor
+                checkFloor = false; AlterFloor(end); //Alter the Floor
+            }
+            else if( transform.tag == "Enemy" ) {
+                UpdateGrid();
             }
             return true; //we can move
         }
@@ -151,8 +149,7 @@ public abstract class MovingObject : MonoBehaviour {
         T hitComponent = hit.transform.GetComponent<T>();
         
         //Can't move and has hit something it can interact with
-        if (!canMove && hitComponent != null)
-            OnCantMove(hitComponent);
+        if (!canMove && hitComponent != null) OnCantMove(hitComponent);
     }
 
     public void AlterFloor(Vector2 pos) {

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class AStar : MonoBehaviour {
-    private int initAix; //the initial Ai X coordinate
-    private int initAiy; //the initial Ai Y coordinate
     private int xTarget; //the x coordinate of the target location
     private int yTarget; //the y coordinate of the target location
 
@@ -26,11 +24,11 @@ public class AStar : MonoBehaviour {
     private bool ValidNeighbor(int x, int y, int[,] state) {
         if (x < 0 || y < 0 || y >= state.GetLength(0) || x >= state.GetLength(0))
             return false;
-        else if (state[x, y] == 5) {
-            return true;
+        else if (state[x, y] == 5) { //if the tile is where the player is at
+            return true; //return true
         }
-        else if (state[x, y] != 0) {
-            return false;
+        else if (state[x, y] != 0 && state[x,y] != 3) { //if the state isn't a floor/exit tile
+            return false; //we can't walk on it
         }
         else return true;
     }
@@ -140,11 +138,6 @@ public class AStar : MonoBehaviour {
             //if it's not a goal
             foreach (State neighbor in GetNeighbors(data)) { //Get the neighbors of the node
                 Vector2 coord = FindAi(neighbor); //get the location of the AI
-                if ((int)coord.x == -1) { //Error in finding ai on board
-                    print("Error: enemy returned coord: " + coord);
-                    GameManager.instance.PrintIt<int>(neighbor.board);
-                    return null;
-                }
                 //Create a new node with the AI's location
                 Node n = new Node(neighbor.board, (int)coord.x, (int)coord.y, data) {
                     g = data.g + 1, //initalize the g value to be the parent's + 1

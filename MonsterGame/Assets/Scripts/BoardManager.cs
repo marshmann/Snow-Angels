@@ -13,12 +13,10 @@ public class BoardManager : MonoBehaviour {
 
     [Serializable]
     public class Count {
-        public int minimum;
-        public int maximum;
+        public int minimum; public int maximum;
 
         public Count(int min, int max) {
-            this.minimum = min;
-            this.maximum = max;
+            minimum = min; maximum = max;
         }
     }
 
@@ -44,7 +42,7 @@ public class BoardManager : MonoBehaviour {
     
     //used to keep the hierarchy clean (the list of game objects on the left of unity)
     //basically going to just put all the board objects in this so there isn't as much clutter.
-    private Transform boardHolder;
+    [HideInInspector] public Transform boardHolder;
     //Track all the different possible positions on the gameboard, and track if an object has spawned there or not
     //It's a list of Vector3, meaning it'll take 3 floats - the x, y, and z coordinates.  
     //Z is always 0 since we're working in 2d.
@@ -158,7 +156,7 @@ public class BoardManager : MonoBehaviour {
                  */
                  
                 if (x == -1 || y == -1) { //If the tile is on the edge, choose a random outer wall tile
-                    chosenTile = wallTiles[Random.Range(0, wallTiles.Length)];
+                    chosenTile = wallTiles[Random.Range(0, wallTiles.Length-1)];
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
                     instance.transform.SetParent(boardHolder);
                 }
@@ -211,11 +209,11 @@ public class BoardManager : MonoBehaviour {
     //There are missing corners due to the for-loop not being all-encompassing in it's scaling.
     //Instead of fixing the loop, it was easier to just put the two corner objects down seperately
     private void AddMissingCorners(int row, int col) {
-        int rand1 = Random.Range(0, wallTiles.Length);
+        int rand1 = Random.Range(0, wallTiles.Length-1);
         GameObject wallChoice1 = wallTiles[rand1];
         GameObject instance1 = Instantiate(wallChoice1, new Vector3(-1, row, 0f), Quaternion.identity);
 
-        int rand2 = Random.Range(0, wallTiles.Length);
+        int rand2 = Random.Range(0, wallTiles.Length-1);
         GameObject wallChoice2 = wallTiles[rand2];
         GameObject instance2 = Instantiate(wallChoice2, new Vector3(row, -1, 0f), Quaternion.identity);
 
@@ -233,26 +231,20 @@ public class BoardManager : MonoBehaviour {
         for (int i = 0; i <= twocol; i++) {
             for (int j = 0; j <= tworow; j++) {
                 if (!grid[i / 2, j / 2]) { //associate one grid tile with four board tiles
+                    int rand; //randomly generated number
 
-                    //We are not generating the outerwall here: we are using the outerWall tiles throughout the board instead of the regular wall tiles.
-                    //This is because we removed the idea of having destructable walls, which the regular wall tiles have.
-                    int rand = Random.Range(0, wallTiles.Length); //randomly generate a number
+                    //If the position we're looking at isn't on the top or right edge of the board
+                    if (i != twocol && j != tworow) {
+                        rand = Random.Range(0, wallTiles.Length); //randomly generate a number
+                        if (rand == 3) board[i, j] = 2; //if rand == 3 then the wall is destructable
+                        else board[i, j] = 1; //else it's just a regular wall
+                    }
+                    else rand = Random.Range(0, wallTiles.Length-1); //else randomly generate an outer-wall tile (no destructable wall)
+                    
+                    //Generate a wall based on rand
                     GameObject wallChoice = wallTiles[rand]; //randomly choose an outer-wall tile
                     GameObject instance = Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity); //place it on the board
-                    instance.transform.SetParent(boardHolder); //for organization sake, make it a child of the boardHolder object
-
-                    //Below code will make it so the entire board is just floors; good for testing enemy ai
-                    //int rand = Random.Range(0, floorTiles.Length);
-                    //GameObject wallChoice = floorTiles[rand];
-                    //Instantiate(wallChoice, new Vector3(i, j, 0f), Quaternion.identity);
-                    
-                    if (i != twocol && j != tworow) {
-                        /* This is a remnant of depricated code.  It would rarely make it so one of the wall tiles is destructable.
-                        if (rand == 3) board[i, j] = 2; //1 in 3 chance of being a destructable wall
-                        else board[i, j] = 1; //else it's just a regular wall
-                        */
-                        board[i, j] = 1; //regular wall = 1
-                    }                    
+                    instance.transform.SetParent(boardHolder); //for organization sake, make it a child of the boardHolder object            
                 }
             }
         }

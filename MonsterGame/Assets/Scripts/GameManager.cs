@@ -8,14 +8,14 @@ public class GameManager : MonoBehaviour {
     public static GameManager instance = null;
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
     [HideInInspector] public BoardManager boardScript;
-    public int playerLifeTotal = 3; //how much food the player defaultly has
+    public int playerLifeTotal = 3; //how much life the player defaultly has
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
 
     //In Snow Angels, we will only have one enemy.  As such, we don't need the list of enemies.
     //[HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
-    public Enemy enemy; //The one enemy in the level
+    [HideInInspector] public Enemy enemy; //The one enemy in the level
 
     [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
     private float time = 0.0f; //initalizer for time
@@ -36,7 +36,8 @@ public class GameManager : MonoBehaviour {
      * 0 is a floor, 1 is a wall, 2 is a broken wall and 3 is the exit */
 
     //Below are containers for the sound effects related to the player
-    public AudioClip moveSound1; public AudioClip moveSound2;
+    [HideInInspector] public AudioClip moveSound1;
+    [HideInInspector] public AudioClip moveSound2;
 
     public void SetFloorCount(int count) { floorCount = count; } //set the amount of floor tiles
     public void SetFloorScore() { floorScore++; } //increment the player's total floor score

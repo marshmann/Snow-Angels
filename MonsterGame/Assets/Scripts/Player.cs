@@ -25,8 +25,8 @@ public class Player : MovingObject {
     //These sound effects are still being used, even though they really shouldn't be since we aren't finding food anymore
     public AudioClip eatSound1; public AudioClip eatSound2;
 
-    //depricated sound effects (no longer finding drinks in the level)
-    public AudioClip drinkSound1;public AudioClip drinkSound2;  
+    //sound effects for when the destructable walls are hit
+    public AudioClip chopSound1; public AudioClip chopSound2;
 
     //Simple function that prints an updated score message
     private void PrintText() {
@@ -200,16 +200,16 @@ public class Player : MovingObject {
         }
     }
 
-    //Depricated code since we removed the destroyable wall feature in the current version
-    //Due to the fact no walls are destructable, this will never actually be called.
+    //Called whenever the player goes to hit a wall.
     protected override void OnCantMove<T>(T component) {
         Wall hitWall = component as Wall; //store the passed component param as a wall object
         hitWall.DamageWall(wallDamage); //damage the wall
+        
+        SoundManager.instance.RandomizeSFX(chopSound1, chopSound2); //play a random chop sound
 
         /* This causes the player's "player chop" boolean to be set to true
         * In other words, it'll cause the player chop animation to happen,
         * and due to how we set up the animator code, it'll happen once then return to the idle animation */
-
         animator.SetTrigger("playerChop");
     }
 

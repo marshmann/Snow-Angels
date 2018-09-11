@@ -8,19 +8,31 @@ public class Wall : MonoBehaviour {
 
     private SpriteRenderer spriteRenderer;
 
-    //Below are the audio containers
-    public AudioClip chopSound1;
-    public AudioClip chopSound2;
-
     void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     public void DamageWall(int loss) {
-        SoundManager.instance.RandomizeSFX(chopSound1, chopSound2);
         spriteRenderer.sprite = dmgSprite; //Change the img to show it was damaged
         hp -= loss; //reduce the hp by the amount the player hit the wall for
-        if (hp <= 0) //check to see if the wall is destroyed
-            gameObject.SetActive(false); //if so, remove it from the board (set it to not active)
+        if (hp <= 0) { //check to see if the wall is destroyed
+
+            //We need to put a floor tile where the wall was, so the spot isn't just a black-hole.
+            BoardManager bm = GameManager.instance.boardScript; //Get the BoardManager from the GameManager
+            GameObject chosenTile = bm.floorTiles[Random.Range(0, bm.floorTiles.Length)]; //Choose a floor tile randomly
+            GameObject instance = Instantiate(chosenTile, new Vector3(transform.position.x, transform.position.y, 0f), Quaternion.identity) as GameObject; //Instantiate it
+
+            instance.GetComponent<Floor>().SetNotTrapped(); //make sure the new tile isn't trapped
+            instance.transform.SetParent(bm.boardHolder); //for organization sake, make it a child of the boardHolder object
+
+            int x = (int)transform.position.x; int y = (int)transform.position.y;
+
+            GameManager.instance.board[x, y] = 0; //change the board status to reflect a floor tile
+
+            Enemy enemy = GameObject.FindGameObjectWithTag("Enemy").GetComponent<Enemy>(); //get the enemy object
+            if (enemy.knownBoard[x, y] != 0) enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
+
+            gameObject.SetActive(false); //disable the wall object
+        }
     }
 }
