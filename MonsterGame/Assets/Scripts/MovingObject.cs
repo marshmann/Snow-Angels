@@ -21,11 +21,6 @@ public abstract class MovingObject : MonoBehaviour {
     protected Rigidbody2D rb2d; //store the component reference of the object we're moving
     [HideInInspector] public float inverseMoveTime; //makes movement calculations "more efficent"
 
-    [HideInInspector] public int[,] knownBoard; //the known board for the moving object
-    [HideInInspector] public int[,] board; //the actual board
-    [HideInInspector] public bool[,] boolBoard; //a boolean representation of what tiles have been explored
-    [HideInInspector] public bool newInfo; //boolean depicting if the object updated it's known board
-
     [HideInInspector] public bool checkFloor = true; //boolean depiciting if the floor tiles around the player should be checked
 
     //Calculate the angles necessary for the arrow indicator's rotation and store them locally
@@ -47,29 +42,6 @@ public abstract class MovingObject : MonoBehaviour {
         return list;
     }
 
-    //update the known board by changing bools if necessary
-    public void UpdateGrid() {
-        if (transform.tag == "Player" || transform.tag == "Bullet") return;
-        else { //Enemy Object
-            int x = (int)transform.position.x; int y = (int)transform.position.y; //Get the X and Y coordinates of the object
-            int max = 2 * GameManager.instance.boardScript.columns; //max value to make sure we don't go OOB.
-            List<Vector2> neighbors = InitList(x, y); //Initialize a list to have vectors with the neighbor's coords
-            foreach (Vector2 pair in neighbors) { //loop over every neighbor
-                if (pair.x <= -1 || pair.x >= max || pair.y >= max || pair.y <= -1) continue; //if a coord is OOB, ignore it
-                else { //if we are not OOB
-                    if (knownBoard[(int)pair.x, (int)pair.y] != board[(int)pair.x, (int)pair.y]) { //if the board hasn't been explored yet
-                        //if the only thing being updated is the location of the AI on the board, we can ignore it.  However, if not - we need to
-                        //make note of the fact that new information about the maze was found
-                        if (knownBoard[(int)pair.x, (int)pair.y] != 4 && board[(int)pair.x, (int)pair.y] != 4) newInfo = true;
-
-                        knownBoard[(int)pair.x, (int)pair.y] = board[(int)pair.x, (int)pair.y]; //update the known board
-                        boolBoard[(int)pair.x, (int)pair.y] = true; //set tiles to show they have been explored
-                    }
-                }
-            }
-        }
-    }
-
     //Use this for initialization
     protected virtual void Start() {
         boxCollider = GetComponent<BoxCollider2D>();
@@ -77,14 +49,6 @@ public abstract class MovingObject : MonoBehaviour {
 
         //Computationally, multiplying is more efficient than dividing, storing the inverse allows us to multiply.
         inverseMoveTime = 1f / moveTime;
-
-        int col = 2 * GameManager.instance.boardScript.columns;
-        int row = 2 * GameManager.instance.boardScript.rows;
-
-        knownBoard = new int[col, row];
-        boolBoard = new bool[col, row];
-
-        board = GameManager.instance.board;
 
         arrow = transform.GetChild(0);
     }
@@ -112,9 +76,6 @@ public abstract class MovingObject : MonoBehaviour {
             //hence the checkFloor boolean, which is changed to true in Player.cs
             if (transform.tag == "Player" && checkFloor) {
                 checkFloor = false; AlterFloor(end); //Alter the Floor
-            }
-            else if( transform.tag == "Enemy" ) {
-                UpdateGrid();
             }
             return true; //we can move
         }

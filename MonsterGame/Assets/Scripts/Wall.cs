@@ -8,9 +8,7 @@ public class Wall : MonoBehaviour {
 
     private SpriteRenderer spriteRenderer;
 
-    void Awake() {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-    }
+    void Awake() { spriteRenderer = GetComponent<SpriteRenderer>(); }
 
     public void DamageWall(int loss) {
         spriteRenderer.sprite = dmgSprite; //Change the img to show it was damaged
@@ -29,8 +27,13 @@ public class Wall : MonoBehaviour {
 
             GameManager.instance.board[x, y] = 0; //change the board status to reflect a floor tile
 
-            Enemy enemy = GameObject.FindGameObjectWithTag("Enemy").GetComponent<Enemy>(); //get the enemy object
-            if (enemy.knownBoard[x, y] != 0) enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
+            Enemy enemy = GameManager.instance.enemy; //get the enemy object       
+            if (enemy != null) { //make sure the enemy AI hasn't been destroyed
+                if (enemy.knownBoard[x, y] != 0) {
+                    enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
+                    enemy.newInfo = true;
+                }
+            }
 
             gameObject.SetActive(false); //disable the wall object
         }

@@ -19,6 +19,11 @@ public class Enemy : MovingObject {
     private int chaseTurns; //amount of turns the increased detect radius lasts
     private int chaseCount; //counter for chase turns
 
+    [HideInInspector] public int[,] knownBoard; //the known board for the moving object
+    [HideInInspector] public int[,] board; //the actual board
+    [HideInInspector] public bool[,] boolBoard; //a boolean representation of what tiles have been explored
+    [HideInInspector] public bool newInfo; //boolean depicting if the object updated it's known board
+
     //Below are containers for the audio effects
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
 
@@ -54,7 +59,34 @@ public class Enemy : MovingObject {
         chaseTurns = 8; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
+        int col = 2 * GameManager.instance.boardScript.columns;
+        int row = 2 * GameManager.instance.boardScript.rows;
+
+        knownBoard = new int[col, row];
+        boolBoard = new bool[col, row];
+
+        board = GameManager.instance.board;
+
         SetInitDirection(); //init the direction the enemy Ai will face
+    }
+    //update the known board by changing bools if necessary
+    public void UpdateGrid() {
+        int x = (int)transform.position.x; int y = (int)transform.position.y; //Get the X and Y coordinates of the object
+        int max = 2 * GameManager.instance.boardScript.columns; //max value to make sure we don't go OOB.
+        List<Vector2> neighbors = InitList(x, y); //Initialize a list to have vectors with the neighbor's coords
+        foreach (Vector2 pair in neighbors) { //loop over every neighbor
+            if (pair.x <= -1 || pair.x >= max || pair.y >= max || pair.y <= -1) continue; //if a coord is OOB, ignore it
+            else { //if we are not OOB
+                if (knownBoard[(int)pair.x, (int)pair.y] != board[(int)pair.x, (int)pair.y]) { //if the board hasn't been explored yet
+                    //if the only thing being updated is the location of the AI on the board, we can ignore it.  However, if not - we need to
+                    //make note of the fact that new information about the maze was found
+                    if (knownBoard[(int)pair.x, (int)pair.y] != 4 && board[(int)pair.x, (int)pair.y] != 4) newInfo = true;
+
+                    knownBoard[(int)pair.x, (int)pair.y] = board[(int)pair.x, (int)pair.y]; //update the known board
+                    boolBoard[(int)pair.x, (int)pair.y] = true; //set tiles to show they have been explored
+                }
+            }
+        }
     }
 
     //Make sure we update the grid whenever possible
@@ -208,9 +240,9 @@ public class Enemy : MovingObject {
                     restartExploration = true; //restart exploration when the AI starts exploring again
                     //print("Recalculated Chase Path to " + lastSeenX + "," + lastSeenY);
                 }
-                else { //we got no new information and we are still on the path to the player
+                //else { //we got no new information and we are still on the path to the player
                     //print("We're going to the player's last known spot " + lastSeenX + "," + lastSeenY);
-                }
+                //}
             }
             else {
                 print("Error: Missing Logic for Enemy Movement");

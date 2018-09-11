@@ -13,7 +13,7 @@ public class Floor : MonoBehaviour {
 
         if (value >= 95) {
             trapped = true;
-            spriteRenderer.color = Color.green;
+            spriteRenderer.color = Color.green; //test purposes
         }
     }
 

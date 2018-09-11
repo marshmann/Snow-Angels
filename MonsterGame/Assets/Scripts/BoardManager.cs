@@ -36,9 +36,10 @@ public class BoardManager : MonoBehaviour {
     //(we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
     public GameObject[] floorTiles;
     //public GameObject[] wallTiles; //Currently depricated since we don't use the destructable walls
-    public GameObject[] gemTiles;
-    public GameObject[] enemyTiles;
-    public GameObject[] wallTiles; //undestructable, currently using them for the maze, not just the outerwall
+    public GameObject[] gemTiles; //used to unlock the exit tile
+    public GameObject[] healthTiles; //heals the player on pickup
+    public GameObject[] enemyTiles; //contains the two enemy prefabs
+    public GameObject[] wallTiles; //all walls but the last are undestructable
     
     //used to keep the hierarchy clean (the list of game objects on the left of unity)
     //basically going to just put all the board objects in this so there isn't as much clutter.
