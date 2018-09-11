@@ -9,6 +9,7 @@ public class Player : MovingObject {
     public Text bottomText;
     public Slider floorSlider;
     public GameObject bullet;
+    public bool spawn;
 
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
@@ -27,6 +28,8 @@ public class Player : MovingObject {
 
     //sound effects for when the destructable walls are hit
     public AudioClip chopSound1; public AudioClip chopSound2;
+
+    public AudioClip hitSound1; public AudioClip hitSound2;
 
     //Simple function that prints an updated score message
     private void PrintText() {
@@ -47,6 +50,7 @@ public class Player : MovingObject {
 
         lastMoveX = 1; lastMoveY = 0; //initalize the last move to be to the right of the player
 
+        spawn = true;
         AlterFloor(new Vector2(0,0)); //Change the tile the player starts on to be "shoveled"
     }
 
@@ -165,16 +169,11 @@ public class Player : MovingObject {
         PrintText(); //update the print text, just in case the player picked something up or got hit by an enemy
 
         base.AttemptMove<T>(xDir, yDir); //call the MovingObject's AttemptMove function
-
-        RaycastHit2D hit; //Here we can do audio-related calls if we want
-        if (Move(xDir, yDir, out hit)) { //if we can move
-            SoundManager.instance.RandomizeSFX(moveSound1, moveSound2); //play a random move sound
-            checkFloor = true; //the next time Move is called, it'll check to see if the floor sprites need updated
-        }
-
+        
         CheckIfGameOver(); //self explanatory
 
-        GameManager.instance.playersTurn = false; //no longer the player's turn
+        //if(!GameManager.instance.sliding)
+            GameManager.instance.playersTurn = false; //no longer the player's turn
     }
 
     //In Unity we set the exit, soda, and food items to be "Is Trigger"

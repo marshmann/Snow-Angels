@@ -74,8 +74,8 @@ public abstract class MovingObject : MonoBehaviour {
             StartCoroutine(SmoothMovement(end));
             //We only want to check floors to alter once in every two calls (Due to the function being called more than once)
             //hence the checkFloor boolean, which is changed to true in Player.cs
-            if (transform.tag == "Player" && checkFloor) {
-                checkFloor = false; AlterFloor(end); //Alter the Floor
+            if (transform.tag == "Player") {
+                AlterFloor(end); //Alter the Floor
             }
             return true; //we can move
         }
@@ -113,7 +113,7 @@ public abstract class MovingObject : MonoBehaviour {
         if (!canMove && hitComponent != null) OnCantMove(hitComponent);
     }
 
-    public void AlterFloor(Vector2 pos) {
+    protected void AlterFloor(Vector2 pos) {
         int x = (int)pos.x; int y = (int)pos.y;
         List<Vector2> neighbors = new List<Vector2>(5) {
             pos, new Vector2(x - 1, y), new Vector2(x, y + 1),
@@ -129,8 +129,20 @@ public abstract class MovingObject : MonoBehaviour {
                 hitComponent.AlterFloor();
 
                 if(pair == pos) { //Check if the tile we're standing on is trapped
-                    if (hitComponent.IsTrapped()) {
-                        //do something!
+                    string trapType = hitComponent.IsTrapped();
+                    Player pl = transform.GetComponent<Player>();
+                    if (trapType != "") {
+                        if(trapType == "Ice") {
+                            //Player will slide
+                        }
+                        else if(trapType == "Pain") { 
+                            pl.LoseALife(1); //Player will lose a life
+                            SoundManager.instance.RandomizeSFX(pl.hitSound1, pl.hitSound2); //play a random hit sound
+                        }
+                    }
+                    else {
+                        if (pl.spawn) pl.spawn = false; //no move audio on initial spawn into the map
+                        else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound         
                     }
                 }
             } 

@@ -56,7 +56,7 @@ public class Enemy : MovingObject {
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
         chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
-        chaseTurns = 8; //the amount of turns the enemy will have an increased detection radius
+        chaseTurns = 16; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
         int col = 2 * GameManager.instance.boardScript.columns;

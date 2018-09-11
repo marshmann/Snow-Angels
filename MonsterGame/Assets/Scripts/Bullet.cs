@@ -23,7 +23,6 @@ public class Bullet : MovingObject {
         //TODO: Add base projectile model that'll be used for when score < 1
             // and alter it when the score >= 1 to be a bigger projectile
 
-
         Vector2 start = transform.position; //the current position of the bullet
         end = start + (dir*5); //the end position
     }
@@ -56,9 +55,9 @@ public class Bullet : MovingObject {
                 }
                 DestroyImmediate(gameObject);
             }  
-            else {
+            //else {
                 //It hit a wall.  Potentially could display an animation for this.
-            }
+            //}
         }
     }
 

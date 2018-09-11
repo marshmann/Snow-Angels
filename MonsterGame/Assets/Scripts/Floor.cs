@@ -5,23 +5,28 @@ public class Floor : MonoBehaviour {
 
     private SpriteRenderer spriteRenderer;
     private bool changed = false;
-    private bool trapped = false;
+    private string trapped = "";
 
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
         float value = Random.Range(0, 100);
 
-        if (value >= 95) {
-            trapped = true;
-            spriteRenderer.color = Color.green; //test purposes
+        //Assigning Trap Type
+        if (value >= 97.5) { //Pain Trap
+            trapped = "Pain";
+            spriteRenderer.color = Color.red; //test purposes
+        }
+        else if(value >= 92.5) { //Ice Trap
+            trapped = "Ice";
+            spriteRenderer.color = Color.gray; //test purposes
         }
     }
 
-    public bool IsTrapped() {  return trapped; }
-    public void SetNotTrapped() { trapped = false; }
+    public string IsTrapped() {  return trapped; }
+    public void SetNotTrapped() { trapped = ""; }
 
     public void AlterFloor() {
-        if (!changed && !trapped) {
+        if (!changed && trapped == "") {
             //spriteRenderer.sprite = alteredFloor; //alter the floor sprite
             spriteRenderer.color = Color.blue; //temporary alteration to the floor
             changed = true; //set it so the floor can't be changed again

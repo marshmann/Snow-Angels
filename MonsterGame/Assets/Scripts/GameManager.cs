@@ -130,8 +130,7 @@ public class GameManager : MonoBehaviour {
             playersTurn = false;
             return;
         }
-        else if ((playersTurn && !isHiding) || enemiesMoving || doingSetUp)
-            return;
+        else if ((playersTurn && !isHiding) || enemiesMoving || doingSetUp) return;
 
         //If it's not the players turn and it should be the enemies turn, call the move enemies function        
         StartCoroutine(MoveEnemies());

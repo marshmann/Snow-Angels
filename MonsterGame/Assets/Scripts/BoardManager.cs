@@ -174,7 +174,7 @@ public class BoardManager : MonoBehaviour {
 
                     if (x == 0 && y == 0) instance.GetComponent<Floor>().SetNotTrapped(); //force the tile where the player spawns to not be a trap
                     //if the floor is trapped we won't count it as having the posibilty of being shoveled
-                    if (!instance.GetComponent<Floor>().IsTrapped()) floorCount++; //increment a counter on how many floor tiles are generated
+                    if (instance.GetComponent<Floor>().IsTrapped() == "") floorCount++; //increment a counter on how many floor tiles are generated
 
                     instance.transform.SetParent(boardHolder);
                 }

@@ -28,11 +28,9 @@ public class Wall : MonoBehaviour {
             GameManager.instance.board[x, y] = 0; //change the board status to reflect a floor tile
 
             Enemy enemy = GameManager.instance.enemy; //get the enemy object       
-            if (enemy != null) { //make sure the enemy AI hasn't been destroyed
-                if (enemy.knownBoard[x, y] != 0) {
-                    enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
-                    enemy.newInfo = true;
-                }
+            if (enemy != null && enemy.knownBoard[x,y] != 0) { //make sure the enemy AI hasn't been destroyed
+                enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
+                enemy.newInfo = true;                
             }
 
             gameObject.SetActive(false); //disable the wall object
