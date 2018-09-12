@@ -30,9 +30,7 @@ public class Enemy : MovingObject {
     private Queue<Vector2> path; //vector queue containing the path to player
     private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
-    private bool chasing = false;
-    private bool restartExploration = false; //if we see the player during exploration
-    //we need to restart exploration after we finish chasing the player (assuming game isn't over)
+    private bool chasing = false; //make note if the AI is chasing or not
 
     //The coordinates of the spot we last saw the player.
     private int lastSeenX = 0; private int lastSeenY = 0;
@@ -56,7 +54,7 @@ public class Enemy : MovingObject {
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
         chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
-        chaseTurns = 16; //the amount of turns the enemy will have an increased detection radius
+        chaseTurns = 12; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
         int col = 2 * GameManager.instance.boardScript.columns;
@@ -169,9 +167,6 @@ public class Enemy : MovingObject {
             (int)transform.position.y, rwx, rwy));
 
         DestroyImmediate(aStar); //delete the Astar Object, as we don't need to keep it around
-
-        //Logging for test purposes.
-        //print("Ai is going to " + chosenTile + " from " + transform.position);
     }
 
     public void MoveEnemy() {
@@ -184,7 +179,6 @@ public class Enemy : MovingObject {
             return; //don't continue with the rest of the code
         }
 
-        bool exploring = false; //Assume we aren't exploring initially
         Vector2 move = new Vector2(0, 0); //Initalize the move vector
 
         //If we can see the player, We'll do Astar
@@ -199,37 +193,24 @@ public class Enemy : MovingObject {
             DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
             
             chasing = true; //the enemy is now chasing the player
-            //chaseCount = 0; //reset counter
-            restartExploration = true; //make note that we need to reset the exploration path next time we explore
+            chaseCount = 0; //reset counter
+
+            if (explorePath.Count != 0) explorePath.Clear(); //clear the explorePath
         }
         else { //enemy can't see player
-            
             //If we were chasing but arrived at the lastSeen location, set it so we aren't chasing anymore
             if (chasing && FinishedChasing()) chasing = false;
-            
-            //haven't seen player, and there isn't a current explore path or we should restart exploration
-            if (!chasing && (explorePath.Count == 0 || restartExploration)) {
-                RandomWalk();
 
-                exploring = true; //make note that we are exploring
-                restartExploration = false; //reset the boolean to represent we don't need to restart again
-            }
-            //haven't seen player, and there is a current path we are exploring and we don't need to restart exploration
-            else if (!chasing && explorePath.Count != 0 && !restartExploration) {
-                if (newInfo) { //if the enemy AI learned more about the maze while exploring then
-                    //do AStar again, and recalculate the path to the spot calculated by RandomWalk
-                    //print("Recalculating RW path");
-                    AStar aStar = gameObject.AddComponent<AStar>();
+            if (!chasing) { //If we aren't chasing a player
+                if (explorePath.Count == 0) { RandomWalk(); }
+                else if (newInfo) { //we don't need to chose a new tile to explore yet, but received new info while exploring
+                    AStar aStar = gameObject.AddComponent<AStar>(); //recalculate the path based on the new info we have
                     explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                         (int)transform.position.y, rwx, rwy));
                     DestroyImmediate(aStar);
                 }
-
-                //if the enemy AI hasn't learned anything new, we don't need to do anything
-                exploring = true; //make note that we are exploring
-                //if (!newInfo) print("RWing");
             }
-            else if(chasing) { //We are on the path to the last place the player was seen
+            else { //We are chasing
                 if (newInfo || path.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
                     AStar aStar = gameObject.AddComponent<AStar>();
                     //We don't know the player's current position, so we go to the last place he was seen
@@ -237,21 +218,14 @@ public class Enemy : MovingObject {
                         (int)transform.position.y, lastSeenX, lastSeenY));
                     DestroyImmediate(aStar);
 
-                    restartExploration = true; //restart exploration when the AI starts exploring again
-                    //print("Recalculated Chase Path to " + lastSeenX + "," + lastSeenY);
+                    if(explorePath.Count != 0) explorePath.Clear(); //clear the explorePath
                 }
-                //else { //we got no new information and we are still on the path to the player
-                    //print("We're going to the player's last known spot " + lastSeenX + "," + lastSeenY);
-                //}
-            }
-            else {
-                print("Error: Missing Logic for Enemy Movement");
-                print(chasing + "," + restartExploration + "," + path.Count + "," + explorePath.Count);
             }
         }
+
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
         if (chasing) move = path.Dequeue(); //If we're chasing, we use the path queue
-        else if (exploring) move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
+        else move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
 
         //The last move is indicative of the direction the Ai is currently facing
         lastMoveX = (int)move.x; lastMoveY = (int)move.y; //update the direction the AI is facing
