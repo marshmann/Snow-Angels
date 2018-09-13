@@ -255,7 +255,7 @@ public class Enemy : MovingObject {
         //If the player is hiding, he can't be detected - or the AI is stunned
         //TODO: make hiding useful in the context when the AI can always see the player
         if (GameManager.instance.isHiding) return false;
-        //else return true;
+        else return true; //temporary way to avoid RandomWalk()'s lag
         /* Depricated code: this code is the logic that dictates if the enemy can see the player or not
          * however, we decided the enemy should always chase the player, so this code is now depricated.
         */

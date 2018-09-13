@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour {
                 InitGame(); //Initalize the game
 
                 //Due to the player object spawning before the board spawn (it's in the inital load), we need to alter the tile the player spawns on to be shoveled
-                //like we normally would do in the "start" function in Player.cs.
+                //like we normally would do in the "start" function in Player.cs;
                 GameObject.Find("Player").GetComponent<Player>().AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
             }
             else return;

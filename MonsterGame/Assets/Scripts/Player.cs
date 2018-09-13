@@ -14,6 +14,7 @@ public class Player : MovingObject {
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
     private int gems = 0; //stores gem total
+    private int stunCd;
 
     //The value that specifies the min amount of tiles that can be between the player and the enemy
     //If the enemy is within (stealthRadius) tiles of the player, he can't stealth
@@ -50,7 +51,7 @@ public class Player : MovingObject {
 
         lastMoveX = 1; lastMoveY = 0; //initalize the last move to be to the right of the player
 
-        spawn = true;
+        spawn = true; stunCd = 0;
         AlterFloor(new Vector2(0,0)); //Change the tile the player starts on to be "shoveled"
     }
 
@@ -75,7 +76,10 @@ public class Player : MovingObject {
         }
 
         //The player hits the attack keybind
-        if (Input.GetKeyDown(KeyCode.R)) ShootProjectile();        
+        if (Input.GetKeyDown(KeyCode.R)) {
+            if (CheckStunCoolDown()) ShootProjectile();
+            else print("Stun still on cd for another " + stunCd + " turns.");
+        }
 
         //If the player isn't hiding and hits the keybind to hide...
         if (isHiding == false && Input.GetKeyDown(KeyCode.F)) {
@@ -148,6 +152,9 @@ public class Player : MovingObject {
                     SetDirArrow(horizontal, vertical, arrow); //Rotate the arrow indicator
                     lastMoveX = horizontal; lastMoveY = vertical;
                     AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
+
+                    //If the player's stun ability isn't off cd yet, reduce the timer by one turn
+                    if (!CheckStunCoolDown()) stunCd--;
                 }
             }
         }
@@ -160,7 +167,12 @@ public class Player : MovingObject {
 
         //Create the bullet and fire it
         Instantiate(bullet, pos, Quaternion.identity, transform);
+
+        stunCd = 20; //put the stun on cd for *a lot* of turns
     }
+
+    //Check if the cooldown of the stun ability is up.
+    private bool CheckStunCoolDown() { return stunCd == 0 ? true : false; }
 
     //A function that will attempt to move the player, given some sort of obstruction object T
     protected override void AttemptMove<T>(int xDir, int yDir) {

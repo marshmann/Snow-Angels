@@ -198,9 +198,10 @@ public class BoardManager : MonoBehaviour {
         for (int i = 0; i < count; i++) {
             Vector3 randomPos = RandomPosition(); //choose a random position
             //Find a non-wall tile
-            while (!grid[(int)randomPos.x / 2, (int)randomPos.y / 2]) {
-                randomPos = RandomPosition();
-            }
+            while (!grid[(int)randomPos.x / 2, (int)randomPos.y / 2]) randomPos = RandomPosition();
+
+            //TODO: make it so a gem can't spawn on a trapped tile.
+
             GameObject tileChoice = tileArray[Random.Range(0, tileArray.Length)]; //choose a random tile
             //Instantiate the random tile we chose at the random position (with no rotation)
             Instantiate(tileChoice, randomPos, Quaternion.identity);
