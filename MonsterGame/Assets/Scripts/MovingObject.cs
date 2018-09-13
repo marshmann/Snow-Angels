@@ -113,7 +113,7 @@ public abstract class MovingObject : MonoBehaviour {
         if (!canMove && hitComponent != null) OnCantMove(hitComponent);
     }
 
-    protected void AlterFloor(Vector2 pos) {
+    public void AlterFloor(Vector2 pos) {
         int x = (int)pos.x; int y = (int)pos.y;
         List<Vector2> neighbors = new List<Vector2>(5) {
             pos, new Vector2(x - 1, y), new Vector2(x, y + 1),
@@ -132,18 +132,18 @@ public abstract class MovingObject : MonoBehaviour {
                     string trapType = hitComponent.IsTrapped();
                     Player pl = transform.GetComponent<Player>();
                     if (trapType != "") {
-                        if(trapType == "Ice") {
+                        if (trapType == "Ice") {
                             //Player will slide
                         }
-                        else if(trapType == "Pain") { 
+                        else if (trapType == "Pain") {
                             pl.LoseALife(1); //Player will lose a life
                             SoundManager.instance.RandomizeSFX(pl.hitSound1, pl.hitSound2); //play a random hit sound
                         }
                     }
-                    else {
-                        if (pl.spawn) pl.spawn = false; //no move audio on initial spawn into the map
-                        else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound         
-                    }
+                    else
+                        if (pl.spawn) pl.spawn = false;
+                        else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound     
+                    
                 }
             } 
         }

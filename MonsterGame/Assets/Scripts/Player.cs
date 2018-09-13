@@ -61,7 +61,7 @@ public class Player : MovingObject {
 
     //Update is called once per frame
     private void Update() {
-        if (GameManager.instance == null || !GameManager.instance.playersTurn) return; //make sure it's the player's turn
+        if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.startMenu) return; //make sure it's the player's turn
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
 
@@ -75,9 +75,7 @@ public class Player : MovingObject {
         }
 
         //The player hits the attack keybind
-        if (Input.GetKeyDown(KeyCode.R)) {
-            ShootProjectile();
-        }
+        if (Input.GetKeyDown(KeyCode.R)) ShootProjectile();        
 
         //If the player isn't hiding and hits the keybind to hide...
         if (isHiding == false && Input.GetKeyDown(KeyCode.F)) {

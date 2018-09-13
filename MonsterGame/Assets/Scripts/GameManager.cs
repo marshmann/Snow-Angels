@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour {
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
     private bool doingSetUp; //a boolean dedicated to making the user not move during the level transition
+    [HideInInspector] public bool startMenu = false;
 
     [HideInInspector] public int[,] board;
     /* The above 2d array is the board state where
@@ -71,7 +72,9 @@ public class GameManager : MonoBehaviour {
 
         //enemies = new List<Enemy>(); //initialize the enemy list to be empty
         boardScript = GetComponent<BoardManager>();
-        InitGame();
+
+        if (level != 1) InitGame();
+        else startMenu = true;
     }
 
     //The below function is depricated, but I couldn't find an easy replacement; it still works though.
@@ -84,6 +87,9 @@ public class GameManager : MonoBehaviour {
 
     void InitGame() {
         doingSetUp = true;
+
+        startMenu = false;
+        DestroyImmediate(GameObject.Find("StartMenu"));
 
         levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
         levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
@@ -124,6 +130,17 @@ public class GameManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        if (startMenu) { //If the startmenu is open
+            if (Input.GetKeyDown(KeyCode.Return)) { //if the player hits enter while the start menu is open
+                InitGame(); //Initalize the game
+
+                //Due to the player object spawning before the board spawn (it's in the inital load), we need to alter the tile the player spawns on to be shoveled
+                //like we normally would do in the "start" function in Player.cs.
+                GameObject.Find("Player").GetComponent<Player>().AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
+            }
+            else return;
+        }
+
         time += Time.deltaTime;
         if ((playersTurn && isHiding) && (time >= hideTime)) {
             time = 0.0f;
