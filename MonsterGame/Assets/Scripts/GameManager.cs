@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour {
     public static GameManager instance = null;
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
     [HideInInspector] public BoardManager boardScript;
+
     public int playerLifeTotal = 3; //how much life the player defaultly has
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
@@ -26,6 +27,7 @@ public class GameManager : MonoBehaviour {
 
     private int floorCount = 0; //how many floor tiles are on the board
     private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
+    private float snowRate;
 
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
@@ -49,6 +51,9 @@ public class GameManager : MonoBehaviour {
     public void SetBoard(int[,] grid) { board = grid; } //store the board layout
 
     public void CheatFloorScore() { floorScore = floorCount; } //Remove this before game goes live ;) - Testing Function
+
+    public float GetSnowRate() { return snowRate; }
+    public bool CanTurnBack() { return (int)snowRate / 5 <= 0 ? false : true; }
 
     /* Snow Angels: we only have one enemy to worry about, thus this code doesn't apply. Use SetEnemy instead.
      * I am keeping all the code related to having multiple enemies for the time being,
@@ -90,6 +95,14 @@ public class GameManager : MonoBehaviour {
 
         startMenu = false;
         DestroyImmediate(GameObject.Find("StartMenu"));
+
+        //Change the spotlight to be closer depending on level (darker as game progresses)
+        GameObject.Find("Player").transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);
+
+        //Change the snowfall to come faster depending on level
+        var em = GameObject.Find("Player").transform.GetChild(3).GetComponent<ParticleSystem>().emission;
+        snowRate = level * 10;
+        em.rateOverTime = snowRate;
 
         levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
         levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead

@@ -183,7 +183,7 @@ public class Player : MovingObject {
         CheckIfGameOver(); //self explanatory
 
         //if(!GameManager.instance.sliding)
-            GameManager.instance.playersTurn = false; //no longer the player's turn
+        GameManager.instance.playersTurn = false; //no longer the player's turn
     }
 
     //In Unity we set the exit, soda, and food items to be "Is Trigger"
