@@ -20,9 +20,11 @@ public class Enemy : MovingObject {
     private int chaseCount; //counter for chase turns
 
     [HideInInspector] public int[,] knownBoard; //the known board for the moving object
-    [HideInInspector] public int[,] board; //the actual board
-    [HideInInspector] public bool[,] boolBoard; //a boolean representation of what tiles have been explored
+    private int[,] board; //the actual board
+    private bool[,] boolBoard; //a boolean representation of what tiles have been explored
     [HideInInspector] public bool newInfo; //boolean depicting if the object updated it's known board
+
+    private int knownTileCount = 0;
 
     //Below are containers for the audio effects
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
@@ -57,18 +59,25 @@ public class Enemy : MovingObject {
         chaseTurns = 12; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
-        int col = 2 * GameManager.instance.boardScript.columns;
-        int row = 2 * GameManager.instance.boardScript.rows;
-
-        knownBoard = new int[col, row];
-        boolBoard = new bool[col, row];
+        ResetBoard();
 
         board = GameManager.instance.board;
 
         SetInitDirection(); //init the direction the enemy Ai will face
     }
+
+    private void ResetBoard() {
+        int col = 2 * GameManager.instance.boardScript.columns;
+        int row = 2 * GameManager.instance.boardScript.rows;
+
+        knownBoard = new int[col, row];
+        boolBoard = new bool[col, row];
+    }
+
     //update the known board by changing bools if necessary
-    public void UpdateGrid() {
+    public int UpdateGrid() {
+        int newCount = 0;
+
         int x = (int)transform.position.x; int y = (int)transform.position.y; //Get the X and Y coordinates of the object
         int max = 2 * GameManager.instance.boardScript.columns; //max value to make sure we don't go OOB.
         List<Vector2> neighbors = InitList(x, y); //Initialize a list to have vectors with the neighbor's coords
@@ -78,18 +87,29 @@ public class Enemy : MovingObject {
                 if (knownBoard[(int)pair.x, (int)pair.y] != board[(int)pair.x, (int)pair.y]) { //if the board hasn't been explored yet
                     //if the only thing being updated is the location of the AI on the board, we can ignore it.  However, if not - we need to
                     //make note of the fact that new information about the maze was found
-                    if (knownBoard[(int)pair.x, (int)pair.y] != 4 && board[(int)pair.x, (int)pair.y] != 4) newInfo = true;
+                    if (knownBoard[(int)pair.x, (int)pair.y] != 4 && board[(int)pair.x, (int)pair.y] != 4) {
+                        newCount++; newInfo = true;
+                    }
 
                     knownBoard[(int)pair.x, (int)pair.y] = board[(int)pair.x, (int)pair.y]; //update the known board
                     boolBoard[(int)pair.x, (int)pair.y] = true; //set tiles to show they have been explored
                 }
             }
         }
+
+        return newCount;
     }
 
     //Make sure we update the grid whenever possible
     private void Update() {
-        UpdateGrid();
+        if (!skipMove) {
+            knownTileCount += UpdateGrid();
+
+            if (knownTileCount >= 30) {
+                ResetBoard();
+                knownTileCount = 0;
+            }
+        }
     }
 
     //Randomizes the direction the enemy is initally facing
@@ -150,7 +170,7 @@ public class Enemy : MovingObject {
         //Loop over the board to see what hasn't been explored yet
         for (int i = 0; i < board.GetLength(0); i++) {
             for (int j = 0; j < board.GetLength(0); j++) {
-                if (board[i, j] == 1 && !boolBoard[i, j]) {
+                if (board[i, j] == 0 && !boolBoard[i, j]) {
                     list.Add(new Vector2(i, j)); //add unexplored tiles to the list
                 }
             }
@@ -255,7 +275,6 @@ public class Enemy : MovingObject {
         //If the player is hiding, he can't be detected - or the AI is stunned
         //TODO: make hiding useful in the context when the AI can always see the player
         if (GameManager.instance.isHiding) return false;
-        else return true; //temporary way to avoid RandomWalk()'s lag
         /* Depricated code: this code is the logic that dictates if the enemy can see the player or not
          * however, we decided the enemy should always chase the player, so this code is now depricated.
         */

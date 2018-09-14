@@ -131,14 +131,14 @@ public class BoardManager : MonoBehaviour {
     //Function to set up outerwalls and the floor of the game board
     private int[,] BoardSetup(bool[,] grid) {
         int col = 2 * columns; int row = 2 * rows;
-        int[,] board = new int[col + 1, row + 1];
+        int[,] board = new int[col, row];
         boardHolder = new GameObject("Board").transform; //initalize the boardHolder
         bool exitPlaced = false;   
         int floorCount = 0;
         /* The reason this loop is from -1 to columns (same for rows)
          * is because we are building a border around the gameboard for the outerwall */
-        for (int x = -1; x < col; x++) {
-            for (int y = -1; y < row; y++) {
+        for (int x = -1; x <= col; x++) {
+            for (int y = -1; y <= row; y++) {
                 GameObject chosenTile; //The tile that we will randomly choose to put on the board
 
                 //The grid is smaller than the board, due to the fact the maze generation creates small corridors and not big ones
@@ -208,21 +208,6 @@ public class BoardManager : MonoBehaviour {
         }
     }
 
-    //There are missing corners due to the for-loop not being all-encompassing in it's scaling.
-    //Instead of fixing the loop, it was easier to just put the two corner objects down seperately
-    private void AddMissingCorners(int row, int col) {
-        int rand1 = Random.Range(0, wallTiles.Length-1);
-        GameObject wallChoice1 = wallTiles[rand1];
-        GameObject instance1 = Instantiate(wallChoice1, new Vector3(-1, row, 0f), Quaternion.identity);
-
-        int rand2 = Random.Range(0, wallTiles.Length-1);
-        GameObject wallChoice2 = wallTiles[rand2];
-        GameObject instance2 = Instantiate(wallChoice2, new Vector3(row, -1, 0f), Quaternion.identity);
-
-        instance1.transform.SetParent(boardHolder);
-        instance2.transform.SetParent(boardHolder);
-    }
-
     //Function that is called by the game manager to set up the board
     public void SetupScene(int level) {
         Maze maze = new Maze(columns + 1, rows + 1, new System.Random()); //Create a maze object
@@ -250,8 +235,6 @@ public class BoardManager : MonoBehaviour {
                 }
             }
         }
-
-        AddMissingCorners(tworow, twocol); //fix the corners of the board
 
         InitializeList(); //reset the gridPos list
         GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout

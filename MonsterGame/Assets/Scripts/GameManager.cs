@@ -126,10 +126,14 @@ public class GameManager : MonoBehaviour {
         levelText.text = "You survived for " + level + " days";
         levelImage.SetActive(true);
         enabled = false;
+        Application.Quit();
     }
 
     // Update is called once per frame
     void Update() {
+        
+        if (Input.GetKeyDown(KeyCode.Escape)) Application.Quit(); //check if the application should close
+
         if (startMenu) { //If the startmenu is open
             if (Input.GetKeyDown(KeyCode.Return)) { //if the player hits enter while the start menu is open
                 InitGame(); //Initalize the game

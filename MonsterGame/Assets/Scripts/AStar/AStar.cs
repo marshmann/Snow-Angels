@@ -139,6 +139,7 @@ public class AStar : MonoBehaviour {
             foreach (State neighbor in GetNeighbors(data)) { //Get the neighbors of the node
                 Vector2 coord = FindAi(neighbor); //get the location of the AI
                 //Create a new node with the AI's location
+
                 Node n = new Node(neighbor.board, (int)coord.x, (int)coord.y, data) {
                     g = data.g + 1, //initalize the g value to be the parent's + 1
                     inFrontier = true //set it to be in the frontier
