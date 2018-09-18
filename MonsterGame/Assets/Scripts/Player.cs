@@ -248,7 +248,6 @@ public class Player : MovingObject {
             SoundManager.instance.PlaySingle(gameOverSound); //play the game over sound
             SoundManager.instance.musicSource.Stop(); //stop playing music
             GameManager.instance.GameOver(); //Game over
-
         }
     }
 }

@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour {
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
     [HideInInspector] public BoardManager boardScript;
 
+    private Player player; //store refernce to player object
+
     public int playerLifeTotal = 3; //how much life the player defaultly has
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
@@ -78,6 +80,7 @@ public class GameManager : MonoBehaviour {
 
         //enemies = new List<Enemy>(); //initialize the enemy list to be empty
         boardScript = GetComponent<BoardManager>();
+        player = GameObject.Find("Player").GetComponent<Player>();
 
         if (level != 1) InitGame();
         else startMenu = true;
@@ -98,10 +101,10 @@ public class GameManager : MonoBehaviour {
         DestroyImmediate(GameObject.Find("StartMenu"));
 
         //Change the spotlight to be closer depending on level (darker as game progresses)
-        GameObject.Find("Player").transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);
+        player.transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);
 
         //Change the snowfall to come faster depending on level
-        var em = GameObject.Find("Player").transform.GetChild(3).GetComponent<ParticleSystem>().emission;
+        var em = player.transform.GetChild(3).GetComponent<ParticleSystem>().emission;
         snowRate = level * 10;
         em.rateOverTime = snowRate;
 
@@ -157,11 +160,9 @@ public class GameManager : MonoBehaviour {
 
                 //Due to the player object spawning before the board spawn (it's in the inital load), we need to alter the tile the player spawns on to be shoveled
                 //like we normally would do in the "start" function in Player.cs;
-                GameObject.Find("Player").GetComponent<Player>().AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
+                player.AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
             }
-            else if (gameOver) { //End Screen is open
-                Player player = GameObject.Find("Player").GetComponent<Player>(); //get the player object
-               
+            else if (gameOver) { //End Screen is open               
                 player.SetDefaults(3); //Reset the player's stats to their defaults (passing 3 representing the default amount of lives)
                 player.Restart(); //Restart the scene
                 player.enabled = true; //Make it so the player can move again
