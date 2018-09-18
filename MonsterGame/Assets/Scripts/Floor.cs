@@ -37,7 +37,7 @@ public class Floor : MonoBehaviour {
     }
 
     public string IsTrapped() {  return trapped; }
-    public void SetNotTrapped() { trapped = ""; }
+    public void SetNotTrapped() { trapped = ""; spriteRenderer.color = Color.white; }
 
     public void AlterFloor() {
         if (!changed && trapped == "") {

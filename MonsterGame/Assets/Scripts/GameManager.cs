@@ -134,12 +134,18 @@ public class GameManager : MonoBehaviour {
         doingSetUp = false;
     }
 
+    private IEnumerator EndApplication() {
+        yield return new WaitForSecondsRealtime(10);
+        Application.Quit();
+    }
+
     //Print the game over screen and end the game
     public void GameOver() {
         levelText.text = "You survived for " + level + " days";
         levelImage.SetActive(true);
         enabled = false;
-        Application.Quit();
+
+        StartCoroutine(EndApplication());
     }
 
     // Update is called once per frame
