@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour {
     private int floorCount = 0; //how many floor tiles are on the board
     private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
     private float snowRate;
+    private bool gameOver = false;
 
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
@@ -92,7 +93,7 @@ public class GameManager : MonoBehaviour {
 
     void InitGame() {
         doingSetUp = true;
-
+        gameOver = false;
         startMenu = false;
         DestroyImmediate(GameObject.Find("StartMenu"));
 
@@ -134,37 +135,41 @@ public class GameManager : MonoBehaviour {
         doingSetUp = false;
     }
 
-    private IEnumerator EndApplication() {
-        yield return new WaitForSecondsRealtime(10);
-        Application.Quit();
-    }
-
     //Print the game over screen and end the game
     public void GameOver() {
-        levelText.text = "You survived for " + level + " days";
+        if (level == 0) level = 1;
+        levelText.text = "You survived for " + level + " day(s)\n\n";
+        levelText.text += "Hit Enter to Play Again";
         levelImage.SetActive(true);
-        enabled = false;
 
-        StartCoroutine(EndApplication());
+        gameOver = true;
+        level = 0;
     }
 
     // Update is called once per frame
     void Update() {
-        
+
         if (Input.GetKeyDown(KeyCode.Escape)) Application.Quit(); //check if the application should close
 
-        if (startMenu) { //If the startmenu is open
-            if (Input.GetKeyDown(KeyCode.Return)) { //if the player hits enter while the start menu is open
+        if (Input.GetKeyDown(KeyCode.Return)) {
+            if (startMenu) { //Start Menu is open
                 InitGame(); //Initalize the game
 
                 //Due to the player object spawning before the board spawn (it's in the inital load), we need to alter the tile the player spawns on to be shoveled
                 //like we normally would do in the "start" function in Player.cs;
                 GameObject.Find("Player").GetComponent<Player>().AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
             }
-            else return;
+            else if (gameOver) { //End Screen is open
+                Player player = GameObject.Find("Player").GetComponent<Player>(); //get the player object
+               
+                player.SetDefaults(3); //Reset the player's stats to their defaults (passing 3 representing the default amount of lives)
+                player.Restart(); //Restart the scene
+                player.enabled = true; //Make it so the player can move again
+            }
         }
 
-        time += Time.deltaTime;
+
+        time += Time.deltaTime; 
         if ((playersTurn && isHiding) && (time >= hideTime)) {
             time = 0.0f;
             playersTurn = false;

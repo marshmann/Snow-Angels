@@ -9,7 +9,7 @@ public class Player : MovingObject {
     public Text bottomText;
     public Slider floorSlider;
     public GameObject bullet;
-    public bool spawn;
+    [HideInInspector] public bool spawn;
 
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
@@ -45,14 +45,20 @@ public class Player : MovingObject {
     //This'll be called whenever the player first loads onto the level
     protected override void Start() {
         animator = GetComponent<Animator>(); //init animator
-        lives = GameManager.instance.playerLifeTotal; //set the player lives (it's set to 3)
-        PrintText(); //print the game text
+
         base.Start(); //Call the MovingObject's start function
 
-        lastMoveX = 1; lastMoveY = 0; //initalize the last move to be to the right of the player
+        SetDefaults(GameManager.instance.playerLifeTotal);
 
-        spawn = true; stunCd = 0;
-        AlterFloor(new Vector2(0,0)); //Change the tile the player starts on to be "shoveled"
+        AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
+    }
+
+    public void SetDefaults(int lifeTotal) {
+        lives = lifeTotal;
+        PrintText();
+        lastMoveX = 1; lastMoveY = 0;
+        spawn = true;
+        stunCd = 0;
     }
 
     //This'll be called whenever the game moves on to the next level
@@ -231,16 +237,18 @@ public class Player : MovingObject {
     }
 
     //Called when the scene gets wiped after level completion
-    private void Restart() {
+    public void Restart() {
         SceneManager.LoadScene("Main"); //Load the main scene again
     }
 
     //Checks to see if the player lost, and, if they did, then call the GameManager GameOver function.
     private void CheckIfGameOver() {
         if (lives <= 0) { //if we run out of food, it's game over
+            enabled = false; //level is over, so the player shouldn't be enabled anymore
             SoundManager.instance.PlaySingle(gameOverSound); //play the game over sound
             SoundManager.instance.musicSource.Stop(); //stop playing music
             GameManager.instance.GameOver(); //Game over
+
         }
     }
 }

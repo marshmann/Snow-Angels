@@ -33,7 +33,6 @@ public class Enemy : MovingObject {
     private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
     private bool chasing = false; //make note if the AI is chasing or not
-    private bool reset = false; //make note of when the board resets
 
     //The coordinates of the spot we last saw the player.
     private int lastSeenX = 0; private int lastSeenY = 0;
@@ -73,8 +72,6 @@ public class Enemy : MovingObject {
 
         knownBoard = new int[col, row];
         boolBoard = new bool[col, row];
-
-        reset = true;
     }
 
     //update the known board by changing bools if necessary
@@ -226,7 +223,7 @@ public class Enemy : MovingObject {
 
             if (!chasing) { //If we aren't chasing a player
                 //we are exploring, but have no path to the target, or we just reset knowledge and want to randomwalk to a different tile
-                if (explorePath.Count == 0 || reset) { RandomWalk(); reset = false; }
+                if (explorePath.Count == 0) { RandomWalk(); }
                 else if (newInfo) { //we don't need to chose a new tile to explore yet, but received new info while exploring
                     AStar aStar = gameObject.AddComponent<AStar>(); //recalculate the path based on the new info we have
                     explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
