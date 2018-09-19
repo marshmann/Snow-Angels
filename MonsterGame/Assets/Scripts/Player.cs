@@ -83,13 +83,50 @@ public class Player : MovingObject {
         }
 
         //The player hits the attack keybind
-        if (Input.GetKeyDown(KeyCode.R)) {
+        if (Input.GetKeyDown(KeyCode.Q)) {
             if (CheckStunCoolDown()) ShootProjectile();
             else print("Stun still on cd for another " + stunCd + " turns.");
         }
 
+        //If fuel isn't empty and this is pressed...
+        if (GameManager.instance.playerFuelTotal != 0 && Input.GetKeyDown(KeyCode.R)) {
+
+            if(GameManager.instance.playerFuelCost == 0) {
+                transform.GetChild(1).GetComponent<Light>().enabled = true;
+            }
+
+            Transform t = transform.GetChild(1).transform;
+
+            if (t.position.z >= -8) {
+
+                transform.GetChild(1).transform.position += new Vector3(0, 0, -1);
+
+                //Spend fuel immediately for the instant gain and increase cost per step
+                GameManager.instance.playerFuelTotal -= 5;
+                GameManager.instance.playerFuelCost += 1;
+            }
+            else print("can't increase any further");
+
+            print(GameManager.instance.playerFuelCost);
+        }
+        if (Input.GetKeyDown(KeyCode.F)) {
+            if (GameManager.instance.playerFuelCost != 0) {
+                transform.GetChild(1).transform.position += new Vector3(0, 0, 1);
+                GameManager.instance.playerFuelCost -= 1;
+
+                if(GameManager.instance.playerFuelCost == 0) {
+                    transform.GetChild(1).GetComponent<Light>().enabled = false;
+                }
+            }
+            else {
+                print("can't decrease any further");
+            }
+
+            print(GameManager.instance.playerFuelCost);
+        }
+
         //If the player isn't hiding and hits the keybind to hide...
-        if (isHiding == false && Input.GetKeyDown(KeyCode.F)) {
+        if (isHiding == false && Input.GetKeyDown(KeyCode.T)) {
             //Check to see if any enemy is too close to the player
             //At the moment, we're ignoring walls in this check - so if an enemy is on the other side of a wall
             //but is still within the radius of the player, he won't be able to hide.
@@ -136,12 +173,12 @@ public class Player : MovingObject {
             else bottomText.text = "You can't stealth right now!"; //the player can't stealth; notify them.
         }
         //If the player is hiding and hits the keybind to hide, we'll make them stop hiding!
-        else if (isHiding == true && Input.GetKeyDown(KeyCode.F)) {
+        else if (isHiding == true && Input.GetKeyDown(KeyCode.T)) {
             bottomText.text = "You are no longer hidden."; //Notify the player
             GameManager.instance.isHiding = false; //set it so the player is no longer hiding
             animator.SetBool("playerHiding", false); //make the player get out of the box
         }
-        else { //Any keypresses other than F12 and F will end up here
+        else { //other inputs
 
             //We want to pay attention for movement input, which can be altered in user controls.
             //Input is handled numerically

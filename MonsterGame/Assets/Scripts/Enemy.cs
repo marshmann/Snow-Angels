@@ -30,7 +30,7 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
 
     private Queue<Vector2> path; //vector queue containing the path to player
-    private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
+    //private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
     private bool chasing = false; //make note if the AI is chasing or not
 
@@ -52,7 +52,7 @@ public class Enemy : MovingObject {
         base.Start(); //call the super code's base
 
         path = new Queue<Vector2>(); //init path queue
-        explorePath = new Queue<Vector2>(); //init explore queue
+        //explorePath = new Queue<Vector2>(); //init explore queue
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
         chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)

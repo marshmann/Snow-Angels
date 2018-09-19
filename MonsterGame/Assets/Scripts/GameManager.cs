@@ -12,6 +12,10 @@ public class GameManager : MonoBehaviour {
     private Player player; //store reference to player object
 
     public int playerLifeTotal = 3; //how much life the player defaultly has
+
+    public int playerFuelTotal = 100;
+    public int playerFuelCost = 5;
+
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
