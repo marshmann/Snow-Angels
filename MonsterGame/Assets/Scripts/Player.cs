@@ -56,9 +56,10 @@ public class Player : MovingObject {
     public void SetDefaults(int lifeTotal) {
         lives = lifeTotal;
         PrintText();
-        lastMoveX = 1; lastMoveY = 0;
+        lastMove = new Vector2(1, 0);
         spawn = true;
         stunCd = 0;
+        GameManager.instance.isHiding = false;
     }
 
     //This'll be called whenever the game moves on to the next level
@@ -155,8 +156,8 @@ public class Player : MovingObject {
 
                 if (isHiding) bottomText.text = "You cannot move while hiding!"; //don't allow the player to move if he is hiding
                 else {
-                    SetDirArrow(horizontal, vertical, arrow); //Rotate the arrow indicator
-                    lastMoveX = horizontal; lastMoveY = vertical;
+                    lastMove = new Vector2(horizontal, vertical); //set the lastMove vector
+                    SetDirArrow(lastMove, arrow); //Rotate the arrow indicator
                     AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
 
                     //If the player's stun ability isn't off cd yet, reduce the timer by one turn
@@ -169,7 +170,8 @@ public class Player : MovingObject {
     //Create the projectile object and fire it in the direction the player is facing
     private void ShootProjectile() {
         Vector3 pos = transform.position;
-        pos.x += lastMoveX; pos.y += lastMoveY; //move the projectile over one tile
+
+        pos.x += lastMove.x; pos.y += lastMove.y; //move the projectile over/up/etc one tile
 
         //Create the bullet and fire it
         Instantiate(bullet, pos, Quaternion.identity, transform);
@@ -244,7 +246,7 @@ public class Player : MovingObject {
     //Checks to see if the player lost, and, if they did, then call the GameManager GameOver function.
     private void CheckIfGameOver() {
         if (lives <= 0) { //if we run out of food, it's game over
-            enabled = false; //level is over, so the player shouldn't be enabled anymore
+            enabled = false; //player can no longer move
             SoundManager.instance.PlaySingle(gameOverSound); //play the game over sound
             SoundManager.instance.musicSource.Stop(); //stop playing music
             GameManager.instance.GameOver(); //Game over

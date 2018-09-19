@@ -6,7 +6,7 @@ public class Floor : MonoBehaviour {
     private SpriteRenderer spriteRenderer;
     private bool changed = false;
     private string trapped = "";
-    private int turnLimit = 0;
+    //private int turnLimit = 0;
 
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -21,12 +21,12 @@ public class Floor : MonoBehaviour {
             trapped = "Ice";
             spriteRenderer.color = Color.gray; //test purposes
         }
-        else {
+        /*else {
             if (GameManager.instance.CanTurnBack()) {
-                int snowRate = (int)GameManager.instance.GetSnowRate();
-                turnLimit = Random.Range(snowRate - 5, snowRate + 5);
+                //int snowRate = (int)GameManager.instance.GetSnowRate();
+                //turnLimit = Random.Range(snowRate - 5, snowRate + 5);
             }
-        }
+        }*/
     }
 
     private void Update() {

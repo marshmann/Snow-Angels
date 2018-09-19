@@ -16,12 +16,11 @@ public class Bullet : MovingObject {
         boxCollider = GetComponent<BoxCollider2D>();
         rb2d = GetComponent<Rigidbody2D>();
         inverseMoveTime = 3f / moveTime;
-
-        //Set the direction the bullet was fired
-        dir = new Vector2(parent.lastMoveX, parent.lastMoveY);
+        
+        dir = parent.lastMove; //Set the direction the bullet was fired
 
         //TODO: Add base projectile model that'll be used for when score < 1
-            // and alter it when the score >= 1 to be a bigger projectile
+        // and alter it when the score >= 1 to be a bigger projectile
 
         Vector2 start = transform.position; //the current position of the bullet
         end = start + (dir*5); //the end position

@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
     //HidesInInspector makes it so this can't be viewed.. in the inspector.. self explanatory :P
     [HideInInspector] public BoardManager boardScript;
 
-    private Player player; //store refernce to player object
+    private Player player; //store reference to player object
 
     public int playerLifeTotal = 3; //how much life the player defaultly has
     [HideInInspector] public bool playersTurn = true;
@@ -80,8 +80,7 @@ public class GameManager : MonoBehaviour {
 
         //enemies = new List<Enemy>(); //initialize the enemy list to be empty
         boardScript = GetComponent<BoardManager>();
-        player = GameObject.Find("Player").GetComponent<Player>();
-
+       
         if (level != 1) InitGame();
         else startMenu = true;
     }
@@ -100,6 +99,7 @@ public class GameManager : MonoBehaviour {
         startMenu = false;
         DestroyImmediate(GameObject.Find("StartMenu"));
 
+        player = GameObject.Find("Player").GetComponent<Player>();
         //Change the spotlight to be closer depending on level (darker as game progresses)
         player.transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);
 
@@ -140,13 +140,11 @@ public class GameManager : MonoBehaviour {
 
     //Print the game over screen and end the game
     public void GameOver() {
-        if (level == 0) level = 1;
         levelText.text = "You survived for " + level + " day(s)\n\n";
         levelText.text += "Hit Enter to Play Again";
         levelImage.SetActive(true);
 
         gameOver = true;
-        level = 0;
     }
 
     // Update is called once per frame
@@ -165,6 +163,7 @@ public class GameManager : MonoBehaviour {
             else if (gameOver) { //End Screen is open               
                 player.SetDefaults(3); //Reset the player's stats to their defaults (passing 3 representing the default amount of lives)
                 player.Restart(); //Restart the scene
+                level = 0; //set the player level indicator back to 0
                 player.enabled = true; //Make it so the player can move again
             }
         }

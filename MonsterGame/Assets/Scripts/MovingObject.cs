@@ -10,8 +10,7 @@ public abstract class MovingObject : MonoBehaviour {
     protected Transform arrow; //the arrow that rotates around the enemy/player depending on the direction they are facing
 
     //A coordinate pair that is used to represent the direction the AI/Player is currently facing
-    [HideInInspector] public int lastMoveX;
-    [HideInInspector] public int lastMoveY;
+    [HideInInspector] public Vector2 lastMove;
 
     //layers we specified when we created our prefabs in order to check for colisions
     public LayerMask blockingLayer; //layer for walls, enemies, and player    
@@ -152,8 +151,8 @@ public abstract class MovingObject : MonoBehaviour {
     }
 
     //Change the arrow's rotation depending on the direction the AI is facing
-    protected void SetDirArrow(int lastMoveX, int lastMoveY, Transform arrow) {
-        int dir = GetDirection(lastMoveX, lastMoveY);
+    protected void SetDirArrow(Vector2 lastMove, Transform arrow) {
+        int dir = GetDirection(lastMove);
         if (dir == 0) arrow.rotation = right;
         else if (dir == 1) arrow.rotation = left;
         else if (dir == 2) arrow.rotation = up;
@@ -162,10 +161,10 @@ public abstract class MovingObject : MonoBehaviour {
 
     //Return a simple int representing the direction the AI is facing
     /* 0 = right, 1 = left, 2 = up, 3 = down */
-    protected int GetDirection(int lastMoveX, int lastMoveY) {
-        if (lastMoveX == 1) return 0; //facing right
-        else if (lastMoveX == -1) return 1; //facing left
-        else if (lastMoveY == 1) return 2; //facing up
+    protected int GetDirection(Vector2 lastMove) {
+        if ((int)lastMove.x == 1) return 0; //facing right
+        else if ((int)lastMove.x == -1) return 1; //facing left
+        else if ((int)lastMove.y == 1) return 2; //facing up
         else return 3; //lastMoveY == -1; facing down
     }
 

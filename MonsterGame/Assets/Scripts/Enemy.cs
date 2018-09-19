@@ -63,7 +63,8 @@ public class Enemy : MovingObject {
 
         board = GameManager.instance.board;
 
-        SetInitDirection(); //init the direction the enemy Ai will face
+        lastMove = RandomDirection();
+        SetDirArrow(lastMove, arrow); //Rotate the arrow indicator respective to where the enemy is facing
     }
 
     private void ResetBoard() {
@@ -113,27 +114,24 @@ public class Enemy : MovingObject {
     }
 
     //Randomizes the direction the enemy is initally facing
-    private void SetInitDirection() {
+    private Vector2 RandomDirection() {
         int[] direct = new int[4] { 0, 1, 2, 3 };
 
         int val = Random.Range(0, direct.Length);
 
         switch (val) {
-            case 0: { lastMoveX = 1; lastMoveY = 0; break; } //facing right
-            case 1: { lastMoveX = -1; lastMoveY = 0; break; } //facing left
-            case 2: { lastMoveX = 0; lastMoveY = 1; break; } //facing up
-            case 3: { lastMoveX = 0; lastMoveY = -1; break; } //facing down
-        }
+            case 0: { return new Vector2(1, 0); } //facing right
+            case 1: { return new Vector2(-1, 0); } //facing left
+            case 2: { return new Vector2(0, 1); } //facing up
+            case 3: { return new Vector2(0, -1); } //facing down
 
-        SetDirArrow(lastMoveX, lastMoveY, arrow); //Rotate the arrow indicator respective to where the enemy is facing
+            default: return new Vector2(0, 0); //Will never be called, is here to clear warnings
+        }
     }
 
     //Enemy AI's move once every two "turns", or once every two steps the player takes.
     protected override void AttemptMove<T>(int xDir, int yDir) {
-        //check to see if the enemy can move or not
-
         base.AttemptMove<T>(xDir, yDir);
-
         skipMove = true;
     }
 
@@ -141,8 +139,6 @@ public class Enemy : MovingObject {
     private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
         if (v == null) {
             print("Error has occured with the queue.");
-            //print("There's no easy way to tell what the error is, it might be within AStar");
-            //print("However, in all likelyhood the error lies within the newInfo portion of the maze logic");
             return new Queue<Vector2>(0);
         }
         Queue<Vector2> cp = new Queue<Vector2>(v.Count);
@@ -156,14 +152,9 @@ public class Enemy : MovingObject {
     public int[,] GetBoard() {
         return board;
     }
-
-    //TODO: Refactor and make sure the below code actually holds up (specifically the boolBoard portion).
-    //A lot of the RandomWalk code was rushed, as we wanted to do IDDFS instead for exploration,
-    //but couldn't get it to function in an efficent enough manner and replaced it literally 3 hours before
-    //the project was due.  And by "we" I mean "me." - Nick Marshman
-
-    //Choose a random unknown space on the board and then call AStar to get a path to it.
-    //AStar will find the shortest path, with the known board data, to the location.
+    
+    /*
+    //Choose a direction and walk until we run into a wall
     private void RandomWalk() {
         List<Vector2> list = new List<Vector2>(); //List which will contain the unknown tiles
 
@@ -188,6 +179,7 @@ public class Enemy : MovingObject {
 
         DestroyImmediate(aStar); //delete the Astar Object, as we don't need to keep it around
     }
+    */
 
     public void MoveEnemy() {
         //Due to the fact the turn check is *before* the AI's detection, the AI is blind to the player's presence when it isn't their turn
@@ -201,9 +193,6 @@ public class Enemy : MovingObject {
 
         Vector2 move = new Vector2(0, 0); //Initalize the move vector
 
-        //If we can see the player, We'll do Astar
-        //Even if we already on the path to the last known location, if we still see him then it'll need to be updated
-        //Also, don't need to worry about newInfo here as it's accounted for
         if (CanSeePlayer()) {
             int x = (int)target.position.x; int y = (int)target.position.y;
             lastSeenX = x; lastSeenY = y; //Store the last seen location
@@ -211,47 +200,55 @@ public class Enemy : MovingObject {
             path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
                 (int)transform.position.y, x, y));
             DestroyImmediate(aStar); //Destroy the AStar object on the enemy AI object, if we don't it'll overload memory
-            
+
             chasing = true; //the enemy is now chasing the player
             chaseCount = 0; //reset counter
-
-            if (explorePath.Count != 0) explorePath.Clear(); //clear the explorePath
         }
-        else { //enemy can't see player
+        else { //enemy isn't in line of sight
+
             //If we were chasing but arrived at the lastSeen location, set it so we aren't chasing anymore
             if (chasing && FinishedChasing()) chasing = false;
 
-            if (!chasing) { //If we aren't chasing a player
-                //we are exploring, but have no path to the target, or we just reset knowledge and want to randomwalk to a different tile
-                if (explorePath.Count == 0) { RandomWalk(); }
-                else if (newInfo) { //we don't need to chose a new tile to explore yet, but received new info while exploring
-                    AStar aStar = gameObject.AddComponent<AStar>(); //recalculate the path based on the new info we have
-                    explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-                        (int)transform.position.y, rwx, rwy));
-                    DestroyImmediate(aStar);
-                }
+            if (chasing && (newInfo || path.Count == 0)) {
+                AStar aStar = gameObject.AddComponent<AStar>();
+                //We don't know the player's current position, so we go to the last place he was seen
+                path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
+                    (int)transform.position.y, lastSeenX, lastSeenY));
+                DestroyImmediate(aStar);
             }
-            else { //We are chasing
-                if (newInfo || path.Count == 0) { //We got new information in the maze as we moved, so we rerun AStar
-                    AStar aStar = gameObject.AddComponent<AStar>();
-                    //We don't know the player's current position, so we go to the last place he was seen
-                    path = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-                        (int)transform.position.y, lastSeenX, lastSeenY));
-                    DestroyImmediate(aStar);
+            else {
 
-                    if(explorePath.Count != 0) explorePath.Clear(); //clear the explorePath
+                bool oob = false; //flag that is triggered if the potential move spot is out of bounds
+                int tile = 0; //initalize the tile slot to be a floor tile
+                int x; int y;
+                Vector2 dir = lastMove;
+
+                //while the tile isn't a floor (or exit) tile, or while the move leads to an oob spot
+                do {
+                    x = (int)(dir.x + transform.position.x); y = (int)(dir.y + transform.position.y);
+
+                    //if x or y is out of bounds, set the flag and redo the loop
+                    if (x >= board.GetLength(0) || y >= board.GetLength(0) || x < 0 || y < 0) oob = true;
+                    else {
+                        oob = false; //it's not out of bounds
+                        move = dir;
+                        tile = board[x, y];
+                    }
+
+                    dir = RandomDirection(); //choose a random direction
                 }
+                while ((tile != 0 && tile != 3) || oob);
             }
         }
 
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
-        if (chasing) move = path.Dequeue(); //If we're chasing, we use the path queue
-        else move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
+        if (chasing) move = path.Dequeue(); //If we're chasing, but can't see the player, then we'll use the path
+        //else move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
 
         //The last move is indicative of the direction the Ai is currently facing
-        lastMoveX = (int)move.x; lastMoveY = (int)move.y; //update the direction the AI is facing
+        lastMove = move; //update the direction the AI is facing
 
-        SetDirArrow(lastMoveX, lastMoveY, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
+        SetDirArrow(lastMove, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
 
         AttemptMove<Player>((int)move.x, (int)move.y); //tell the enemy to move
     }
@@ -283,12 +280,12 @@ public class Enemy : MovingObject {
         int posx = (int)transform.position.x; int posy = (int)transform.position.y;
         int tarx = (int)target.position.x; int tary = (int)target.position.y;
         //print(transform.position + " , " + target.position);
-        
+
         if (chasing && (chaseTurns > chaseCount)) {
             chaseCount++;
             //If the target's coords fall into range of the enemy's detection radius while chasing, continue having an increased detection radius
             if (((tary - chaseValue) <= posy && posy <= (tary + chaseValue)) && ((tarx - chaseValue) <= posx && posx <= (tarx + chaseValue)))
-                return true;          
+                return true;
             else return false; //else return false and reduce the detection radius back to normal
         }
 
@@ -296,21 +293,22 @@ public class Enemy : MovingObject {
         foreach (Vector2 pair in InitList(posx, posy)) if (tarx == pair.x && tary == pair.y) return true;
 
         //Get the direction the target is moving and detect accordingly
-        int direction = GetDirection(lastMoveX, lastMoveY);
+        int direction = GetDirection(lastMove);
         switch (direction) {
-            case 0: case 1: { //facing right or facing left
+            case 0:
+            case 1: { //facing right or facing left
                 //If the target's y value is within a block of the enemy's
-                if(posy-1 <= tary && tary <= posy+1) {
+                if (posy - 1 <= tary && tary <= posy + 1) {
                     int tileCount = Mathf.Abs(tarx - posx); //calculate how many tiles are between the enemy and the player
                     if (tileCount > perception) return false; //if they are further than the enemy's perception then the enemy can't see them
 
                     int dir; //calculate the direction in terms of positive/negative
                     if (direction == 0) dir = 1;
                     else dir = -1;
-                    
+
                     //check for walls up until the player's location
                     for (int i = 0; i <= tileCount; i++) {
-                        int curPos = posx + (dir*i); //the current tile or position being inspected
+                        int curPos = posx + (dir * i); //the current tile or position being inspected
 
                         if (curPos >= board.GetLength(0) || curPos < 0) return false; //out of bounds
 
@@ -321,9 +319,10 @@ public class Enemy : MovingObject {
                 }
                 else return false; //player isn't in the y range of the enemy
             }
-            case 2: case 3: { //facing up  or facing down 
+            case 2:
+            case 3: { //facing up  or facing down 
                 //If the target's x value is within a block of the enemy's
-                if (posx-1 <= tarx && tarx <= posx+1) {
+                if (posx - 1 <= tarx && tarx <= posx + 1) {
                     //check up until perception limit or you hit a wall
                     int tileCount = Mathf.Abs(tary - posy);
                     if (tileCount > perception) return false;
@@ -334,7 +333,7 @@ public class Enemy : MovingObject {
 
                     //check for walls up until the player's location
                     for (int i = 0; i <= tileCount; i++) {
-                        int curPos = posy + (dir*i); //the current tile or position being inspected
+                        int curPos = posy + (dir * i); //the current tile or position being inspected
 
                         if (curPos >= board.GetLength(0) || curPos < 0) return false; //out of bounds
 
@@ -346,8 +345,8 @@ public class Enemy : MovingObject {
                 else return false; //player isn't in the x range of the enemy
             }
         }
+
         return false;
-        
     }
 
     private bool FinishedChasing() {
