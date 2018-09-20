@@ -2,6 +2,7 @@
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
@@ -10,6 +11,8 @@ public class Player : MovingObject {
     public Slider floorSlider;
     public GameObject bullet;
     [HideInInspector] public bool spawn;
+
+    private Transform spotlight;
 
     private Animator animator; //store reference to animator component
     private int lives; //stores lives
@@ -60,6 +63,7 @@ public class Player : MovingObject {
         spawn = true;
         stunCd = 0;
         GameManager.instance.isHiding = false;
+        spotlight = transform.GetChild(1).transform;
     }
 
     //This'll be called whenever the game moves on to the next level
@@ -67,8 +71,24 @@ public class Player : MovingObject {
         GameManager.instance.playerLifeTotal = lives; //store score in game manager as we change levels
     }
 
+    private IEnumerator SmoothMovementLight(Transform child, Vector3 target, float duration, int change) {
+
+        Vector3 start = child.position;
+        float elapsedTime = 0.0f;
+
+        while (child.position != target) {
+            elapsedTime += Time.deltaTime;
+            child.position = Vector3.Lerp(child.position, target, elapsedTime / duration);
+            yield return null;
+        }
+
+        child.position = transform.position + new Vector3(0, 0, Mathf.Round(child.position.z));
+        GameManager.instance.playerFuelCost += change;
+        print(GameManager.instance.playerFuelCost);
+    }
+
     //Update is called once per frame
-    private void Update() {
+    private void Update() { 
         if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.startMenu) return; //make sure it's the player's turn
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
@@ -91,29 +111,24 @@ public class Player : MovingObject {
         //If fuel isn't empty and this is pressed...
         if (GameManager.instance.playerFuelTotal != 0 && Input.GetKeyDown(KeyCode.R)) {
 
-            if(GameManager.instance.playerFuelCost == 0) {
+            if (GameManager.instance.playerFuelCost == 0) {
                 transform.GetChild(1).GetComponent<Light>().enabled = true;
             }
 
-            Transform t = transform.GetChild(1).transform;
-
-            if (t.position.z >= -8) {
-
-                transform.GetChild(1).transform.position += new Vector3(0, 0, -1);
-
+            if (spotlight.position.z >= -7.9) {                
+                Vector3 end = transform.position + new Vector3(0, 0, spotlight.position.z - 1);                
+                StartCoroutine(SmoothMovementLight(spotlight, end, 0.2f, 1));
                 //Spend fuel immediately for the instant gain and increase cost per step
                 GameManager.instance.playerFuelTotal -= 5;
-                GameManager.instance.playerFuelCost += 1;
             }
             else print("can't increase any further");
-
-            print(GameManager.instance.playerFuelCost);
+            
         }
         if (Input.GetKeyDown(KeyCode.F)) {
             if (GameManager.instance.playerFuelCost != 0) {
-                transform.GetChild(1).transform.position += new Vector3(0, 0, 1);
-                GameManager.instance.playerFuelCost -= 1;
-
+                Vector3 end = transform.position + new Vector3(0, 0, spotlight.position.z + 1);
+                StartCoroutine(SmoothMovementLight(spotlight, end, 0.2f, -1));
+                
                 if(GameManager.instance.playerFuelCost == 0) {
                     transform.GetChild(1).GetComponent<Light>().enabled = false;
                 }
@@ -121,8 +136,6 @@ public class Player : MovingObject {
             else {
                 print("can't decrease any further");
             }
-
-            print(GameManager.instance.playerFuelCost);
         }
 
         //If the player isn't hiding and hits the keybind to hide...
@@ -199,6 +212,10 @@ public class Player : MovingObject {
 
                     //If the player's stun ability isn't off cd yet, reduce the timer by one turn
                     if (!CheckStunCoolDown()) stunCd--;
+
+                    if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) {
+                        spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);
+                    }
                 }
             }
         }

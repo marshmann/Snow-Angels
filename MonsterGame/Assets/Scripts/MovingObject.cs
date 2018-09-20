@@ -73,9 +73,7 @@ public abstract class MovingObject : MonoBehaviour {
             StartCoroutine(SmoothMovement(end));
             //We only want to check floors to alter once in every two calls (Due to the function being called more than once)
             //hence the checkFloor boolean, which is changed to true in Player.cs
-            if (transform.tag == "Player") {
-                AlterFloor(end); //Alter the Floor
-            }
+            if (transform.tag == "Player") AlterFloor(end); //Alter the Floor            
             return true; //we can move
         }
         else //if we collide with something

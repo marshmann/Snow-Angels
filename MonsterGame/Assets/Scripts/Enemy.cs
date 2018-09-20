@@ -218,6 +218,9 @@ public class Enemy : MovingObject {
             }
             else {
 
+                //TODO: Alter this to allow random breaking, in other words to make it so the enemy AI
+                //doesn't always need to reach a wall to change direction.
+
                 bool oob = false; //flag that is triggered if the potential move spot is out of bounds
                 int tile = 0; //initalize the tile slot to be a floor tile
                 int x; int y;
