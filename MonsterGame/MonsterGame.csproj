@@ -85,25 +85,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\AStar\AStar.cs" />
-    <Compile Include="Assets\Scripts\AStar\Denumerable.cs" />
-    <Compile Include="Assets\Scripts\AStar\MinPQ.cs" />
-    <Compile Include="Assets\Scripts\AStar\Node.cs" />
-    <Compile Include="Assets\Scripts\AStar\State.cs" />
-    <Compile Include="Assets\Scripts\BoardManager.cs" />
-    <Compile Include="Assets\Scripts\Bullet.cs" />
-    <Compile Include="Assets\Scripts\Enemy.cs" />
-    <Compile Include="Assets\Scripts\Floor.cs" />
-    <Compile Include="Assets\Scripts\GameManager.cs" />
-    <Compile Include="Assets\Scripts\Loader.cs" />
-    <Compile Include="Assets\Scripts\MovingObject.cs" />
-    <Compile Include="Assets\Scripts\Player.cs" />
-    <Compile Include="Assets\Scripts\SoundManager.cs" />
-    <Compile Include="Assets\Scripts\Tools.cs" />
-    <Compile Include="Assets\Scripts\Wall.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Fonts\OFL.txt" />
+    <Compile Include="Assets\Scripts\Managers\BoardManager.cs" />
+    <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
+    <Compile Include="Assets\Scripts\Managers\Loader.cs" />
+    <Compile Include="Assets\Scripts\Managers\SoundManager.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\AStar\AStar.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\AStar\Denumerable.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\AStar\MinPQ.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\AStar\Node.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\AStar\State.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\Bullet.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\Enemy.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\MovingObject.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Moving\Player.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Static\Floor.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Static\Tools.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Static\Wall.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
