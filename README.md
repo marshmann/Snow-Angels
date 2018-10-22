@@ -1,5 +1,5 @@
 # MonsterGame
-Append your ideas (with your name, preferably) to this read me file, don't edit anyone else's ideas!  Also, separate your thoughts like I did with my name below, to allow for easy readability.
+Ideas for the inital setup of the game.
 
 #### Format: Name | Comment
 
@@ -30,15 +30,3 @@ Nick | Add an AI for the player who will play through the board and show the pat
 ----| Add hidden passages throughout the map, so the player might be able to go through a piece of seemingly unpassable terrain.
 ----| Add multiple terrain options.  Maybe something that causes the player to slide, like ice for example.  Also, make it so some of the walls are see-through.  This would mean the monster could detect the player, regardless of the fact terrain is in the way.  However, this would still mean that the monster would have to run around the terrain to get to the player, unlike the normal instance where there wouldn't be any terrain in the way if the monster detects the player.
 ----| Items such as traps the player can set down to stun/slow the monster and torches that allow the player to temporarily see further might be a good idea to add if we have the time.  My friend suggested adding an item that "pings where the monster is."
-
-If you have any questions or want to frame an idea with a question, post it below.
-If a question is answered or you come up with an idea based off of one, feel free to strike it out.
-
-| Name | Question |
-| --- | --- |
-
-| Name | Inspirations |
-| --- | --- |
-Dave | [Making an RPG in C#](https://www.reddit.com/r/gamedev/comments/7uq8gb/i_wanted_to_make_a_rpg_and_learn_c_i_found_this/)
----- | [Escape The Trolls game in various languages](https://www.reddit.com/r/dailyprogrammer/comments/4vrb8n/weekly_25_escape_the_trolls/)
----- | [Neural Networks (3blue1brown)](https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi)
