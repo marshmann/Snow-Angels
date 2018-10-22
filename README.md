@@ -1,5 +1,5 @@
 # MonsterGame
-Ideas for the inital setup of the game.
+This is an outdated ReadMe, as the ideas listed have been implemented, improved upon, or completely scraped. Not to mention the format of "Name | Comment" is kinda redundant when I'm the only one working on the game. I'll update the ReadMe soon! - Nick M.
 
 #### Format: Name | Comment
 
