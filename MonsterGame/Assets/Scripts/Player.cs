@@ -275,8 +275,9 @@ public class Player : MovingObject {
     //Called whenever the player goes to hit a wall.
     protected override void OnCantMove<T>(T component) {
         Wall hitWall = component as Wall; //store the passed component param as a wall object
-        hitWall.DamageWall(wallDamage); //damage the wall   
-        animator.SetTrigger("playerChop");
+        hitWall.DamageWall(wallDamage); //damage the wall  
+        SoundManager.instance.RandomizeSFX(chopSound1, chopSound2); //play a sound effect
+        animator.SetTrigger("playerChop"); //play the chop animation
     }
 
     //Function which will be called when the enemy walks into the player
