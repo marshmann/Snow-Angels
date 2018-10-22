@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
@@ -94,16 +93,6 @@ public class GameManager : MonoBehaviour {
         //If the game is in startMenu, don't init the game until the player hits enter (check update)
         if(!startMenu) InitGame();
     }
-
-    /*
-    //The below function is depricated, but I couldn't find an easy replacement; it still works though.
-    //Apart of the Unity UI API; is called whenever a scene is loaded TODO: Replace with scenemanager code
-    private void OnLevelWasLoaded(int index) {
-        level++; //increment the level count
-        floorScore = 0; //reset floor score
-        InitGame();
-    }
-    */
 
     void InitGame() {
         doingSetUp = true;

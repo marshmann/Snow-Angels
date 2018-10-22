@@ -26,8 +26,7 @@ public class BoardManager : MonoBehaviour {
     //This creates a Count object that is used to specify how many walls are created in the level 
     //(not the border walls, just the internal ones).
 
-    //The amount of gems that'll appear in the level - min and max actually set in unity (the values here don't matter)
-    public Count gemCount = new Count(3, 3);
+    public Count gemCount = new Count(3, 3); //The amount of gems that'll appear in the level
 
     //Below are variables that hold the prefabs that are created in the Unity Engine (check the prefab folder)
     //Create the exit block
@@ -48,6 +47,8 @@ public class BoardManager : MonoBehaviour {
     //It's a list of Vector3, meaning it'll take 3 floats - the x, y, and z coordinates.  
     //Z is always 0 since we're working in 2d.
     private List<Vector3> gridPositions = new List<Vector3>();
+
+    private GameObject[,] boardState; //contains the instantiated floor tiles
 
     //Maze generation was provided by: http://tutorials.daspete.at/unity3d/maze-runner
     public class Maze {
@@ -132,6 +133,7 @@ public class BoardManager : MonoBehaviour {
     private int[,] BoardSetup(bool[,] grid) {
         int col = 2 * columns; int row = 2 * rows;
         int[,] board = new int[col, row];
+        boardState = new GameObject[col, row];
         boardHolder = new GameObject("Board").transform; //initalize the boardHolder
         bool exitPlaced = false;   
         int floorCount = 0;
@@ -173,8 +175,11 @@ public class BoardManager : MonoBehaviour {
                     GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
 
                     if (x == 0 && y == 0) instance.GetComponent<Floor>().SetNotTrapped(); //force the tile where the player spawns to not be a trap
+
                     //if the floor is trapped we won't count it as having the posibilty of being shoveled
                     if (instance.GetComponent<Floor>().IsTrapped() == "") floorCount++; //increment a counter on how many floor tiles are generated
+
+                    boardState[x, y] = instance; //store the instance in the boardState
 
                     instance.transform.SetParent(boardHolder);
                 }
@@ -197,14 +202,14 @@ public class BoardManager : MonoBehaviour {
         int count = Random.Range(min, max + 1);
         for (int i = 0; i < count; i++) {
             Vector3 randomPos = RandomPosition(); //choose a random position
+
             //Find a non-wall tile
             while (!grid[(int)randomPos.x / 2, (int)randomPos.y / 2]) randomPos = RandomPosition();
 
-            //TODO: make it so a gem can't spawn on a trapped tile.
+            boardState[(int)randomPos.x, (int)randomPos.y].GetComponent<Floor>().SetNotTrapped();
 
             GameObject tileChoice = tileArray[Random.Range(0, tileArray.Length)]; //choose a random tile
-            //Instantiate the random tile we chose at the random position (with no rotation)
-            Instantiate(tileChoice, randomPos, Quaternion.identity);
+            Instantiate(tileChoice, randomPos, Quaternion.identity); //Instantiate the random tile we chose at the random position (with no rotation)
         }
     }
 
@@ -220,7 +225,7 @@ public class BoardManager : MonoBehaviour {
                 if (!grid[i / 2, j / 2]) { //associate one grid tile with four board tiles
                     int rand; //randomly generated number
 
-                    //If the position we're looking at isn't on the top or right edge of the board
+                    //If the position we're looking at isn't on the to  p or right edge of the board
                     if (i != twocol && j != tworow) {
                         rand = Random.Range(0, wallTiles.Length); //randomly generate a number
                         if (rand == 3) board[i, j] = 2; //if rand == 3 then the wall is destructable
@@ -238,14 +243,56 @@ public class BoardManager : MonoBehaviour {
 
         InitializeList(); //reset the gridPos list
         GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout
+        FixTrappedTiles(); //ensure the board doesn't have unrestricted paths due to traps
 
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
 
-        //monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
-        int enemyCount = (int)Mathf.Log((level + 1), 2f);
+        int enemyCount = (int)Mathf.Log(level, 2f); //monster amount is based on a logarithmic distribution
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
-        
-        //single enemy
-        //LayoutObjectAtRandom(enemyTiles, 1, 1, grid); //put the specified amount of enemies on the board
+    }
+
+    //Make sure no two-alike traps are right next to each other
+    private void FixTrappedTiles() {
+        //look at each floor tile to make sure traps aren't going to be impassable
+        foreach (GameObject go in boardState) {
+            if (go != null) { //ignore null tiles (objects in boardState are just floor tiles)
+                Floor tile = go.GetComponent<Floor>(); //get the floor component
+                if (tile.IsTrapped() != "") { //if it's trapped            
+
+                    //look at the neighboring tiles to make sure they aren't also trapped
+                    foreach (GameObject temp in GetNeighbors((int)tile.transform.position.x, (int)tile.transform.position.y)) {
+                        if (temp != null) {
+                            Floor neighbor = temp.GetComponent<Floor>();
+                            //if the type of trap neighbor has is the same as the trap on the center tile, remove the trap on the neighbor tile
+                            if (neighbor.IsTrapped() == tile.IsTrapped()) neighbor.SetNotTrapped();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //Do bounds checks and return a list containing neighboring floor tiles 
+    private List<GameObject> GetNeighbors(int x, int y) {
+        List<GameObject> list = new List<GameObject>(8); //init list
+        int high = boardState.GetUpperBound(0); //get upperbound 
+
+        //if x - 1 is in bounds
+        if (x - 1 >= 0) {
+            list.Add(boardState[x - 1, y]); //add the left neighbor to the list
+            if (y - 1 >= 0) list.Add(boardState[x - 1, y - 1]); //if y-1 is in bounds, add the bot left neighbor
+            if (y + 1 <= high) list.Add(boardState[x - 1, y + 1]); //if y+1 is in bounds, add the top left neighbor
+        }
+        //if x + 1 is in bounds
+        if (x + 1 <= high) {
+            list.Add(boardState[x + 1, y]); //add the right neighbor to the list
+            if (y - 1 >= 0) list.Add(boardState[x + 1, y - 1]); //if y-1 is in bounds, add the bot right neighbor
+            if (y + 1 <= high) list.Add(boardState[x + 1, y + 1]); //if y+1 is in bounds, add the top right neighbor
+        }
+
+        if (y - 1 >= 0) list.Add(boardState[x, y - 1]); //if y-1 is in bounds, add the bot neighbor
+        if (y + 1 <= high) list.Add(boardState[x, y + 1]); //if y+1 is in bounds, add the top neighbor
+
+        return list;
     }
 }
