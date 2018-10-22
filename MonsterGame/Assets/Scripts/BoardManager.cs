@@ -241,13 +241,11 @@ public class BoardManager : MonoBehaviour {
 
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
 
-        /* Depricated idea: monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
-         * also the monster would be randomly put on the board, instead of appearing behind the player.
+        //monster amount is based on a logarithmic distribution, we do (level+1) so an enemy appears in the first level
         int enemyCount = (int)Mathf.Log((level + 1), 2f);
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
-        */
-
-        //TODO: we won't be putting it at random in the end.  The monster should spawn behind the player.
-        LayoutObjectAtRandom(enemyTiles, 1, 1, grid); //put the specified amount of enemies on the board
+        
+        //single enemy
+        //LayoutObjectAtRandom(enemyTiles, 1, 1, grid); //put the specified amount of enemies on the board
     }
 }

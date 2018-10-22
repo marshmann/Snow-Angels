@@ -145,8 +145,8 @@ public class Player : MovingObject {
             //but is still within the radius of the player, he won't be able to hide.
 
             bool playerCanStealth = true; //we'll assume the player can stealth initially
-
-            /* Depricated: We only have ONE enemy now, so we don't need to check the list of enemies
+        
+            //Multiple Enemies
             foreach (Enemy enemy in GameManager.instance.enemies) {
                 //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
                 //Get the absolute difference between the enemy's and the player's x and y coordinates
@@ -162,8 +162,8 @@ public class Player : MovingObject {
                     break; //if one enemy is within the radius, we don't need to continue checking the other enemies.
                 }
             }
-            */
-
+            
+            /* Single Enemy
             Enemy enemy = GameManager.instance.enemy; //get reference to the enemy object
 
             //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
@@ -176,6 +176,7 @@ public class Player : MovingObject {
 
             //If the total distance is less than set stealthRadius
             if (total <= stealthRadius) { playerCanStealth = false; } //the player can't stealth, player's too close to the enemy
+            */
 
             //If the player can stealth, then we'll let them know and change their sprite
             if (playerCanStealth) {
@@ -274,18 +275,19 @@ public class Player : MovingObject {
     //Called whenever the player goes to hit a wall.
     protected override void OnCantMove<T>(T component) {
         Wall hitWall = component as Wall; //store the passed component param as a wall object
-        hitWall.DamageWall(wallDamage); //damage the wall
-        
-        SoundManager.instance.RandomizeSFX(chopSound1, chopSound2); //play a random chop sound
-
-        /* This causes the player's "player chop" boolean to be set to true
-        * In other words, it'll cause the player chop animation to happen,
-        * and due to how we set up the animator code, it'll happen once then return to the idle animation */
+        hitWall.DamageWall(wallDamage); //damage the wall   
         animator.SetTrigger("playerChop");
     }
 
     //Function which will be called when the enemy walks into the player
     public void LoseALife(int loss) {
+
+        //If the player is hiding, we'll get him out of the box.
+        if (GameManager.instance.isHiding) {
+            GameManager.instance.isHiding = false;
+            animator.SetBool("playerHiding", false);
+        }
+
         animator.SetTrigger("playerHit"); //show the player hit animation
         lives -= 1; //reduce the food total by the loss amount
         bottomText.text = "-1 life " + "Lives: " + lives + " | Gems: " + gems;

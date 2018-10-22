@@ -1,10 +1,11 @@
 fileFormatVersion: 2
 guid: 2394f99e0c1510747bc3c4f7c51702d7
-timeCreated: 1535724114
+timeCreated: 1539970348
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - alteredFloor: {fileID: 21300000, guid: a5016cfb05f550040a415c725fe43162, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

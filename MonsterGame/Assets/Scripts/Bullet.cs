@@ -38,11 +38,12 @@ public class Bullet : MovingObject {
                     if (score >= 1) { //Kill the enemy if the score bar is full
                         //TODO: Display Enemy Death animation
                         //TODO: Display "angel player" model for the rest of the level
+                        
+                        GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
 
-                        //Depricated: we are only using one enemy not multiple now
-                        //GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
+                        //If there was only one enemy
+                        //GameManager.instance.enemy = null; //set the enemy to null
 
-                        GameManager.instance.enemy = null; //set the enemy to null
                         DestroyImmediate(hit.transform.gameObject); //destroy the bullet
                     }
                     else { //Stun the Enemy
