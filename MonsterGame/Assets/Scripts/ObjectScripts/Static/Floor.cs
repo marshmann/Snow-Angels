@@ -3,9 +3,9 @@
 public class Floor : MonoBehaviour {
     public Sprite alteredFloor; //container for the new floor type
 
-    public SpriteRenderer spriteRenderer;
+    private SpriteRenderer spriteRenderer;
     private bool changed = false;
-    public string trapped = "";
+    private string trapped = "";
 
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
