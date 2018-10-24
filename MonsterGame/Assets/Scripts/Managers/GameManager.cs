@@ -14,15 +14,14 @@ public class GameManager : MonoBehaviour {
 
     public int playerLifeTotal = 3; //how much life the player defaultly has
 
-    public int playerFuelTotal = 100;
-    public int playerFuelCost = 5;
+    //public int playerFuelTotal = 100;
+    //public int playerFuelCost = 5;
 
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
     
     [HideInInspector] public List<Enemy> enemies; //List with all the enemy references stored
-    //[HideInInspector] public Enemy enemy; //The one enemy in the level
 
     [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
     private float time = 0.0f; //initalizer for time
@@ -33,17 +32,17 @@ public class GameManager : MonoBehaviour {
 
     private int floorCount = 0; //how many floor tiles are on the board
     private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
-    private float snowRate = 0;
+    //private float snowRate = 0;
     private bool gameOver = false;
 
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
     private bool doingSetUp; //a boolean dedicated to making the user not move during the level transition
-    [HideInInspector] public bool startMenu = false;
 
-    [HideInInspector] public int[,] board;
-    /* The above 2d array is the board state where
-     * 0 is a floor, 1 is a wall, 2 is a broken wall and 3 is the exit */
+    private bool startMenu = false; //a boolean representing if we should have the start menu showing or not
+
+    private int[,] board; //numerical representation of the board - 0 is a floor, 1 is a wall, 2 is a broken wall, and 3 is exit
+    private GameObject[,] boardState; //Array with references to board-objects (floors/walls)
 
     //Below are containers for the sound effects related to the player
     [HideInInspector] public AudioClip moveSound1;
@@ -53,16 +52,17 @@ public class GameManager : MonoBehaviour {
     public void SetFloorScore() { floorScore++; } //increment the player's total floor score
     public float GetFloorScore() {return (float)floorScore/floorCount; } //return the calculated floor score
     public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
-
-    //public void SetEnemy(Enemy script) { enemy = script; } //set the enemy that we will be using in this map
-    public void SetBoard(int[,] grid) { board = grid; } //store the board layout
-
     public void CheatFloorScore() { floorScore = floorCount; } //Remove this before game goes live ;) - Testing Function
 
-    public float GetSnowRate() { return snowRate; }
-    public bool CanTurnBack() { return (int)snowRate / 5 <= 0 ? false : true; }
-    
-    public void AddEnemyToList(Enemy script) { enemies.Add(script); }
+    public bool StartMenuShowing() { return startMenu; } //returns true if the startmenu is showing
+
+    public void SetBoard(int[,] board) { this.board = board; } //store the numerical board layout
+    public int[,] GetBoard() { return board; } //getter for the boardState arr
+
+    public void SetBoardState(GameObject[,] boardState) { this.boardState = boardState; } //store the gameobject board layout
+    public GameObject[,] GetBoardState() { return boardState; } //getter for the boardState arr
+
+    public void AddEnemyToList(Enemy script) { enemies.Add(script); } //function that adds enemies to the list
 
     void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
@@ -78,8 +78,7 @@ public class GameManager : MonoBehaviour {
 
         //We don't want the snoweffect to be destroyed either, so we'll set it to be a child of gamemanager.
         GameObject.Find("SnowEffect").transform.SetParent(transform, false);
-
-        //enemies = new List<Enemy>(); //initialize the enemy list to be empty
+        
         boardScript = GetComponent<BoardManager>();
 
         if (level == 1) startMenu = true; //if we're on the first level, then display a startMenu
@@ -149,7 +148,6 @@ public class GameManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-
         if (Input.GetKeyDown(KeyCode.Escape)) Application.Quit(); //check if the application should close
 
         if (Input.GetKeyDown(KeyCode.Return)) {
@@ -169,7 +167,6 @@ public class GameManager : MonoBehaviour {
             }
         }
 
-
         time += Time.deltaTime; 
         if ((playersTurn && isHiding) && (time >= hideTime)) {
             time = 0.0f;
@@ -184,42 +181,33 @@ public class GameManager : MonoBehaviour {
 
     IEnumerator MoveEnemies() {
         enemiesMoving = true;
-        if (enemies.Count != 0) yield return new WaitForSeconds(turnDelay / enemies.Count); //'sleep' for turnDelay/enemies.Count (speeds up the wait process)
-        else yield return new WaitForSeconds(turnDelay); //if the enemies.Count is zero, we just wait for a full turnDelay
 
-        //Multiple Enemies
-        if (enemies.Count == 0) { yield return new WaitForSeconds(turnDelay); /*wait again for a turnDelay, then the player will be able to move*/ }
+        if (enemies.Count != 0) yield return new WaitForSeconds(turnDelay); //wait for a turn delay (less for every enemy, to reduce "lag")
+        else yield return new WaitForSeconds(turnDelay); //wait for a turn delay
+
+        if (enemies.Count == 0)  yield return new WaitForSeconds(turnDelay); //wait again for a turnDelay
         else {
             //Issue the move enemy command on every enemy in the list
             //Then wait for an arbitrarily small amount of time at the end of the turn
             for (int i = 0; i < enemies.Count; i++) {
-                if (!enemies[i].stunned) { //if the enemy isn't stunned
+                if (!enemies[i].stunned) {//if the enemy isn't stunned
+                    //let other enemies know his old tile is able to be walked on
+                    foreach (Enemy e in enemies) e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 0;
                     enemies[i].MoveEnemy(); //move him
-                    yield return new WaitForSeconds(enemies[i].moveTime / enemies.Count); //wait for a small turn delay
+                    foreach (Enemy e in enemies) { //let other enemies know the tile he moved to is taken
+                        e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 1;
+                        e.newInfo = true; //this does mean that newInfo will *always* be true, so it's redundant and isn't necessary
+                        //however it's currently a bandaid fix to the issue of enemies going into the same spot as other enemies.
+                    }
                 }
                 else { //the enemy is stunned
                     enemies[i].stunLength--; //reduce stun timer
                     if (enemies[i].stunLength == 0) enemies[i].stunned = false; //if stun timer is 0 then enemy is no longer stunned
-                    yield return new WaitForSeconds(turnDelay); //wait for turn delay
                 }
+                yield return new WaitForSeconds(enemies[i].moveTime / enemies.Count); //wait for a small turn delay
             }
         }
 
-        //Single Enemy
-        /*
-        if (enemy == null) yield return new WaitForSeconds(turnDelay);
-        else {
-            if (enemy.stunned) {
-                enemy.stunLength--;
-                if (enemy.stunLength == 0) enemy.stunned = false;
-                yield return new WaitForSeconds(turnDelay);
-            }
-            else {
-                enemy.MoveEnemy();
-                yield return new WaitForSeconds(enemy.moveTime);
-            }
-        }
-        */
         playersTurn = true;
         enemiesMoving = false;
     }

@@ -1,8 +1,7 @@
 //Author: Nicholas Marshman, with the aid of a roguelike 2d unity tutorial. 
 //This class, along with the enemy class and the assets, recieved the most changes.
 using System.Collections.Generic; //Allows the use of lists
-using System; //Allows the use of "serializable", which allows us to modify how variables appear in the unity editor 
-              //(and to show/hide them)
+using System; 
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -169,6 +168,7 @@ public class BoardManager : MonoBehaviour {
                     exitPlaced = true; //we only set the exit once
 
                     board[x, y] = 3; //indicate that there is an exit
+                    boardState[x, y] = instance; //store the instance in the boardState
                 }
                 else if (grid[xVal, yVal]) { //else choose a random floor tile from the floorTile array
                     chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
@@ -201,10 +201,19 @@ public class BoardManager : MonoBehaviour {
     private void LayoutObjectAtRandom(GameObject[] tileArray, int min, int max, bool[,] grid) {
         int count = Random.Range(min, max + 1);
         for (int i = 0; i < count; i++) {
-            Vector3 randomPos = RandomPosition(); //choose a random position
+            Vector3 randomPos; //choose a random position
 
             //Find a non-wall tile
-            while (!grid[(int)randomPos.x / 2, (int)randomPos.y / 2]) randomPos = RandomPosition();
+            bool floorTile = false;
+
+            do { 
+                randomPos = RandomPosition();
+                GameObject tile = boardState[(int)randomPos.x, (int)randomPos.y];
+
+                if (tile != null && tile.GetComponent<Floor>() != null) floorTile = true;
+                else floorTile = false;
+            }
+            while (!floorTile) ;
 
             boardState[(int)randomPos.x, (int)randomPos.y].GetComponent<Floor>().SetNotTrapped();
 
@@ -242,34 +251,52 @@ public class BoardManager : MonoBehaviour {
         }
 
         InitializeList(); //reset the gridPos list
+        board = FixTrappedTiles(board); //ensure the board doesn't have unrestricted paths due to traps
         GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout
-        FixTrappedTiles(); //ensure the board doesn't have unrestricted paths due to traps
 
         LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
 
-        int enemyCount = (int)Mathf.Log(level, 2f); //monster amount is based on a logarithmic distribution
+        int enemyCount = (int)Mathf.Log(level+3, 2f); //monster amount is based on a logarithmic distribution
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
+
+        GameManager.instance.SetBoardState(boardState); //store boardState in the gamemanager
     }
 
     //Make sure no two-alike traps are right next to each other
-    private void FixTrappedTiles() {
+    private int[,] FixTrappedTiles(int[,] board) {
         //look at each floor tile to make sure traps aren't going to be impassable
-        foreach (GameObject go in boardState) {
-            if (go != null) { //ignore null tiles (objects in boardState are just floor tiles)
-                Floor tile = go.GetComponent<Floor>(); //get the floor component
-                if (tile.IsTrapped() != "") { //if it's trapped            
+        for (int i = 0; i <= boardState.GetUpperBound(0); i++) {
+            for(int j = 0; j <= boardState.GetUpperBound(0); j++) {
+                GameObject go = boardState[i, j];
+                if (go != null) { //ignore null tiles
+                    Floor tile = go.GetComponent<Floor>(); //get the floor component
+                    if (tile != null && tile.IsTrapped() != "") { //if it's trapped  (and if it's a floor tile)          
 
-                    //look at the neighboring tiles to make sure they aren't also trapped
-                    foreach (GameObject temp in GetNeighbors((int)tile.transform.position.x, (int)tile.transform.position.y)) {
-                        if (temp != null) {
-                            Floor neighbor = temp.GetComponent<Floor>();
-                            //if the type of trap neighbor has is the same as the trap on the center tile, remove the trap on the neighbor tile
-                            if (neighbor.IsTrapped() == tile.IsTrapped()) neighbor.SetNotTrapped();
+                        //look at the neighboring tiles to make sure they aren't also trapped
+                        foreach (GameObject temp in GetNeighbors((int)tile.transform.position.x, (int)tile.transform.position.y)) {
+                            if (temp != null && temp.GetComponent<Floor>() != null) {
+                                Floor neighbor = temp.GetComponent<Floor>();
+                                //if the type of trap neighbor has is the same as the trap on the center tile, remove the trap on the neighbor tile
+                                if (neighbor.IsTrapped() == tile.IsTrapped()) neighbor.SetNotTrapped();
+                            }
+                        }
+
+                        if (tile.IsTrapped() == "Wall") { //if the trapped tile is a wall, we'll need to spawn it
+                            Vector3 pos = tile.transform.position; //get the tile's pos
+                            GameObject chosenTile = wallTiles[Random.Range(0, wallTiles.Length - 1)]; //chose a random non-destructable tile
+                            GameObject instance = Instantiate(chosenTile, pos, Quaternion.identity) as GameObject; //instantiate it
+                            instance.transform.SetParent(boardHolder); //put it in the boardHolder
+
+                            board[(int)pos.x, (int)pos.y] = 1; //update the numerical representation
+                            boardState[i, j] = instance; //store the instance in the boardState array
+                            Destroy(go); //destroy the floor tile, which isn't needed anymore.
                         }
                     }
                 }
             }
         }
+
+        return board;
     }
 
     //Do bounds checks and return a list containing neighboring floor tiles 

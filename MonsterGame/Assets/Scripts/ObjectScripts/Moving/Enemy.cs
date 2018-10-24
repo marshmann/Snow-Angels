@@ -32,7 +32,7 @@ public class Enemy : MovingObject {
     private Queue<Vector2> path; //vector queue containing the path to player
     //private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
-    private bool chasing = false; //make note if the AI is chasing or not
+    public bool chasing = false; //make note if the AI is chasing or not
 
     //The coordinates of the spot we last saw the player.
     private int lastSeenX = 0; private int lastSeenY = 0;
@@ -58,15 +58,16 @@ public class Enemy : MovingObject {
         chaseTurns = 12; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
-        ResetBoard();
+        ResetBoard(); //initalizes the known board to be empty
 
-        board = GameManager.instance.board;
+        board = GameManager.instance.GetBoard(); //store a copy of the board for ease-of-access
 
         lastMove = RandomDirection();
         SetDirArrow(lastMove, arrow); //Rotate the arrow indicator respective to where the enemy is facing
     }
 
-    private void ResetBoard() {
+    //resets the known tiles to be empty - allows AStar to be quick and efficient instead of slow and memory intensive
+    public void ResetBoard() {
         int col = 2 * GameManager.instance.boardScript.columns;
         int row = 2 * GameManager.instance.boardScript.rows;
 
@@ -148,9 +149,7 @@ public class Enemy : MovingObject {
     }
 
     //A simple getter function
-    public int[,] GetBoard() {
-        return board;
-    }
+    //public int[,] GetBoard() { return board; }
     
     /*
     //Choose a direction and walk until we run into a wall
@@ -252,22 +251,60 @@ public class Enemy : MovingObject {
 
         SetDirArrow(lastMove, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
 
-        AttemptMove<Player>((int)move.x, (int)move.y); //tell the enemy to move
+        //flip the sprite to face the correct x direction
+        if ((int)move.x == 1) transform.GetComponent<SpriteRenderer>().flipX = true;
+        else if ((int)move.x == -1) transform.GetComponent<SpriteRenderer>().flipX = false;
+
+        AttemptMove<MovingObject>((int)move.x, (int)move.y); //tell the enemy to move
     }
 
-    //TODO: figure out what happens when an enemy can't move due to it running into another enemy
-    //If the enemy can't move, then it's likely because it ran into a player
-    //Potential way of figuring this out:
-    /*
-     * If the player is detected and is being chased by the enemy, attempt to move with the player in mind,
-     * if the player isn't detected, attempt to move with the enemy in mind, in other words if the enemy is in the way, retry movement
-     * Alternatively, we can make it so enemies can share a tile, though that might be hard to show in a script.
-     */
+    //If the enemy can't move, then it ran into a player or another enemy    
     protected override void OnCantMove<T>(T component) {
-        Player hitPlayer = component as Player; //cast the component to be player
-        animator.SetTrigger("enemyAttack"); //have the enemy visually attack the player
-        SoundManager.instance.RandomizeSFX(enemyAttack1, enemyAttack2); //play a random attack sound
-        hitPlayer.LoseALife(playerDamage); //hit the player
+        if (component is Player) { //if it ran into a player, damage it
+            Player hitPlayer = component as Player; //cast the component to be player
+            animator.SetTrigger("enemyAttack"); //have the enemy visually attack the player
+            SoundManager.instance.RandomizeSFX(enemyAttack1, enemyAttack2); //play a random attack sound
+            hitPlayer.LoseALife(playerDamage); //hit the player
+        }       
+        else if(component is Enemy) { //if the opponent is an enemy, we need to make sure they don't walk into the same space
+            //Ideally, this code will *never* be called.  "oh no, fix it, fix it!" is the purpose of this code.           
+            if ((component as Enemy).transform.position == transform.position) { //assuming they are at the same pos, we'll move the enemy back a tile
+                int x = (int)transform.position.x; int y = (int)transform.position.y;
+                if (lastMove.x == 0) { //if the AI attempted to move up or down but ran into an enemy, we'll attempt to move right/left
+                    if (x - 1 >= 0 && board[x - 1, y] != 1 && board[x - 1, y] != 2) { //bounds check
+                        transform.GetComponent<SpriteRenderer>().flipX = false; //adjust the direction the enemy is facing
+                        print("b1: " + transform.position);
+                        transform.position = new Vector2(x - 1, y); //move the enemy
+                        print("a1: " + transform.position);
+                        lastMove = new Vector2(-1, 0); //update lastMove
+                    }
+                    else if (x + 1 < board.GetUpperBound(0) && board[x + 1, y] != 1 && board[x + 1, y] != 2) { //bounds check
+                        transform.GetComponent<SpriteRenderer>().flipX = true; //adjust the direction the enemy is facing
+                        print("b2: " + transform.position);
+                        transform.position = new Vector2(x + 1, y); //move the enemy
+                        print("a2: " + transform.position);
+                        lastMove = new Vector2(1, 0); //update lastMove
+                    }
+                }
+                else { //the AI attempted to move right or left, thus we'll attempt to move up or down
+                    if (y + 1 < board.GetUpperBound(0) && board[x, y + 1] != 1 && board[x, y + 1] != 2) { //bounds check
+                        print("b3: " + transform.position);
+                        transform.position = new Vector2(x, y + 1); //move the enemy
+                        print("a3: " + transform.position);
+                        lastMove = new Vector2(0, 1); //update lastMove
+                    }
+                    else if (y - 1 >= 0 && board[x, y - 1] != 1 && board[x, y - 1] != 2) { //bounds check
+                        print("b4: " + transform.position);
+                        transform.position = new Vector2(x, y - 1); //move the enemy
+                        print("a4: " + transform.position);
+                        lastMove = new Vector2(0, -1); //update lastMove
+                    }
+                }
+
+                SetDirArrow(lastMove, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
+            }
+        }
+        else { lastMove = -lastMove; }
     }
 
     //Detect if the player can be seen or not by the enemy.

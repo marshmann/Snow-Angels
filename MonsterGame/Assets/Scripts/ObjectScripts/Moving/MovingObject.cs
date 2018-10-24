@@ -123,24 +123,23 @@ public abstract class MovingObject : MonoBehaviour {
             RaycastHit2D hit = Physics2D.Linecast(pair, pair, floorLayer); //calculate if we hit anything as we moved
             if (hit.transform != null) {
                 Floor hitComponent = hit.transform.GetComponent<Floor>();
-                hitComponent.AlterFloor();
+                if (hitComponent != null) {
+                    hitComponent.AlterFloor();
 
-                if(pair == pos) { //Check if the tile we're standing on is trapped
-                    string trapType = hitComponent.IsTrapped();
-                    Player pl = transform.GetComponent<Player>();
-                    if (trapType != "") {
-                        if (trapType == "Ice") {
-                            //Player will slide
+                    if (pair == pos) { //Check if the tile we're standing on is trapped
+                        string trapType = hitComponent.IsTrapped();
+                        Player pl = transform.GetComponent<Player>();
+                        if (trapType != "") {
+                            if (trapType == "Pain") {
+                                pl.LoseALife(1); //Player will lose a life
+                                SoundManager.instance.RandomizeSFX(pl.hitSound1, pl.hitSound2); //play a random hit sound
+                            }
                         }
-                        else if (trapType == "Pain") {
-                            pl.LoseALife(1); //Player will lose a life
-                            SoundManager.instance.RandomizeSFX(pl.hitSound1, pl.hitSound2); //play a random hit sound
+                        else {
+                            if (pl.spawn) pl.spawn = false;
+                            else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound     
                         }
                     }
-                    else
-                        if (pl.spawn) pl.spawn = false;
-                        else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound     
-                    
                 }
             } 
         }

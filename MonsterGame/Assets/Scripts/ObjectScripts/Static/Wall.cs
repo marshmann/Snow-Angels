@@ -26,9 +26,12 @@ public class Wall : MonoBehaviour {
             instance.GetComponent<Floor>().SetNotTrapped(); //make sure the new tile isn't trapped
             instance.transform.SetParent(bm.boardHolder); //for organization sake, make it a child of the boardHolder object            
 
-            GameManager.instance.board[x, y] = 0; //change the board status to reflect a floor tile
-            
-            foreach(Enemy enemy in GameManager.instance.enemies) { //loop over every enemy in the list
+            //change the board status to reflect a floor tile is now there
+            int[,] board = GameManager.instance.GetBoard(); //get the board
+            board[x, y] = 0; //set the coord to be a floor tile
+            GameManager.instance.SetBoard(board); //store the altered board
+
+            foreach (Enemy enemy in GameManager.instance.enemies) { //loop over every enemy in the list
                 if (enemy.knownBoard[x, y] != 0) { //if the enemy knew this tile was a wall before it got destroyed
                     enemy.knownBoard[x, y] = 0; //change the AI's knowledge of the wall to be a floor tile (if he already saw it as a wall)
                     enemy.newInfo = true;

@@ -2,7 +2,6 @@
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
@@ -18,6 +17,8 @@ public class Player : MovingObject {
     private int lives; //stores lives
     private int gems = 0; //stores gem total
     private int stunCd;
+
+    private string powerup = "";
 
     //The value that specifies the min amount of tiles that can be between the player and the enemy
     //If the enemy is within (stealthRadius) tiles of the player, he can't stealth
@@ -71,6 +72,7 @@ public class Player : MovingObject {
         GameManager.instance.playerLifeTotal = lives; //store score in game manager as we change levels
     }
 
+    /*
     private IEnumerator SmoothMovementLight(Transform child, Vector3 target, float duration, int change) {
 
         Vector3 start = child.position;
@@ -86,10 +88,11 @@ public class Player : MovingObject {
         GameManager.instance.playerFuelCost += change;
         print(GameManager.instance.playerFuelCost);
     }
+    */
 
     //Update is called once per frame
     private void Update() { 
-        if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.startMenu) return; //make sure it's the player's turn
+        if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.StartMenuShowing()) return; //make sure it's the player's turn
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
 
@@ -99,15 +102,20 @@ public class Player : MovingObject {
 
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3; lives = 3; PrintText(); GameManager.instance.CheatFloorScore();
+            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(); powerup = "tp";
         }
 
         //The player hits the attack keybind
-        if (Input.GetKeyDown(KeyCode.Q)) {
+        if (Input.GetKeyDown(KeyCode.R)) {
             if (CheckStunCoolDown()) ShootProjectile();
             else print("Stun still on cd for another " + stunCd + " turns.");
         }
 
+        if (Input.GetKeyDown(KeyCode.F)) {
+            if (UsePowerUp()) powerup = ""; //powerups are one time use, so consume it
+        }
+
+        /*
         //If fuel isn't empty and this is pressed...
         if (GameManager.instance.playerFuelTotal != 0 && Input.GetKeyDown(KeyCode.R)) {
 
@@ -137,6 +145,7 @@ public class Player : MovingObject {
                 print("can't decrease any further");
             }
         }
+        */
 
         //If the player isn't hiding and hits the keybind to hide...
         if (isHiding == false && Input.GetKeyDown(KeyCode.T)) {
@@ -145,7 +154,7 @@ public class Player : MovingObject {
             //but is still within the radius of the player, he won't be able to hide.
 
             bool playerCanStealth = true; //we'll assume the player can stealth initially
-        
+
             //Multiple Enemies
             foreach (Enemy enemy in GameManager.instance.enemies) {
                 //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
@@ -162,21 +171,6 @@ public class Player : MovingObject {
                     break; //if one enemy is within the radius, we don't need to continue checking the other enemies.
                 }
             }
-            
-            /* Single Enemy
-            Enemy enemy = GameManager.instance.enemy; //get reference to the enemy object
-
-            //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
-            //Get the absolute difference between the enemy's and the player's x and y coordinates
-            int xDif = (int)System.Math.Abs(enemy.transform.position.x - transform.position.x);
-            int yDif = (int)System.Math.Abs(enemy.transform.position.y - transform.position.y);
-
-            //c = sqrt( a^2 + b^2 ) | Think of xDif as a, yDif as b, and the forming hypotenuse (which would be total) as c
-            int total = (int)System.Math.Sqrt(System.Math.Pow(xDif, 2) + System.Math.Pow(yDif, 2));
-
-            //If the total distance is less than set stealthRadius
-            if (total <= stealthRadius) { playerCanStealth = false; } //the player can't stealth, player's too close to the enemy
-            */
 
             //If the player can stealth, then we'll let them know and change their sprite
             if (playerCanStealth) {
@@ -209,6 +203,10 @@ public class Player : MovingObject {
                 else {
                     lastMove = new Vector2(horizontal, vertical); //set the lastMove vector
                     SetDirArrow(lastMove, arrow); //Rotate the arrow indicator
+
+                    if (horizontal == 1) transform.GetComponent<SpriteRenderer>().flipX = false;
+                    else if(horizontal == -1) transform.GetComponent<SpriteRenderer>().flipX = true;
+
                     AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
 
                     //If the player's stun ability isn't off cd yet, reduce the timer by one turn
@@ -220,6 +218,62 @@ public class Player : MovingObject {
                 }
             }
         }
+    }
+
+    //See if the player can successfully use a powerup (consume on use)
+    private bool UsePowerUp() {
+        switch (powerup) {
+            case "": { //if we don't have a powerup, then we do nothing
+                bottomText.text = "You don't have a powerup!";
+                return false;
+            }
+            case "tp": { //teleport powerup
+                if (TeleportPlayer()) return true;
+                else {
+                    bottomText.text = "Something is blocking the teleport location!";
+                    return false;
+                }
+            }
+            case "wc": { //wall changer powerup
+                ChangeWalls();
+                bottomText.text = "You changed the nearby walls to destroyable ones!";
+                return true;
+            }
+            default: return false;
+        }
+    }
+
+    //TODO: check tiles in the dir the player is facing, any wall tile will turn into a destructable wall.
+    private void ChangeWalls() {
+        Vector2 pos = transform.position;
+    }
+
+    //checks to see the target location is free of enemies, if so then it'll return true
+    //if there is an enemy on the tile, it'll return false
+    private bool CheckForEnemy(int x, int y) {
+        foreach(Enemy e in GameManager.instance.enemies) {
+            if (e.transform.position.x == x && e.transform.position.y == y) 
+                return false; //an enemy is on the tile
+        }
+        return true; //no enemies were on the tile
+    }
+
+    //attempt to teleport player, as long as the potential spot isn't out of bounds or in a wall/enemy
+    private bool TeleportPlayer() {
+        Vector2 pos = transform.position;
+        GameObject[,] board = GameManager.instance.GetBoardState();
+        int x = (int)(pos.x + lastMove.x * 3); int y = (int)(pos.y + lastMove.y * 3);
+
+        //Check boundaries
+        if (x >= 0 && x <= board.GetUpperBound(0) && y >= 0 && y <= board.GetUpperBound(0)) {
+            if (board[x,y] != null && board[x, y].GetComponent<Floor>() != null && CheckForEnemy(x,y)) {
+                transform.position = new Vector3(x, y, transform.position.z);
+                foreach (Enemy en in GameManager.instance.enemies) en.chasing = false;                
+                return true;
+            }
+            else return false;
+        }
+        else return false;
     }
 
     //Create the projectile object and fire it in the direction the player is facing
@@ -249,10 +303,7 @@ public class Player : MovingObject {
         GameManager.instance.playersTurn = false; //no longer the player's turn
     }
 
-    //In Unity we set the exit, soda, and food items to be "Is Trigger"
-    //In other words, when the player interacts with them, it'll auto call this function!
-    //We don't use the food or soda items anymore, but we added one called Gem for the gems
-    //the player needs to pick up.
+    //When the player interacts with any item that is set to be "IsTrigger" on the board, this'll be called
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Exit") { //if we interacted with the exit tile
             if (CheckGems()) { //if we have enough gems to end the level
