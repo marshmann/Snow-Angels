@@ -182,7 +182,7 @@ public class GameManager : MonoBehaviour {
     IEnumerator MoveEnemies() {
         enemiesMoving = true;
 
-        if (enemies.Count != 0) yield return new WaitForSeconds(turnDelay); //wait for a turn delay (less for every enemy, to reduce "lag")
+        if (enemies.Count != 0) yield return new WaitForSeconds(turnDelay/enemies.Count); //wait for a turn delay (less for every enemy, to reduce "lag")
         else yield return new WaitForSeconds(turnDelay); //wait for a turn delay
 
         if (enemies.Count == 0)  yield return new WaitForSeconds(turnDelay); //wait again for a turnDelay

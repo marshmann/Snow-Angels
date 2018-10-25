@@ -102,7 +102,7 @@ public class Player : MovingObject {
 
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(); powerup = "tp";
+            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(); powerup = "tp"; stunCd = 0;
         }
 
         //The player hits the attack keybind
@@ -283,7 +283,13 @@ public class Player : MovingObject {
         pos.x += lastMove.x; pos.y += lastMove.y; //move the projectile over/up/etc one tile
 
         //Create the bullet and fire it
-        Instantiate(bullet, pos, Quaternion.identity, transform);
+        GameObject bullet = Instantiate(this.bullet, pos, Quaternion.identity, transform);
+        SpriteRenderer sr = bullet.GetComponent<SpriteRenderer>();
+
+        if (lastMove.x == 1) sr.flipX = true;
+        else if (lastMove.x == -1) sr.flipX = false;
+        else if (lastMove.y == 1) bullet.transform.Rotate(new Vector3(0, 0, -90));
+        else if (lastMove.y == -1) bullet.transform.Rotate(new Vector3(0, 0, 90));
 
         stunCd = 20; //put the stun on cd for *a lot* of turns
     }
