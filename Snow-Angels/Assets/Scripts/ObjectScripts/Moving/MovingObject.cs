@@ -94,6 +94,8 @@ public abstract class MovingObject : MonoBehaviour {
             sqrRemainingDistance = (transform.position - end).sqrMagnitude; //recalculate the remaining distance
             yield return null; //Wait for a frame before re-evaluating the condition in the while loop (sleep for a frame)
         }
+
+        transform.position = new Vector2((int)end.x, (int)end.y);
     }
 
     //Generic class that is called whenever a player or enemy tries to move

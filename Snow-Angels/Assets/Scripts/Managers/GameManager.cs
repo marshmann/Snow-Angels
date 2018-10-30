@@ -13,10 +13,7 @@ public class GameManager : MonoBehaviour {
     private Player player; //store reference to player object
 
     public int playerLifeTotal = 3; //how much life the player defaultly has
-
-    //public int playerFuelTotal = 100;
-    //public int playerFuelCost = 5;
-
+    
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
     public float levelStartDelay = 2f; //How long the levelImage shows between levels
@@ -30,9 +27,12 @@ public class GameManager : MonoBehaviour {
     private bool enemiesMoving;
     private int level = 1; //Level 1 is when a single enemy will spawn on the board
 
+    [HideInInspector] public bool tutorial = false;
+    [HideInInspector] public GameObject tutTrapTile;
+    [HideInInspector] public GameObject tutWallTile;
+
     private int floorCount = 0; //how many floor tiles are on the board
     private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
-    //private float snowRate = 0;
     private bool gameOver = false;
 
     private Text levelText; //the text shown on the level image
@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour {
     public void SetFloorScore() { floorScore++; } //increment the player's total floor score
     public float GetFloorScore() {return (float)floorScore/floorCount; } //return the calculated floor score
     public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
-    public void CheatFloorScore() { floorScore = floorCount; } //Remove this before game goes live ;) - Testing Function
+    public void CheatFloorScore(bool full) { if (full) floorScore = floorCount; else floorScore = floorCount / 2; } //Remove this before game goes live ;) - Testing Function
 
     public bool StartMenuShowing() { return startMenu; } //returns true if the startmenu is showing
 
@@ -89,6 +89,10 @@ public class GameManager : MonoBehaviour {
         level++; //increment the level count
         floorScore = 0; //reset floor score
 
+        if (tutorial) { //if the player just finished the tutorial
+            startMenu = true; //show the start menu again
+            tutorial = false; //set the tutorial bool to false
+        }
         //If the game is in startMenu, don't init the game until the player hits enter (check update)
         if(!startMenu) InitGame();
     }
@@ -101,11 +105,7 @@ public class GameManager : MonoBehaviour {
 
         player = GameObject.Find("Player").GetComponent<Player>();
         //Change the spotlight to be closer depending on level (darker as game progresses)
-        player.transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);
-
-        //Change the snowfall to come faster depending on level
-        //var em = transform.GetChild(0).GetComponent<ParticleSystem>().emission;
-        //snowRate += (level * 5); em.rateOverTime = snowRate;
+        //player.transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);        
 
         levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
         levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
@@ -114,7 +114,6 @@ public class GameManager : MonoBehaviour {
         Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
 
         enemies.Clear(); //Make sure the enemy list is empty when a new level starts
-        //enemy = null;
         boardScript.SetupScene(level);
     }
 
@@ -166,6 +165,28 @@ public class GameManager : MonoBehaviour {
                 SoundManager.instance.musicSource.Play();
             }
         }
+        if(Input.GetKeyDown(KeyCode.Backspace) && startMenu) {
+            startMenu = false; tutorial = true;
+            DestroyImmediate(GameObject.Find("StartMenu"));
+
+            player = GameObject.Find("Player").GetComponent<Player>();
+
+            player.letPlayerAttack = false;
+            player.letPlayerMove = false;
+            player.letPlayerSneak = false;
+
+            levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
+            levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
+
+            levelText.text = "Loading tutorial..";
+
+            Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
+            boardScript.SetUpTutorial();
+
+            SetFloorCount(50);
+            level--; 
+            StartCoroutine(player.MoveTutorialP1());
+        }
 
         time += Time.deltaTime; 
         if ((playersTurn && isHiding) && (time >= hideTime)) {
@@ -179,11 +200,14 @@ public class GameManager : MonoBehaviour {
         StartCoroutine(MoveEnemies());
     }
 
-    IEnumerator MoveEnemies() {
+    public void SpawnTutorialEnemy() {
+        Instantiate(boardScript.enemyTiles[1], new Vector3(4, 1, 0), Quaternion.identity);
+    }
+
+    private IEnumerator MoveEnemies() {
         enemiesMoving = true;
 
-        if (enemies.Count != 0) yield return new WaitForSeconds(turnDelay/enemies.Count); //wait for a turn delay (less for every enemy, to reduce "lag")
-        else yield return new WaitForSeconds(turnDelay); //wait for a turn delay
+        yield return new WaitForSeconds(turnDelay); //wait for a turn delay
 
         if (enemies.Count == 0)  yield return new WaitForSeconds(turnDelay); //wait again for a turnDelay
         else {
@@ -202,7 +226,10 @@ public class GameManager : MonoBehaviour {
                 }
                 else { //the enemy is stunned
                     enemies[i].stunLength--; //reduce stun timer
-                    if (enemies[i].stunLength == 0) enemies[i].stunned = false; //if stun timer is 0 then enemy is no longer stunned
+                    if (enemies[i].stunLength == 0) {
+                        enemies[i].ps.Stop(); //stop the stun particle effects
+                        enemies[i].stunned = false; //if stun timer is 0 then enemy is no longer stunned
+                    }
                 }
                 yield return new WaitForSeconds(enemies[i].moveTime / enemies.Count); //wait for a small turn delay
             }

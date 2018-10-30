@@ -1,4 +1,6 @@
 ﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,8 +9,20 @@ public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
     public float restartLevelDelay = 1f;
     public Text bottomText;
+    public Text tutText;
     public Slider floorSlider;
     public GameObject bullet;
+    public GameObject wolf;
+    
+
+    //Tutorial based globals
+    public bool letPlayerMove = true;
+    private bool letPlayerMoveP2 = false;
+    public bool letPlayerAttack = true;
+    public bool letPlayerSneak = true;
+    private int moveCount = 0;
+    private Queue<string> tutMessages = new Queue<string>();
+
     [HideInInspector] public bool spawn;
 
     private Transform spotlight;
@@ -71,38 +85,212 @@ public class Player : MovingObject {
     private void OnDisable() {
         GameManager.instance.playerLifeTotal = lives; //store score in game manager as we change levels
     }
+   
+    private void InitMoveTutP2() { //start the second half of the move tutorial
+        tutMessages.Enqueue("Nice, you now know how to move! However, you shouldn't be too brazen as you walk.");
+        tutMessages.Enqueue("Traps exist in the maze. Don't worry, they happen to not be very well hidden... well, most of them anyway.");
+        tutMessages.Enqueue("For instance, the tile above where your character is now located has just become a spike-trap.");
+        tutMessages.Enqueue("Spike traps will reduce your health total, so be careful and make sure to avoid them!");
+        tutMessages.Enqueue("Other than traps, you should also be on the look out for walls that look like the newly spawned one on your right.");
+        tutMessages.Enqueue("These walls are destructable, meaning you can use them to create a new path through the maze!");
+        tutMessages.Enqueue("All you need to do to destroy such a wall is, well... walk into it. It'll take a couple attempts, but you can destroy it completely!");
+        tutMessages.Enqueue("Go ahead and try to destroy that wall! Oh, and I'll make sure the trap tile is gone so you don't hurt your pretty self.");
+        
+        StartCoroutine(MoveTutorialP2()); //start the move tutorial (it's short so we don't use the queue)
+    }
 
-    /*
-    private IEnumerator SmoothMovementLight(Transform child, Vector3 target, float duration, int change) {
+    //Initializes a queue containing all the tutorial messages for the Attack Tutorial Part 1
+    private void InitAttackTut1() {
+        tutMessages.Enqueue("Good job! The spot the wall was located has now opened up, allowing you to walk on the tile.");
+        tutMessages.Enqueue("Now let's move on to the tutorial that talks about attacking.");
+        tutMessages.Enqueue("When you move on tiles you haven't walked on before, you'll see the blue bar at the bottom of your screen slowly fill up.");
+        tutMessages.Enqueue("You can tell what tiles you have and haven't been on before by their texture.");
+        tutMessages.Enqueue("Tiles you have been on/around before will have a blank snow texture instead of an icy looking one!");
+        tutMessages.Enqueue("The gauge on the bottom of your screen is an ammo-system of sorts, you can consume it by pressing R. " +
+            "This will fire a flaming arrow in the direction you are facing!");
+        tutMessages.Enqueue("Here, test out the stun on this dummy monster! Hit R to fire!");
 
-        Vector3 start = child.position;
-        float elapsedTime = 0.0f;
+        StartCoroutine(AttackTutorialP1()); //start the Attack Tutorial part 1
+    }
 
-        while (child.position != target) {
-            elapsedTime += Time.deltaTime;
-            child.position = Vector3.Lerp(child.position, target, elapsedTime / duration);
-            yield return null;
+    //Initalizes a queue containing all the tutorial messages for the Attack Tutorial Part 2
+    private void InitAttackTut2() {
+        tutMessages.Enqueue("Nice! Notice that the monster is merely stunned, that means he'll be able to move again soon!");
+        tutMessages.Enqueue("The amount of turns the monster is stunned depends on how much gauge you had when you used the stun.");
+        tutMessages.Enqueue("You'll be heavily rewarded if you hold onto your gauge as long as possible, only using it once it's full!");
+        tutMessages.Enqueue("See for yourself what happens when the gauge is full!, hit R again!");
+
+        StartCoroutine(AttackTutorialP2()); //start the attack tutorial part 2
+    }
+    
+    //Initalizes a queue containing all the tutorial messages for the hide tutorial
+    private void InitHideTut() {
+        tutMessages.Enqueue("See how the monster disappeared? You were able to slay him because you had a full gauge!");
+        tutMessages.Enqueue("Keep this in mind as you explore the maze, as being able to temporarily " +
+            "stun an enemy isn't nearly as good as permanently removing the threat.");
+        tutMessages.Enqueue("There is one more topic we should discuss... hiding!");
+        tutMessages.Enqueue("The enemies aren't very intelligent, so you can easily hide in your trusty crate to avoid conflict!");
+        tutMessages.Enqueue("Normally when you aren't hiding, enemies will move a tile everytime you move, but when you are hiding enemies will constantly move.");
+        tutMessages.Enqueue("Let's test this out, shall we? Hit F on your keyboard to enter sneak mode.");
+        StartCoroutine(HideTutorial());
+    }
+
+    private void TutConclusion() {
+        tutMessages.Enqueue("When you are in this box, you will be unable to move until you hit F again to leave it.");
+        tutMessages.Enqueue("Remember you have to be in a safe space in order to hide, and it's not a good idea to hide when you're being chased!");
+        tutMessages.Enqueue("There are many other things you have yet to learn, such as stuff about power-ups (E key to use), but those are rare!");
+        tutMessages.Enqueue("It would be better to actually experience the game and learn that way than to continue this tutorial.");
+        tutMessages.Enqueue("In other words... Congratulations! You beat the tutorial! Now it's time to delve into the snowy maze.  Good Luck!");
+        StartCoroutine(ConcTutorial());
+    }
+
+    public IEnumerator MoveTutorialP1() { //this is the first tutorial, it's started in the gamemanager
+        tutText.text = "Welcome to the tutorial! Here you will learn the basics. Press Enter to continue.";
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+        tutText.text = "First things first: movement.  You can use WASD or the arrow keys to move, try now!";
+        letPlayerMove = true;        
+    }
+
+    private IEnumerator MoveTutorialP2() { //this is the first tutorial, it's started in the gamemanager
+        int i = 0;
+        while (tutMessages.Count > 1) {
+            i++;
+            tutText.text = tutMessages.Dequeue();
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+            yield return new WaitForSeconds(GameManager.instance.turnDelay / 2);
+
+            if( i == 2 ) { //when the tutorial message talking about the trap pops up
+                transform.position = new Vector2(1, 1); //teleport the player to this tile
+                
+                lastMove = new Vector2(1, 0); //set the direction he is facing
+                SetDirArrow(lastMove, arrow); //set the direction he is facing
+
+                GameManager.instance.tutTrapTile.GetComponent<Floor>().SetPainTrap(); //display a pain trap above the player
+            }
+            else if( i == 4 ) { //when the tutorial message talking about the wall tile pops up
+                Vector3 pos = GameManager.instance.tutWallTile.transform.position; //get the location of the tile
+                Destroy(GameManager.instance.tutWallTile); //destroy the old floor tile
+
+                //create a destructable wall tile at the pos
+                GameManager.instance.tutWallTile = Instantiate(GameManager.instance.boardScript.wallTiles
+                    [GameManager.instance.boardScript.wallTiles.Length-1], pos, Quaternion.identity);                
+            }
+        }
+        tutText.text = tutMessages.Dequeue();
+        GameManager.instance.tutTrapTile.GetComponent<Floor>().SetNotTrapped();
+        letPlayerMoveP2 = true;
+    }
+
+    private IEnumerator AttackTutorialP1() {
+        int i = 0;
+        while (tutMessages.Count > 1) {
+            i++;
+            tutText.text = tutMessages.Dequeue();
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+            yield return new WaitForSeconds(GameManager.instance.turnDelay/2);
+
+            if(i == 2) { //after saying we'll start the attack tutorial
+                transform.position = new Vector2(1, 1); //teleport the player to this tile
+                lastMove = new Vector2(1, 0); //set the direction he is facing
+                SetDirArrow(lastMove, arrow); //set the direction he is facing
+            }
+        }
+        tutText.text = tutMessages.Dequeue();
+        
+        GameManager.instance.CheatFloorScore(false); //give him some floor score
+        floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
+        GameManager.instance.SpawnTutorialEnemy();
+        letPlayerAttack = true; //let him attack        
+    }
+
+    private IEnumerator AttackTutorialP2() {
+        while (tutMessages.Count > 1) {
+            tutText.text = tutMessages.Dequeue();
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+            yield return new WaitForSeconds(GameManager.instance.turnDelay / 2);
+        }
+        tutText.text = tutMessages.Dequeue();
+        GameManager.instance.CheatFloorScore(true); //give him full gauge
+        floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
+        letPlayerAttack = true; //let him attack        
+    }
+
+    private IEnumerator HideTutorial() {
+        while (tutMessages.Count > 1) {
+            tutText.text = tutMessages.Dequeue();
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+            yield return new WaitForSeconds(GameManager.instance.turnDelay / 2);
+        }
+        tutText.text = tutMessages.Dequeue();
+        letPlayerSneak = true;
+    }
+
+    private IEnumerator ConcTutorial() {
+        while (tutMessages.Count > 0) {
+            tutText.text = tutMessages.Dequeue();
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Return));
+            yield return new WaitForSeconds(GameManager.instance.turnDelay / 2);
         }
 
-        child.position = transform.position + new Vector3(0, 0, Mathf.Round(child.position.z));
-        GameManager.instance.playerFuelCost += change;
-        print(GameManager.instance.playerFuelCost);
+        Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
     }
-    */
 
     //Update is called once per frame
-    private void Update() { 
+    private void Update() {
         if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.StartMenuShowing()) return; //make sure it's the player's turn
+
+        if (GameManager.instance.tutorial) {
+            if (letPlayerMoveP2) {
+                CheckMovement();
+
+                if (GameManager.instance.tutWallTile.GetComponent<Wall>().hp == 0) {
+                    letPlayerMoveP2 = false; InitAttackTut1();
+                }
+            }
+            else if (letPlayerMove) {
+                if (moveCount >= 4) { moveCount = 0; letPlayerMove = false; InitMoveTutP2(); }
+                else if (CheckMovement()) { tutText.text = "Keep moving!"; moveCount++; }
+            }
+
+            if (letPlayerAttack) {
+                if (Input.GetKeyDown(KeyCode.R)) {
+                    moveCount++; //We have two-parts to this
+                    ShootProjectile();
+                    letPlayerAttack = false;
+
+                    if (moveCount == 2) InitHideTut(); //init the hiding tutorial                     
+                    else InitAttackTut2(); //init part 2 of the attack tutorial
+                }
+            }
+
+            if (letPlayerSneak && Input.GetKeyDown(KeyCode.F)) {
+                if (!GameManager.instance.isHiding) {
+                    bottomText.text = "You are now hidden."; //notify the player
+                    GameManager.instance.isHiding = true; //set the player to be hiding in the GameManager
+                    animator.SetBool("playerHiding", true); //make the player hide in a box
+                    TutConclusion();
+                }
+                else {
+                    bottomText.text = "You are no longer hidden."; //Notify the player
+                    GameManager.instance.isHiding = false; //set it so the player is no longer hiding
+                    animator.SetBool("playerHiding", false); //make the player get out of the box
+                    letPlayerSneak = false;
+                }
+            }
+
+            return; //during the tutorial, we don't want the player to have access to all the other things
+        }
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
 
-        bool isHiding = GameManager.instance.isHiding; //check to see if the player is hiding or not
-        int horizontal = 0; //the direction we want to move horizontally
-        int vertical = 0; //the direction we want to move vertically
-
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(); powerup = "tp"; stunCd = 0;
+            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(true); powerup = "tp"; stunCd = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.T)) {
+            GameManager.instance.playersTurn = false;
+            return;
         }
 
         //The player hits the attack keybind
@@ -111,44 +299,12 @@ public class Player : MovingObject {
             else print("Stun still on cd for another " + stunCd + " turns.");
         }
 
-        if (Input.GetKeyDown(KeyCode.F)) {
+        if (Input.GetKeyDown(KeyCode.E)) {
             if (UsePowerUp()) powerup = ""; //powerups are one time use, so consume it
         }
 
-        /*
-        //If fuel isn't empty and this is pressed...
-        if (GameManager.instance.playerFuelTotal != 0 && Input.GetKeyDown(KeyCode.R)) {
-
-            if (GameManager.instance.playerFuelCost == 0) {
-                transform.GetChild(1).GetComponent<Light>().enabled = true;
-            }
-
-            if (spotlight.position.z >= -7.9) {                
-                Vector3 end = transform.position + new Vector3(0, 0, spotlight.position.z - 1);                
-                StartCoroutine(SmoothMovementLight(spotlight, end, 0.2f, 1));
-                //Spend fuel immediately for the instant gain and increase cost per step
-                GameManager.instance.playerFuelTotal -= 5;
-            }
-            else print("can't increase any further");
-            
-        }
-        if (Input.GetKeyDown(KeyCode.F)) {
-            if (GameManager.instance.playerFuelCost != 0) {
-                Vector3 end = transform.position + new Vector3(0, 0, spotlight.position.z + 1);
-                StartCoroutine(SmoothMovementLight(spotlight, end, 0.2f, -1));
-                
-                if(GameManager.instance.playerFuelCost == 0) {
-                    transform.GetChild(1).GetComponent<Light>().enabled = false;
-                }
-            }
-            else {
-                print("can't decrease any further");
-            }
-        }
-        */
-
         //If the player isn't hiding and hits the keybind to hide...
-        if (isHiding == false && Input.GetKeyDown(KeyCode.T)) {
+        if (GameManager.instance.isHiding == false && Input.GetKeyDown(KeyCode.F)) {
             //Check to see if any enemy is too close to the player
             //At the moment, we're ignoring walls in this check - so if an enemy is on the other side of a wall
             //but is still within the radius of the player, he won't be able to hide.
@@ -181,45 +337,54 @@ public class Player : MovingObject {
             else bottomText.text = "You can't stealth right now!"; //the player can't stealth; notify them.
         }
         //If the player is hiding and hits the keybind to hide, we'll make them stop hiding!
-        else if (isHiding == true && Input.GetKeyDown(KeyCode.T)) {
+        else if (GameManager.instance.isHiding == true && Input.GetKeyDown(KeyCode.F)) {
             bottomText.text = "You are no longer hidden."; //Notify the player
             GameManager.instance.isHiding = false; //set it so the player is no longer hiding
             animator.SetBool("playerHiding", false); //make the player get out of the box
         }
-        else { //other inputs
-
-            //We want to pay attention for movement input, which can be altered in user controls.
-            //Input is handled numerically
-            horizontal = (int)(Input.GetAxisRaw("Horizontal")); //1 is right, -1 is left
-            vertical = (int)(Input.GetAxisRaw("Vertical")); //1 is up, -1 is down
-           
-            //There was movement input from the player
-            if (horizontal != 0 || vertical != 0) {
-
-                if (horizontal != 0) //if the user had horizontal input
-                    vertical = 0; //set it so vertical is 0; this ensures we have no diagnal movement
-
-                if (isHiding) bottomText.text = "You cannot move while hiding!"; //don't allow the player to move if he is hiding
-                else {
-                    lastMove = new Vector2(horizontal, vertical); //set the lastMove vector
-                    SetDirArrow(lastMove, arrow); //Rotate the arrow indicator
-
-                    if (horizontal == 1) transform.GetComponent<SpriteRenderer>().flipX = false;
-                    else if(horizontal == -1) transform.GetComponent<SpriteRenderer>().flipX = true;
-
-                    AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
-
-                    //If the player's stun ability isn't off cd yet, reduce the timer by one turn
-                    if (!CheckStunCoolDown()) stunCd--;
-
-                    if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) {
-                        spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);
-                    }
-                }
-            }
-        }
+        else CheckMovement();        
     }
 
+    private bool CheckMovement() {
+        int horizontal = 0; //the direction we want to move horizontally
+        int vertical = 0; //the direction we want to move vertically
+
+        //We want to pay attention for movement input, which can be altered in user controls.
+        //Input is handled numerically
+        horizontal = (int)(Input.GetAxisRaw("Horizontal")); //1 is right, -1 is left
+        vertical = (int)(Input.GetAxisRaw("Vertical")); //1 is up, -1 is down
+
+        //There was movement input from the player
+        if (horizontal != 0 || vertical != 0) {
+
+            if (horizontal != 0) //if the user had horizontal input
+                vertical = 0; //set it so vertical is 0; this ensures we have no diagnal movement
+
+            if (GameManager.instance.isHiding) {
+                bottomText.text = "You cannot move while hiding!"; //don't allow the player to move if he is hiding
+                return false;
+            }
+            else {
+                lastMove = new Vector2(horizontal, vertical); //set the lastMove vector
+                SetDirArrow(lastMove, arrow); //Rotate the arrow indicator
+
+                if (horizontal == 1) transform.GetComponent<SpriteRenderer>().flipX = false;
+                else if (horizontal == -1) transform.GetComponent<SpriteRenderer>().flipX = true;
+
+                AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
+
+                //If the player's stun ability isn't off cd yet, reduce the timer by one turn
+                if (!CheckStunCoolDown()) stunCd--;
+
+                if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) {
+                    spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);
+                }
+
+                return true;
+            }            
+        }
+        return false;
+    }
     //See if the player can successfully use a powerup (consume on use)
     private bool UsePowerUp() {
         switch (powerup) {
@@ -304,8 +469,7 @@ public class Player : MovingObject {
         base.AttemptMove<T>(xDir, yDir); //call the MovingObject's AttemptMove function
         
         CheckIfGameOver(); //self explanatory
-
-        //if(!GameManager.instance.sliding)
+        
         GameManager.instance.playersTurn = false; //no longer the player's turn
     }
 
@@ -327,6 +491,18 @@ public class Player : MovingObject {
 
             other.gameObject.SetActive(false); //disable that gem object
         }
+        else if(other.tag == "PowerUp") {
+            //Randomize a number between 0 and 100
+            float val = Random.Range(0, 100);
+            if (val <= 45f) powerup = "tp";
+            else if (val <= 90f) powerup = "wc";
+            else SpawnWolf();
+        }
+    }
+
+    private void SpawnWolf() {
+        //GameManager.instance.boardScript.LayoutObjectAtRandom(new GameObject[]{wolf}, 1, 1);
+        print("Spawn Wolf");
     }
 
     //Called whenever the player goes to hit a wall.

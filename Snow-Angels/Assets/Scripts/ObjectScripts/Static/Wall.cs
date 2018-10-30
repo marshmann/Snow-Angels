@@ -28,7 +28,8 @@ public class Wall : MonoBehaviour {
 
             //change the board status to reflect a floor tile is now there
             int[,] board = GameManager.instance.GetBoard(); //get the board
-            board[x, y] = 0; //set the coord to be a floor tile
+            if(board != null) board[x, y] = 0; //set the coord to be a floor tile
+
             GameManager.instance.SetBoard(board); //store the altered board
 
             foreach (Enemy enemy in GameManager.instance.enemies) { //loop over every enemy in the list

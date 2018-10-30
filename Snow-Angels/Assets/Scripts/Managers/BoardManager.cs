@@ -198,7 +198,7 @@ public class BoardManager : MonoBehaviour {
     }
 
     //Spawn tiles for a given GameObject array at a randomly chosen position
-    private void LayoutObjectAtRandom(GameObject[] tileArray, int min, int max, bool[,] grid) {
+    public void LayoutObjectAtRandom(GameObject[] tileArray, int min, int max) {
         int count = Random.Range(min, max + 1);
         for (int i = 0; i < count; i++) {
             Vector3 randomPos; //choose a random position
@@ -213,12 +213,34 @@ public class BoardManager : MonoBehaviour {
                 if (tile != null && tile.GetComponent<Floor>() != null) floorTile = true;
                 else floorTile = false;
             }
-            while (!floorTile) ;
+            while (!floorTile);
 
             boardState[(int)randomPos.x, (int)randomPos.y].GetComponent<Floor>().SetNotTrapped();
 
             GameObject tileChoice = tileArray[Random.Range(0, tileArray.Length)]; //choose a random tile
             Instantiate(tileChoice, randomPos, Quaternion.identity); //Instantiate the random tile we chose at the random position (with no rotation)
+        }
+    }
+
+    public void SetUpTutorial() {
+        int col = 5; int row = 5;
+        for (int x = -1; x <= col+1; x++) {
+            for (int y = -1; y <= row+1; y++) {
+                GameObject chosenTile; //The tile that we will randomly choose to put on the board
+
+                if (x == -1 || y == -1 || x == col+1 || y == row+1) { //If the tile is on the edge, choose a random outer wall tile
+                    chosenTile = wallTiles[Random.Range(0, wallTiles.Length - 1)];
+                    GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
+                    instance.transform.SetParent(boardHolder);
+                }
+                else { //else choose a random floor tile from the floorTile array                  
+                    chosenTile = floorTiles[Random.Range(0, floorTiles.Length)];
+                    GameObject instance = Instantiate(chosenTile, new Vector3(x, y, 0f), Quaternion.identity) as GameObject;
+                    if (x == 1 && y == 2) GameManager.instance.tutTrapTile = instance;
+                    else if (x == 4 && y == 1) GameManager.instance.tutWallTile = instance;
+                    instance.transform.SetParent(boardHolder);
+                }
+            }
         }
     }
 
@@ -254,10 +276,10 @@ public class BoardManager : MonoBehaviour {
         board = FixTrappedTiles(board); //ensure the board doesn't have unrestricted paths due to traps
         GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout
 
-        LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum, grid); //randomly put the gem tiles
+        LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum); //randomly put the gem tiles
 
         int enemyCount = (int)Mathf.Log(level+3, 2f); //monster amount is based on a logarithmic distribution
-        LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount, grid); //put the specified amount of enemies on the board
+        LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount); //put the specified amount of enemies on the board
 
         GameManager.instance.SetBoardState(boardState); //store boardState in the gamemanager
     }

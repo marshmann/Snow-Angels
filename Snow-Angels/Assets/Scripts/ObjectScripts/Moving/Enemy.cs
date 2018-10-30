@@ -18,6 +18,7 @@ public class Enemy : MovingObject {
     private int chaseValue; //radius the enemy will detect during chasing
     private int chaseTurns; //amount of turns the increased detect radius lasts
     private int chaseCount; //counter for chase turns
+    [HideInInspector] public ParticleSystem ps;
 
     [HideInInspector] public int[,] knownBoard; //the known board for the moving object
     private int[,] board; //the actual board
@@ -43,15 +44,16 @@ public class Enemy : MovingObject {
     protected override void Start() {
         
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
-        //GameManager.instance.SetEnemy(this); //if there is only going to be one enemy in the game
 
         animator = GetComponent<Animator>(); //initalize animator
+        ps = transform.GetChild(1).GetComponent<ParticleSystem>();
+        ps.Stop();
+
         target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's location
 
         base.Start(); //call the super code's base
 
         path = new Queue<Vector2>(); //init path queue
-        //explorePath = new Queue<Vector2>(); //init explore queue
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
         chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
@@ -60,9 +62,13 @@ public class Enemy : MovingObject {
 
         ResetBoard(); //initalizes the known board to be empty
 
-        board = GameManager.instance.GetBoard(); //store a copy of the board for ease-of-access
-
-        lastMove = RandomDirection();
+        if (!GameManager.instance.tutorial) {
+            board = GameManager.instance.GetBoard(); //store a copy of the board for ease-of-access
+            lastMove = RandomDirection();
+        }
+        else {
+            lastMove = new Vector2(-1, 0);
+        }        
         SetDirArrow(lastMove, arrow); //Rotate the arrow indicator respective to where the enemy is facing
     }
 
@@ -103,7 +109,7 @@ public class Enemy : MovingObject {
 
     //Make sure we update the grid whenever possible
     private void Update() {
-        if (!skipMove) {
+        if (!skipMove && !GameManager.instance.tutorial) {
             knownTileCount += UpdateGrid();
 
             if (knownTileCount >= 40) {
@@ -148,43 +154,12 @@ public class Enemy : MovingObject {
         return cp;
     }
 
-    //A simple getter function
-    //public int[,] GetBoard() { return board; }
-    
-    /*
-    //Choose a direction and walk until we run into a wall
-    private void RandomWalk() {
-        List<Vector2> list = new List<Vector2>(); //List which will contain the unknown tiles
-
-        //Loop over the board to see what hasn't been explored yet
-        for (int i = 0; i < board.GetLength(0); i++) {
-            for (int j = 0; j < board.GetLength(0); j++) {
-                if (board[i, j] == 0 && !boolBoard[i, j]) {
-                    list.Add(new Vector2(i, j)); //add unexplored tiles to the list
-                }
-            }
-        }
-
-        int rand = Random.Range(0, list.Count - 1); //get a random number
-        Vector2 chosenTile = list[rand]; //use the random number to choose an unexplored tile
-        rwx = (int)chosenTile.x; rwy = (int)chosenTile.y; //store the coordinates for global use
-
-        AStar aStar = gameObject.AddComponent<AStar>(); //Create the Astar Object        
-
-        //Store the path given by A* to the randomly chosen coordinate
-        explorePath = DeepCopyQueue(aStar.DoAStar(knownBoard, (int)transform.position.x,
-            (int)transform.position.y, rwx, rwy));
-
-        DestroyImmediate(aStar); //delete the Astar Object, as we don't need to keep it around
-    }
-    */
-
     public void MoveEnemy() {
         //Due to the fact the turn check is *before* the AI's detection, the AI is blind to the player's presence when it isn't their turn
         //This allows for some counterplay with the hiding mechanic, so I decided to keep it this way
         //even though logically, it would be better to have the AI still be able to detect the player.
 
-        if (skipMove) { //since we only allow the enemy to move once for every two spaces the player moves
+        if (skipMove || GameManager.instance.tutorial) { //since we only allow the enemy to move once for every two spaces the player moves
             skipMove = false; //skip the next enemy turn
             return; //don't continue with the rest of the code
         }

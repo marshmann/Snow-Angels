@@ -3,20 +3,25 @@
 public class Floor : MonoBehaviour {
     public Sprite alteredFloor; //container for the new floor type
 
+    private Sprite og = null;
     private SpriteRenderer spriteRenderer;
     private bool changed = false;
     private string trapped = "";
 
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        float value = Random.Range(0, 100);
+        if (GameManager.instance.tutorial) return;
 
         //Assigning Trap Type
-        if (value >= 97.5) { //Pain Trap
-            trapped = "Pain";
-            spriteRenderer.color = Color.red; //test purposes, should change sprite instead
-        }
+        float value = Random.Range(0, 100);
+        if (value >= 97.5) SetPainTrap(); //Pain Trap
         else if(value >= 92.5) trapped = "Wall"; //spawn a wall tile        
+    }
+
+    public void SetPainTrap() {
+        if(changed) spriteRenderer.sprite = og;
+        trapped = "Pain";
+        spriteRenderer.color = Color.red;
     }
 
     public string IsTrapped() {  return trapped; }
@@ -24,6 +29,7 @@ public class Floor : MonoBehaviour {
 
     public void AlterFloor() {
         if (trapped == "" && !changed) {
+            og = spriteRenderer.sprite;
             spriteRenderer.sprite = alteredFloor; //alter the floor sprite
             changed = true; //set it so the floor can't be changed again
             GameManager.instance.SetFloorScore(); //increment the floor score counter

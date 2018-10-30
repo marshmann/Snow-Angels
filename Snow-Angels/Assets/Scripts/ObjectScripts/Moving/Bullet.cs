@@ -19,9 +19,6 @@ public class Bullet : MovingObject {
         
         dir = parent.lastMove; //Set the direction the bullet was fired
 
-        //TODO: Add base projectile model that'll be used for when score < 1
-        // and alter it when the score >= 1 to be a bigger projectile
-
         Vector2 start = transform.position; //the current position of the bullet
         end = start + (dir*5); //the end position
     }
@@ -36,18 +33,11 @@ public class Bullet : MovingObject {
                 Enemy enemy = hit.transform.gameObject.GetComponent<Enemy>();
                 if(hit.transform.tag == "Enemy") { //if it hit an enemy
                     if (score >= 1) { //Kill the enemy if the score bar is full
-                        //TODO: Display Enemy Death animation
-                        //TODO: Display "angel player" model for the rest of the level
-                        
                         GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
-
-                        //If there was only one enemy
-                        //GameManager.instance.enemy = null; //set the enemy to null
-
-                        DestroyImmediate(hit.transform.gameObject); //destroy the bullet
+                        DestroyImmediate(hit.transform.gameObject); //destroy the enemy
                     }
                     else { //Stun the Enemy
-                        //TODO: Display Stun animation
+                        enemy.ps.Play(); //display stun effect
                         enemy.stunned = true;
                         enemy.stunLength = (int)(score * 5) + 3;
                         print("Stunned Enemy for " + ((int)(score * 5) + 3) + " turns.");
