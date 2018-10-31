@@ -109,6 +109,9 @@ public class GameManager : MonoBehaviour {
 
         levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
         levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
+
+        GameObject.Find("CenterImage").SetActive(false); //hide the center image
+
         levelText.text = "Day " + (level-1); //Change the level text to display the current level
         levelImage.SetActive(true); //Display the image
         Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
@@ -171,10 +174,6 @@ public class GameManager : MonoBehaviour {
 
             player = GameObject.Find("Player").GetComponent<Player>();
 
-            player.letPlayerAttack = false;
-            player.letPlayerMove = false;
-            player.letPlayerSneak = false;
-
             levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
             levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
 
@@ -184,8 +183,8 @@ public class GameManager : MonoBehaviour {
             boardScript.SetUpTutorial();
 
             SetFloorCount(50);
-            level--; 
-            StartCoroutine(player.MoveTutorialP1());
+            level--;
+            player.StartTutorial();
         }
 
         time += Time.deltaTime; 
