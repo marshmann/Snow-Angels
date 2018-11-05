@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 8e69f6b5eb4a7a944afceb0372334706
-timeCreated: 1541089757
+guid: 6e672c24dd39ef64684b856647152bb0
+timeCreated: 1541090309
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: wolf1
+    21300000: wolfsheet2_0
+    21300002: wolfsheet2_1
+    21300004: wolfsheet2_2
+    21300006: wolfsheet2_3
+    21300008: WolfAttack1
+    21300010: WolfAttack2
+    21300012: WolfAttack3
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -95,12 +101,90 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: wolf1
+      name: wolfsheet2_0
       rect:
         serializedVersion: 2
-        x: 110
-        y: 268
-        width: 46
+        x: 319
+        y: 288
+        width: 32
+        height: 32
+      alignment: 9
+      pivot: {x: 2.4015398, y: -0.4668846}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: wolfsheet2_1
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 288
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: wolfsheet2_2
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: wolfsheet2_3
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: WolfAttack1
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: WolfAttack2
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: WolfAttack3
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 192
+        width: 32
         height: 32
       alignment: 0
       pivot: {x: 0, y: 0}

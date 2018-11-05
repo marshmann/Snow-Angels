@@ -1,135 +1,145 @@
 ﻿//Author: Nicholas Marshman - using Unity 2D roguelike tutorial as a base
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
-    public float restartLevelDelay = 1f;
-    public Text bottomText;
-    public Slider floorSlider;
-    public GameObject bullet;
-    public GameObject wolf;
+    public float restartLevelDelay = 1f; //little time delay on level restart
+    public int stealthRadius = 3; //If the enemy is within stealthRadius tiles of the player, he can't stealth
+    [HideInInspector] public bool spawn; //spawn flag, used to make it so the movement sound effect isn't played on spawn
 
-    public Text tutText;
-    private Tutorial tutorial;
+    public Text bottomText; //text on the bottom of UI
+    public Text tutText; //the textbox in the upper-middle portion of the screen for tutorial text
+    public Slider floorSlider; //slider representing the amount of tiles explored by player
 
-    [HideInInspector] public bool spawn;
-
-    private Transform spotlight;
+    public GameObject bullet; //the bullet prefab
+    public GameObject wolf; //the wolf prefab
+    private Tutorial tutorial; //tutorial object
 
     private Animator animator; //store reference to animator component
+    private Transform spotlight; //reference to the player's spotlight component
+
     private int lives; //stores lives
     private int gems = 0; //stores gem total
-    private int stunCd;
-
-    private string powerup = "";
-
-    //The value that specifies the min amount of tiles that can be between the player and the enemy
-    //If the enemy is within (stealthRadius) tiles of the player, he can't stealth
-    public int stealthRadius = 3;
+    private int stunCd; //stores current cd on the player's projectile ability
+    private string powerup = ""; //stores the name of the powerup the player has (default: none)
 
     //Below are containers for the sound effects related to the player
     public AudioClip moveSound1; public AudioClip moveSound2;
     public AudioClip gameOverSound;
-
     //These sound effects are still being used, even though they really shouldn't be since we aren't finding food anymore
     public AudioClip eatSound1; public AudioClip eatSound2;
-
     //sound effects for when the destructable walls are hit
     public AudioClip chopSound1; public AudioClip chopSound2;
-
     public AudioClip hitSound1; public AudioClip hitSound2;
     
     //This'll be called whenever the player first loads onto the level
     protected override void Start() {
         animator = GetComponent<Animator>(); //init animator
-
         base.Start(); //Call the MovingObject's start function
-
-        SetDefaults(GameManager.instance.playerLifeTotal);
-
+        SetDefaults(GameManager.instance.playerLifeTotal); //set all the appropriate defaults
         AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
     }
 
-    //Simple function that prints an updated score message
+    //Simple function that prints an updated score message on the player's UI
     private void PrintText() {
         string str = "";
-        if (gems >= 3) str = "*"; //The * is basically there to represent the player has enough gems
-        bottomText.text = "Lives: " + lives + " | Gems: " + gems + str;
+        if (gems >= 3) str = "*"; //The * is there to represent the player has enough gems
+        bottomText.text = "Lives: " + lives + " | Gems: " + gems + str; //print text on UI
     }
+
+    //set the player's inital values
+    public void SetDefaults(int lifeTotal) {
+        lives = lifeTotal; //set the life total
+        PrintText(); //update the UI text
+        lastMove = new Vector2(1, 0); //initalize the player's dir
+        spawn = true; //init spawn flag to true
+        stunCd = 0; //reset stun cd
+        GameManager.instance.isHiding = false; //ensure hiding flag is false
+        spotlight = transform.GetChild(1).transform; //obtain spotlight transform
+    }
+
+    //This'll be called whenever the game moves on to the next level, store score in game manager as we change levels
+    private void OnDisable() { GameManager.instance.playerLifeTotal = lives; }
 
     //Function created to check if the player has enough gems to advance levels
     private bool CheckGems() { return gems >= 3 ? true : false; }
 
-    public void SetDefaults(int lifeTotal) {
-        lives = lifeTotal;
-        PrintText();
-        lastMove = new Vector2(1, 0);
-        spawn = true;
-        stunCd = 0;
-        GameManager.instance.isHiding = false;
-        spotlight = transform.GetChild(1).transform;
-    }
-
-    //This'll be called whenever the game moves on to the next level
-    private void OnDisable() {
-        GameManager.instance.playerLifeTotal = lives; //store score in game manager as we change levels
-    }
-
+    //Start the tutorial if the player decided they wanted to play through the tutorial
     public void StartTutorial() {
-        tutorial = gameObject.AddComponent(typeof(Tutorial)) as Tutorial;
-        tutorial.tutText = tutText;
-        tutorial.floorSlider = floorSlider;
-        StartCoroutine(tutorial.MoveTutorialP1());
+        AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
+        spawn = false; //allow the player to have movement sound effects on spawn
+
+        tutorial = gameObject.AddComponent(typeof(Tutorial)) as Tutorial; //create tut object
+        tutorial.SetTutText(tutText); //set the UI text component
+        tutorial.SetFloorSlider(floorSlider); //set the floor slider
+        tutorial.StartTutorial(); //start the tutorial
     }
 
-    public void AlterArrow(Vector2 move) {
-        lastMove = move; //set the direction he is facing
-        SetDirArrow(lastMove, arrow); //set the direction he is facing
-    }
+    //set the direction the player is facing
+    public void AlterArrow(Vector2 move) { lastMove = move; SetDirArrow(lastMove, arrow); }
 
-    //Tutorial controls - only allowed when set flags are available
+    //Tutorial function that checks for user input depending on what controls they have access to.
     private void Tutorial() {
-        if (tutorial.GetPM2()) {
-            CheckMovement();
+        //Controls are turned on and off depending on where the player is in the tutorial
 
-            if (GameManager.instance.tutWallTile.GetComponent<Wall>().hp == 0) {
-                tutorial.SetPM2(false); tutorial.InitAttackTut1();
+        if (tutorial.GetPM()) { //if the first movement flag is active, the player will be able to move
+            //the player will need to move 4 times before moving on in the tutorial
+            if (tutorial.Count() >= 4) { //if they have moved 4 (or somehow more) times
+                tutorial.SetMC(0); //reset the counter
+                tutorial.SetPM(false); //set the first move flag to false, disabling player movement
+                tutorial.InitMoveTutP2(); //start the second half of the movement tutorial
+            }
+            //if they haven't moved 4 times yet, check for movement input
+            else if (CheckMovement()) { //if CheckMovement returned true, then the player inputed a move command
+                tutText.text = "Keep moving!"; //change the tutorial text
+                tutorial.IncCount(); //increment the tutorial counter
             }
         }
-        else if (tutorial.GetPM()) {
-            if (tutorial.Count() >= 4) { tutorial.SetMC(0); tutorial.SetPM(false); tutorial.InitMoveTutP2(); }
-            else if (CheckMovement()) { tutText.text = "Keep moving!"; tutorial.IncCount(); }
+        else if (tutorial.GetPM2()) { //if the second movement flag is active, we'll allow the player to move again
+            //In this portion of the tutorial, the player needs to destroy a wall by moving into it.
+
+            CheckMovement(); //check for player movement (we don't need the return value here)
+
+            //If the wall that was spawned was destroyed (health would be 0)
+            if (GameManager.instance.tutWallTile.GetComponent<Wall>().hp == 0) {
+                tutorial.SetPM2(false); //set the second move flag to false, disabling player movement
+                tutorial.InitAttackTut1(); //initiate the attack tutorial
+            }
         }
 
-        if (tutorial.GetPA()) {
-            if (Input.GetKeyDown(KeyCode.R)) {
-                tutorial.IncCount(); //We have two-parts to this
-                ShootProjectile();
+        if (tutorial.GetPA()) { //if the player attack tutorial flag is active
+            //We have two-parts to this portion of the tutorial,
+            //first we have the player stun an enemy then we have the player kill one.
+
+            if (Input.GetKeyDown(KeyCode.R)) { //check for the attack keybind
+                tutorial.IncCount(); //increment the counter on attack use
+                ShootProjectile(); //spawn and shoot the projectile
 
                 floorSlider.value = 0; //reset the progress bar
-                tutorial.SetPA(false);
+                tutorial.SetPA(false); //disable the attack flag
 
+                //If the tutorial count isn't 2, then we'll start the kill half of the attack tutorial
+                //if the tutorial count is 2 then we'll start the hiding tutorial
                 if (tutorial.Count() == 2) tutorial.InitHideTut(); //init the hiding tutorial                     
                 else tutorial.InitAttackTut2(); //init part 2 of the attack tutorial
             }
         }
 
+        //If the hiding tutorial flag is active, and the player hits the hide key
         if (tutorial.GetPS() && Input.GetKeyDown(KeyCode.F)) {
-            if (!GameManager.instance.isHiding) {
+            if (!GameManager.instance.isHiding) { //if the player wasn't already hiding
                 bottomText.text = "You are now hidden."; //notify the player
                 GameManager.instance.isHiding = true; //set the player to be hiding in the GameManager
                 animator.SetBool("playerHiding", true); //make the player hide in a box
-                tutorial.TutConclusion();
+                tutorial.TutConclusion(); //start the tutorial conclusion portion
             }
-            else {
+            else { //this isn't a required part of the tutorial; the player can hit the hide button again to stop hiding
                 bottomText.text = "You are no longer hidden."; //Notify the player
                 GameManager.instance.isHiding = false; //set it so the player is no longer hiding
                 animator.SetBool("playerHiding", false); //make the player get out of the box
-                tutorial.SetPS(false);
+                tutorial.SetPS(false); //make it so the player can no longer hide as the tutorial ends
             }
         }
     }
@@ -138,21 +148,20 @@ public class Player : MovingObject {
     private void Update() {
         if (GameManager.instance == null || !GameManager.instance.playersTurn || GameManager.instance.StartMenuShowing()) return; //make sure it's the player's turn
 
-        if (GameManager.instance.tutorial) {
-            Tutorial(); return; //during the tutorial, we don't want the player to have access to all the other things
-        }
+        //during the tutorial, we don't want the player to have access to specific controls
+        if (GameManager.instance.tutorial) { Tutorial(); return; }
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
 
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3; lives = 100; PrintText(); GameManager.instance.CheatFloorScore(true); powerup = "tp"; stunCd = 0;
+            gems = 3; lives = 100; PrintText();
+            GameManager.instance.CheatFloorScore(true);
+            powerup = "tp"; stunCd = 0;
         }
 
-        if (Input.GetKeyDown(KeyCode.T)) {
-            GameManager.instance.playersTurn = false;
-            return;
-        }
+        //Allow the player to "wait" in place, in other words allowing him to skip his turn
+        if (Input.GetKeyDown(KeyCode.T)) { GameManager.instance.playersTurn = false; return; }
 
         //The player hits the attack keybind
         if (Input.GetKeyDown(KeyCode.R)) {
@@ -160,9 +169,8 @@ public class Player : MovingObject {
             else print("Stun still on cd for another " + stunCd + " turns.");
         }
 
-        if (Input.GetKeyDown(KeyCode.E)) {
-            if (UsePowerUp()) powerup = ""; //powerups are one time use, so consume it
-        }
+        //consume the player's powerup, if he has one
+        if (Input.GetKeyDown(KeyCode.E)) { if (UsePowerUp()) powerup = ""; }
 
         //If the player isn't hiding and hits the keybind to hide...
         if (GameManager.instance.isHiding == false && Input.GetKeyDown(KeyCode.F)) {
@@ -237,13 +245,13 @@ public class Player : MovingObject {
                 //If the player's stun ability isn't off cd yet, reduce the timer by one turn
                 if (!CheckStunCoolDown()) stunCd--;
 
-                if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) {
-                    spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);
-                }
+                if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) 
+                    spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);                
 
                 return true;
             }            
         }
+
         return false;
     }
     //See if the player can successfully use a powerup (consume on use)
@@ -353,14 +361,14 @@ public class Player : MovingObject {
             other.gameObject.SetActive(false); //disable that gem object
         }
         else if(other.tag == "PowerUp") {
-            //Randomize a number between 0 and 100
-            float val = Random.Range(0, 100);
-            if (val <= 45f) powerup = "tp";
-            else if (val <= 90f) powerup = "wc";
-            else SpawnWolf();
+            float val = Random.Range(0, 100); //Randomize a number between 0 and 100
+            if (val <= 45f) powerup = "tp"; //the player has access to a teleport powerup
+            else if (val <= 90f) powerup = "wc"; //the player has access to a wall-changer powerup
+            else SpawnWolf(); //the player unfortunately gets a bad roll and summons an enemy
         }
     }
 
+    //TODO: implement spawn wolf mechanic
     private void SpawnWolf() {
         //GameManager.instance.boardScript.LayoutObjectAtRandom(new GameObject[]{wolf}, 1, 1);
         print("Spawn Wolf");
@@ -390,9 +398,7 @@ public class Player : MovingObject {
     }
 
     //Called when the scene gets wiped after level completion
-    public void Restart() {
-        SceneManager.LoadScene("Main"); //Load the main scene again
-    }
+    public void Restart() { SceneManager.LoadScene("Main"); /* Load the main scene again */ }
 
     //Checks to see if the player lost, and, if they did, then call the GameManager GameOver function.
     private void CheckIfGameOver() {

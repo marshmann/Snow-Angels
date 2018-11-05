@@ -221,16 +221,29 @@ public class Enemy : MovingObject {
         if (chasing) move = path.Dequeue(); //If we're chasing, but can't see the player, then we'll use the path
         //else move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
 
-        //The last move is indicative of the direction the Ai is currently facing
-        lastMove = move; //update the direction the AI is facing
-
-        SetDirArrow(lastMove, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
-
-        //flip the sprite to face the correct x direction
-        if ((int)move.x == 1) transform.GetComponent<SpriteRenderer>().flipX = true;
-        else if ((int)move.x == -1) transform.GetComponent<SpriteRenderer>().flipX = false;
-
         AttemptMove<MovingObject>((int)move.x, (int)move.y); //tell the enemy to move
+
+        if(transform.tag == "Wolf" && lastMove.x != move.x) {
+            Transform go = transform.GetChild(2);
+            if (lastMove.x == 1) {
+                transform.GetComponent <SpriteRenderer>().flipX = true;
+                go.GetComponent<SpriteRenderer>().flipX = true;
+                go.position = new Vector2(0.903f, transform.position.y-0.95f);
+            }
+            else if (lastMove.x == -1) {
+                transform.GetComponent<SpriteRenderer>().flipX = false;
+                go.GetComponent<SpriteRenderer>().flipX = false;
+                go.position = new Vector2(-0.903f, transform.position.y-0.95f);
+            }
+        }
+        else {
+            //flip the sprite to face the correct x direction
+            if ((int)move.x == 1) transform.GetComponent<SpriteRenderer>().flipX = true;
+            else if ((int)move.x == -1) transform.GetComponent<SpriteRenderer>().flipX = false;
+        }
+
+        lastMove = move; //update the direction the AI is facing
+        SetDirArrow(lastMove, arrow); //Rotate the arrow indicator to depict where the enemy was last facing
     }
 
     //If the enemy can't move, then it ran into a player or another enemy    

@@ -25,6 +25,7 @@ public class Floor : MonoBehaviour {
     }
 
     public string IsTrapped() {  return trapped; }
+    public void SetChanged(bool changed) { this.changed = changed; }
     public void SetNotTrapped() { trapped = ""; spriteRenderer.color = Color.white; }
 
     public void AlterFloor() {

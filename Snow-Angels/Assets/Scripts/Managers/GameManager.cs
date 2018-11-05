@@ -89,9 +89,20 @@ public class GameManager : MonoBehaviour {
         level++; //increment the level count
         floorScore = 0; //reset floor score
 
-        if (tutorial) { //if the player just finished the tutorial
+        if (tutorial || gameOver) { //if the player just finished the tutorial
             startMenu = true; //show the start menu again
             tutorial = false; //set the tutorial bool to false
+            level--; //undo the increment that happened above
+        }
+        else if (gameOver) { //if the player had a gameOver
+            startMenu = true; //show the start menu again
+            gameOver = false; //set the gameOver bool to false
+            
+            playerLifeTotal = 3; //reset player's life to 3
+            GameObject.Find("Player").GetComponent<Player>().SetDefaults(3); //reset player's life to 3
+            SoundManager.instance.musicSource.Play(); //reset the music
+
+            level = 2; //reset level counter
         }
         //If the game is in startMenu, don't init the game until the player hits enter (check update)
         if(!startMenu) InitGame();
@@ -142,10 +153,10 @@ public class GameManager : MonoBehaviour {
     //Print the game over screen and end the game
     public void GameOver() {
         levelText.text = "You survived for " + (level-1) + " day(s)\n\n";
-        levelText.text += "Hit Enter to Play Again";
+        levelText.text += "Hit Enter to return to the main menu.";
         levelImage.SetActive(true);
 
-        gameOver = true;
+        gameOver = true; //set the gameOver Flag
     }
 
     // Update is called once per frame
@@ -160,14 +171,9 @@ public class GameManager : MonoBehaviour {
                 //like we normally would do in the "start" function in Player.cs;
                 player.AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
             }
-            else if (gameOver) { //End Screen is open               
-                player.SetDefaults(3); //Reset the player's stats to their defaults (passing 3 representing the default amount of lives)
-                player.Restart(); //Restart the scene
-                level = 1; //set the player level indicator back to 0
-                player.enabled = true; //Make it so the player can move again
-                SoundManager.instance.musicSource.Play();
-            }
+            else if (gameOver) player.Restart(); //restart the scene            
         }
+
         if(Input.GetKeyDown(KeyCode.Backspace) && startMenu) {
             startMenu = false; tutorial = true;
             DestroyImmediate(GameObject.Find("StartMenu"));
@@ -182,9 +188,8 @@ public class GameManager : MonoBehaviour {
             Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
             boardScript.SetUpTutorial();
 
-            SetFloorCount(50);
-            level--;
-            player.StartTutorial();
+            SetFloorCount(50); //just chose an arbritary number for the floor count in the tutorial.
+            player.StartTutorial(); //start the tutorial
         }
 
         time += Time.deltaTime; 
@@ -215,13 +220,13 @@ public class GameManager : MonoBehaviour {
             for (int i = 0; i < enemies.Count; i++) {
                 if (!enemies[i].stunned) {//if the enemy isn't stunned
                     //let other enemies know his old tile is able to be walked on
-                    foreach (Enemy e in enemies) e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 0;
+                    //foreach (Enemy e in enemies) e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 0;
                     enemies[i].MoveEnemy(); //move him
-                    foreach (Enemy e in enemies) { //let other enemies know the tile he moved to is taken
-                        e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 1;
-                        e.newInfo = true; //this does mean that newInfo will *always* be true, so it's redundant and isn't necessary
+                   // foreach (Enemy e in enemies) { //let other enemies know the tile he moved to is taken
+                       // e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 1;
+                       // e.newInfo = true; //this does mean that newInfo will *always* be true, so it's redundant and isn't necessary
                         //however it's currently a bandaid fix to the issue of enemies going into the same spot as other enemies.
-                    }
+                   // }
                 }
                 else { //the enemy is stunned
                     enemies[i].stunLength--; //reduce stun timer
