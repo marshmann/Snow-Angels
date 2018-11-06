@@ -1,13 +1,10 @@
 //Author: Nicholas Marshman, with the aid of a roguelike 2d unity tutorial. 
-//This class, along with the enemy class and the assets, recieved the most changes.
 using System.Collections.Generic; //Allows the use of lists
 using System; 
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-/*
- * This code sets up the board/level everytime a new level needs to be generated
- */
+//This code sets up the board/level everytime a new level needs to be generated
 public class BoardManager : MonoBehaviour {
 
     [Serializable]
@@ -58,15 +55,13 @@ public class BoardManager : MonoBehaviour {
 
         //constructor
         public Maze(int width, int height, System.Random random) {
-            this.width = width;
-            this.height = height;
-            this.random = random;
+            this.width = width; //init width
+            this.height = height; //init height
+            this.random = random; //init random
         }
 
         //Getter for grid
-        public bool[,] Grid() {
-            return grid;
-        }
+        public bool[,] Grid() { return grid; }
 
         //Generate the grid
         public void Generate() {

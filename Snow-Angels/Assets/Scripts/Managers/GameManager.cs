@@ -24,16 +24,16 @@ public class GameManager : MonoBehaviour {
     private float time = 0.0f; //initalizer for time
     private float hideTime = 1f; //Enemies will move every half-second the player is hiding
 
-    private bool enemiesMoving;
+    private bool enemiesMoving; //true if any enemies are still moving, false otherwise
     private int level = 1; //Level 1 is when a single enemy will spawn on the board
 
-    [HideInInspector] public bool tutorial = false;
-    [HideInInspector] public GameObject tutTrapTile;
-    [HideInInspector] public GameObject tutWallTile;
+    [HideInInspector] public bool tutorial = false; //is the tutorial running?
+    [HideInInspector] public GameObject tutTrapTile; //the tile that changes to a trap tile in the tutorial
+    [HideInInspector] public GameObject tutWallTile; //the tile that changes to a wall tile in the tutorial
 
     private int floorCount = 0; //how many floor tiles are on the board
     private int floorScore = 0; //the amount of tiles the player has cleared/shoveled/explored
-    private bool gameOver = false;
+    private bool gameOver = false; //flag for when the player loses all of his lives
 
     private Text levelText; //the text shown on the level image
     private GameObject levelImage; //store a reference to the level image
@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour {
     private int[,] board; //numerical representation of the board - 0 is a floor, 1 is a wall, 2 is a broken wall, and 3 is exit
     private GameObject[,] boardState; //Array with references to board-objects (floors/walls)
 
-    //Below are containers for the sound effects related to the player
+    //Below are containers for the movement sound effects related to the player
     [HideInInspector] public AudioClip moveSound1;
     [HideInInspector] public AudioClip moveSound2;
 
@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour {
 
     public void AddEnemyToList(Enemy script) { enemies.Add(script); } //function that adds enemies to the list
 
-    void Awake() {
+    private void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
         //If there does happen to be more than one instance of it, it'll destroy it
         if (instance == null) instance = this;
@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour {
         //We don't want the snoweffect to be destroyed either, so we'll set it to be a child of gamemanager.
         GameObject.Find("SnowEffect").transform.SetParent(transform, false);
         
-        boardScript = GetComponent<BoardManager>();
+        boardScript = GetComponent<BoardManager>(); //initalize the boardScript
 
         if (level == 1) startMenu = true; //if we're on the first level, then display a startMenu
         SceneManager.sceneLoaded += OnLoadScene; //this will make OnLoadScene the current scene
@@ -108,18 +108,12 @@ public class GameManager : MonoBehaviour {
         if(!startMenu) InitGame();
     }
 
-    void InitGame() {
-        doingSetUp = true;
-        gameOver = false;
-        startMenu = false;
-        DestroyImmediate(GameObject.Find("StartMenu"));
+    //Initalize the game by initializing components and setting up the board
+    private void InitGame() {
+        doingSetUp = true; //we're setting up the board
+        gameOver = false; //reset any gameOver flags
 
-        player = GameObject.Find("Player").GetComponent<Player>();
-        //Change the spotlight to be closer depending on level (darker as game progresses)
-        //player.transform.GetChild(1).position += new Vector3(0, 0, (level-1)/2);        
-
-        levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
-        levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
+        GetDefaults(); //obtain all the relevant components and destroy the start menu
 
         GameObject.Find("CenterImage").SetActive(false); //hide the center image
 
@@ -131,60 +125,53 @@ public class GameManager : MonoBehaviour {
         boardScript.SetupScene(level);
     }
 
-    //Function dedicated to printing the board for testing.
-    public void PrintIt<T>(T[,] x) {
-        string str = "";
-        for (int i = x.GetUpperBound(0); i >= 0; i--) {
-            for (int j = x.GetUpperBound(0); j >= 0; j--) {
-                str = x[j, i] + str;
-            }
-            print(str);
-            str = "";
-        }
-        print("------------");
+    //Destroy the start menu and initalize components
+    private void GetDefaults() { 
+        startMenu = false; //set the start menu flag to false
+        DestroyImmediate(GameObject.Find("StartMenu")); //delete the start menu object
+        player = GameObject.Find("Player").GetComponent<Player>(); //find the player object
+        levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
+        levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
     }
 
     //Used to turn off the level image
     private void HideLevelImage() {
-        levelImage.SetActive(false);
-        doingSetUp = false;
+        levelImage.SetActive(false); //turn the level image off
+        doingSetUp = false; //set the setup flag to false
     }
 
     //Print the game over screen and end the game
     public void GameOver() {
-        levelText.text = "You survived for " + (level-1) + " day(s)\n\n";
-        levelText.text += "Hit Enter to return to the main menu.";
-        levelImage.SetActive(true);
+        levelText.text = "You survived for " + (level-1) + " day(s)\n\n"; //print message
+        levelText.text += "Hit Enter to return to the main menu."; //add this to the message text
+        levelImage.SetActive(true); //turn the level image on
 
         gameOver = true; //set the gameOver Flag
     }
 
-    // Update is called once per frame
-    void Update() {
+    //Update is called once per frame
+    private void Update() {
+        //when the player hits escape, the game should close
         if (Input.GetKeyDown(KeyCode.Escape)) Application.Quit(); //check if the application should close
-
+        //when the player hits enter
         if (Input.GetKeyDown(KeyCode.Return)) {
-            if (startMenu) { //Start Menu is open
-                InitGame(); //Initalize the game
+            if (startMenu) { //if the start Menu is open
+                InitGame(); //Initalize and start the game
 
                 //Due to the player object spawning before the board spawn (it's in the inital load), we need to alter the tile the player spawns on to be shoveled
                 //like we normally would do in the "start" function in Player.cs;
                 player.AlterFloor(new Vector2(0, 0)); //Change the tile the player starts on to be "shoveled"
             }
+            //if the player recently triggered gameover
             else if (gameOver) player.Restart(); //restart the scene            
         }
 
+        //if the player hits the backspace key when the start menu is open
         if(Input.GetKeyDown(KeyCode.Backspace) && startMenu) {
-            startMenu = false; tutorial = true;
-            DestroyImmediate(GameObject.Find("StartMenu"));
+            tutorial = true; //set tutorial flag
+            GetDefaults(); //obtain all the relevant components and destroy the start menu
 
-            player = GameObject.Find("Player").GetComponent<Player>();
-
-            levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
-            levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
-
-            levelText.text = "Loading tutorial..";
-
+            levelText.text = "Loading tutorial.."; //let the player know the tutorial is being loaded
             Invoke("HideLevelImage", levelStartDelay); //Invoke calls the hide level image function after a certain delay
             boardScript.SetUpTutorial();
 
@@ -192,41 +179,40 @@ public class GameManager : MonoBehaviour {
             player.StartTutorial(); //start the tutorial
         }
 
-        time += Time.deltaTime; 
+        time += Time.deltaTime; //increment time
+        //If the it's the player turn and he is hiding, and the elapsed time since he started hiding is greater than hideTime
         if ((playersTurn && isHiding) && (time >= hideTime)) {
-            time = 0.0f;
-            playersTurn = false;
-            return;
+            time = 0.0f; //reset the time flag
+            playersTurn = false; //make it so it's no longer the players turn
+            return; //this return will add a delay to the enemy movement, making it so they don't glide.
         }
+        //return if it's the players turn and he isnt hiding, or if the enemies are moving, or if the board is still being set up
         else if ((playersTurn && !isHiding) || enemiesMoving || doingSetUp) return;
 
-        //If it's not the players turn and it should be the enemies turn, call the move enemies function        
-        StartCoroutine(MoveEnemies());
+        //If it's not the players turn and it is the enemies turn, but the enemies aren't yet moving, then we'll call MoveEnemies()    
+        StartCoroutine(MoveEnemies()); //Coroutine allows other things to happen while the function is running
     }
 
-    public void SpawnTutorialEnemy() {
-        Instantiate(boardScript.enemyTiles[1], new Vector3(4, 1, 0), Quaternion.identity);
-    }
+    //Spawn an enemy on the appropriate tile during the tutorial
+    public void SpawnTutorialEnemy() { Instantiate(boardScript.enemyTiles[1], new Vector3(4, 1, 0), Quaternion.identity); }
 
+    //Make sure the enemies are moving 
     private IEnumerator MoveEnemies() {
-        enemiesMoving = true;
-
+        enemiesMoving = true; //set the bool
         yield return new WaitForSeconds(turnDelay); //wait for a turn delay
-
-        if (enemies.Count == 0)  yield return new WaitForSeconds(turnDelay); //wait again for a turnDelay
+        if (enemies.Count == 0) yield return new WaitForSeconds(turnDelay); //wait again for a turnDelay
         else {
             //Issue the move enemy command on every enemy in the list
             //Then wait for an arbitrarily small amount of time at the end of the turn
             for (int i = 0; i < enemies.Count; i++) {
                 if (!enemies[i].stunned) {//if the enemy isn't stunned
                     //let other enemies know his old tile is able to be walked on
-                    //foreach (Enemy e in enemies) e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 0;
+                    foreach (Enemy e in enemies) e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 0;
                     enemies[i].MoveEnemy(); //move him
-                   // foreach (Enemy e in enemies) { //let other enemies know the tile he moved to is taken
-                       // e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 1;
-                       // e.newInfo = true; //this does mean that newInfo will *always* be true, so it's redundant and isn't necessary
-                        //however it's currently a bandaid fix to the issue of enemies going into the same spot as other enemies.
-                   // }
+                    foreach (Enemy e in enemies) { //let other enemies know the tile he moved to is taken
+                       e.knownBoard[(int)enemies[i].transform.position.x, (int)enemies[i].transform.position.y] = 1;
+                       e.newInfo = true; //this does mean that newInfo will *always* be true, so it's redundant and isn't necessary
+                    }
                 }
                 else { //the enemy is stunned
                     enemies[i].stunLength--; //reduce stun timer
@@ -238,8 +224,7 @@ public class GameManager : MonoBehaviour {
                 yield return new WaitForSeconds(enemies[i].moveTime / enemies.Count); //wait for a small turn delay
             }
         }
-
-        playersTurn = true;
-        enemiesMoving = false;
+        enemiesMoving = false; //enemies are done moving
+        playersTurn = true; //it is now the player's turn
     }
 }

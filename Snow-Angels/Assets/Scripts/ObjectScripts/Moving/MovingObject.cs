@@ -6,11 +6,8 @@ using UnityEngine;
 //Parent class for objects that move (like the enemies or the player)
 public abstract class MovingObject : MonoBehaviour {
     public float moveTime = 0.1f; //the amount of time for an object to move
-
-    protected Transform arrow; //the arrow that rotates around the enemy/player depending on the direction they are facing
-
-    //A coordinate pair that is used to represent the direction the AI/Player is currently facing
-    [HideInInspector] public Vector2 lastMove;
+    
+    
 
     //layers we specified when we created our prefabs in order to check for colisions
     public LayerMask blockingLayer; //layer for walls, enemies, and player    
@@ -18,9 +15,11 @@ public abstract class MovingObject : MonoBehaviour {
 
     protected BoxCollider2D boxCollider; //boxCollider allows the use of hitboxes
     protected Rigidbody2D rb2d; //store the component reference of the object we're moving
-    [HideInInspector] public float inverseMoveTime; //makes movement calculations "more efficent"
 
+    [HideInInspector] public float inverseMoveTime; //makes movement calculations "more efficent"
     [HideInInspector] public bool checkFloor = true; //boolean depiciting if the floor tiles around the player should be checked
+    protected Vector2 lastMove; //A coordinate pair that is used to represent the direction the MO is facing
+    protected Transform arrow; //the arrow that rotates around the enemy/player depending on the direction they are facing
 
     //Calculate the angles necessary for the arrow indicator's rotation and store them locally
     //Do this now so we don't have to calculate it everytime the player/enemy moves
@@ -43,13 +42,10 @@ public abstract class MovingObject : MonoBehaviour {
 
     //Use this for initialization
     protected virtual void Start() {
-        boxCollider = GetComponent<BoxCollider2D>();
-        rb2d = GetComponent<Rigidbody2D>();
-
-        //Computationally, multiplying is more efficient than dividing, storing the inverse allows us to multiply.
-        inverseMoveTime = 1f / moveTime;
-
-        arrow = transform.GetChild(0);
+        boxCollider = GetComponent<BoxCollider2D>(); //init the box collider
+        rb2d = GetComponent<Rigidbody2D>(); //init the rigidbody 
+        inverseMoveTime = 1f / moveTime; //inverse the moveTime for efficiency
+        arrow = transform.GetChild(0); //get the arrow object
     }
 
     /*
@@ -100,20 +96,18 @@ public abstract class MovingObject : MonoBehaviour {
 
     //Generic class that is called whenever a player or enemy tries to move
     protected virtual void AttemptMove<T>(int xDir, int yDir) where T : Component {
-        RaycastHit2D hit;
-        bool canMove = Move(xDir, yDir, out hit);
-
+        RaycastHit2D hit; //create a raycast object
+        bool canMove = Move(xDir, yDir, out hit); //see if the player successfully moved, returning a bool and a raycast object
         if (hit.transform == null) return; //if we didn't hit anything as we tried to move   
-
-        //Get the component of whatever we hit as we tried to move
-        T hitComponent = hit.transform.GetComponent<T>();
-        
-        //Can't move and has hit something it can interact with
-        if (!canMove && hitComponent != null) OnCantMove(hitComponent);
+        T hitComponent = hit.transform.GetComponent<T>(); //Get the component of whatever we hit as we tried to move
+        if (!canMove && hitComponent != null) OnCantMove(hitComponent); //Can't move and has hit something it can interact with
     }
 
+    //Alter the floor tiles as the player walks over them
     public void AlterFloor(Vector2 pos) {
         int x = (int)pos.x; int y = (int)pos.y;
+
+        //Create a list of potential neighbor tiles at the pos location
         List<Vector2> neighbors = new List<Vector2>(5) {
             pos, new Vector2(x - 1, y), new Vector2(x, y + 1),
             new Vector2(x + 1, y), new Vector2(x, y - 1)
@@ -121,41 +115,40 @@ public abstract class MovingObject : MonoBehaviour {
 
         boxCollider.enabled = false; //Temporarily disable our own box collider so we don't hit ourself as we move
 
-        foreach (Vector2 pair in neighbors) {
-            RaycastHit2D hit = Physics2D.Linecast(pair, pair, floorLayer); //calculate if we hit anything as we moved
-            if (hit.transform != null) {
-                Floor hitComponent = hit.transform.GetComponent<Floor>();
-                if (hitComponent != null) {
-                    hitComponent.AlterFloor();
+        foreach (Vector2 pair in neighbors) { //for every pos in neighbors
+            RaycastHit2D hit = Physics2D.Linecast(pair, pair, floorLayer); //calculate if the tile is an actual floor tile
+            if (hit.transform != null) { //if we hit something
+                Floor hitComponent = hit.transform.GetComponent<Floor>(); //get the floor component
+                if (hitComponent != null) { //if we hit a floor tile
+                    hitComponent.AlterFloor(); //call the alterfloor function in the floor script
 
-                    if (pair == pos) { //Check if the tile we're standing on is trapped
-                        string trapType = hitComponent.IsTrapped();
-                        Player pl = transform.GetComponent<Player>();
-                        if (trapType != "") {
-                            if (trapType == "Pain") {
+                    if (pair == pos) { //Check if the tile we're standing on is trapped (on spawn)
+                        string trapType = hitComponent.IsTrapped(); //check if its trapped
+                        Player pl = transform.GetComponent<Player>(); //get the player object
+                        if (trapType != "") { //if there is a trap on the tile
+                            if (trapType == "Pain") { //if there is a pain trap on the tile
                                 pl.LoseALife(1); //Player will lose a life
                                 SoundManager.instance.RandomizeSFX(pl.hitSound1, pl.hitSound2); //play a random hit sound
                             }
                         }
-                        else {
-                            if (pl.spawn) pl.spawn = false;
+                        else { //there is no trap on the tile
+                            if (pl.spawn) pl.spawn = false; //set the spawn flag to false if the player was just spawning
                             else SoundManager.instance.RandomizeSFX(pl.moveSound1, pl.moveSound2); //play a random move sound     
                         }
                     }
                 }
             } 
         }
-
         boxCollider.enabled = true; //Re-enable our box collider
     }
 
     //Change the arrow's rotation depending on the direction the AI is facing
     protected void SetDirArrow(Vector2 lastMove, Transform arrow) {
-        int dir = GetDirection(lastMove);
-        if (dir == 0) arrow.rotation = right;
-        else if (dir == 1) arrow.rotation = left;
-        else if (dir == 2) arrow.rotation = up;
-        else if (dir == 3) arrow.rotation = down;
+        int dir = GetDirection(lastMove); //get the direction
+        if (dir == 0) arrow.rotation = right; //rotate to the right
+        else if (dir == 1) arrow.rotation = left; //rotate to the left
+        else if (dir == 2) arrow.rotation = up; //rotate up
+        else if (dir == 3) arrow.rotation = down; //rotate down
     }
 
     //Return a simple int representing the direction the AI is facing
@@ -167,5 +160,6 @@ public abstract class MovingObject : MonoBehaviour {
         else return 3; //lastMoveY == -1; facing down
     }
 
+    //anything that derives from this class will need to override this function
     protected abstract void OnCantMove<T>(T component) where T : Component;
 }

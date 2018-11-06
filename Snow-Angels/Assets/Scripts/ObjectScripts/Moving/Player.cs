@@ -211,15 +211,15 @@ public class Player : MovingObject {
             GameManager.instance.isHiding = false; //set it so the player is no longer hiding
             animator.SetBool("playerHiding", false); //make the player get out of the box
         }
-        else CheckMovement();        
+        else CheckMovement(); //if the player isn't hiding, then check for movement input  
     }
 
+    //check for movement input from the player
     private bool CheckMovement() {
         int horizontal = 0; //the direction we want to move horizontally
         int vertical = 0; //the direction we want to move vertically
 
         //We want to pay attention for movement input, which can be altered in user controls.
-        //Input is handled numerically
         horizontal = (int)(Input.GetAxisRaw("Horizontal")); //1 is right, -1 is left
         vertical = (int)(Input.GetAxisRaw("Vertical")); //1 is up, -1 is down
 
@@ -231,27 +231,27 @@ public class Player : MovingObject {
 
             if (GameManager.instance.isHiding) {
                 bottomText.text = "You cannot move while hiding!"; //don't allow the player to move if he is hiding
-                return false;
+                return false; //the player didn't move
             }
             else {
                 lastMove = new Vector2(horizontal, vertical); //set the lastMove vector
                 SetDirArrow(lastMove, arrow); //Rotate the arrow indicator
 
-                if (horizontal == 1) transform.GetComponent<SpriteRenderer>().flipX = false;
-                else if (horizontal == -1) transform.GetComponent<SpriteRenderer>().flipX = true;
+                if (horizontal == 1) transform.GetComponent<SpriteRenderer>().flipX = false; //flip the sprite
+                else if (horizontal == -1) transform.GetComponent<SpriteRenderer>().flipX = true; //flip the sprite
 
                 AttemptMove<Wall>(horizontal, vertical); //Attempt to move, assuming player might move into a wall
 
                 //If the player's stun ability isn't off cd yet, reduce the timer by one turn
                 if (!CheckStunCoolDown()) stunCd--;
 
+                //move the spotlight to the appropriate spot
                 if (spotlight.position.x != transform.position.x || spotlight.position.y != transform.position.y) 
                     spotlight.position = new Vector3(transform.position.x, transform.position.y, spotlight.position.z);                
 
-                return true;
+                return true; //the player moved
             }            
         }
-
         return false;
     }
     //See if the player can successfully use a powerup (consume on use)
@@ -259,19 +259,19 @@ public class Player : MovingObject {
         switch (powerup) {
             case "": { //if we don't have a powerup, then we do nothing
                 bottomText.text = "You don't have a powerup!";
-                return false;
+                return false; //no powerup
             }
             case "tp": { //teleport powerup
-                if (TeleportPlayer()) return true;
+                if (TeleportPlayer()) return true; //if the player can teleport, return true
                 else {
                     bottomText.text = "Something is blocking the teleport location!";
-                    return false;
+                    return false; //player can't teleport
                 }
             }
             case "wc": { //wall changer powerup
-                ChangeWalls();
+                ChangeWalls(); //change the walls around the player
                 bottomText.text = "You changed the nearby walls to destroyable ones!";
-                return true;
+                return true; //player succeded
             }
             default: return false;
         }
@@ -285,8 +285,8 @@ public class Player : MovingObject {
     //checks to see the target location is free of enemies, if so then it'll return true
     //if there is an enemy on the tile, it'll return false
     private bool CheckForEnemy(int x, int y) {
-        foreach(Enemy e in GameManager.instance.enemies) {
-            if (e.transform.position.x == x && e.transform.position.y == y) 
+        foreach(Enemy e in GameManager.instance.enemies) { //look at every enemy
+            if (e.transform.position.x == x && e.transform.position.y == y)  //check enemy pos against x and y
                 return false; //an enemy is on the tile
         }
         return true; //no enemies were on the tile
@@ -294,36 +294,38 @@ public class Player : MovingObject {
 
     //attempt to teleport player, as long as the potential spot isn't out of bounds or in a wall/enemy
     private bool TeleportPlayer() {
-        Vector2 pos = transform.position;
-        GameObject[,] board = GameManager.instance.GetBoardState();
-        int x = (int)(pos.x + lastMove.x * 3); int y = (int)(pos.y + lastMove.y * 3);
+        GameObject[,] board = GameManager.instance.GetBoardState(); //get the int board
+        int x = (int)(transform.position.x + lastMove.x * 3); //get the x value 3 tiles away in the dir the player is facing
+        int y = (int)(transform.position.y + lastMove.y * 3); //get the y value 3 tiles away in the dir the player is facing
 
         //Check boundaries
         if (x >= 0 && x <= board.GetUpperBound(0) && y >= 0 && y <= board.GetUpperBound(0)) {
+            //if the tile is a floor tile that doesn't have an enemy on it
             if (board[x,y] != null && board[x, y].GetComponent<Floor>() != null && CheckForEnemy(x,y)) {
-                transform.position = new Vector3(x, y, transform.position.z);
-                foreach (Enemy en in GameManager.instance.enemies) en.chasing = false;                
-                return true;
+                transform.position = new Vector3(x, y, transform.position.z); //move the player
+                foreach (Enemy en in GameManager.instance.enemies) en.chasing = false; //make it so enemies aren't chasing anymore       
+                return true; //the player successfully teleported
             }
-            else return false;
+            else return false; //something is blocking teleportation, so return false
         }
-        else return false;
+        else return false; //the player is trying to teleport out of bounds, return false
     }
 
     //Create the projectile object and fire it in the direction the player is facing
     private void ShootProjectile() {
-        Vector3 pos = transform.position;
-
+        Vector3 pos = transform.position; //initalize pos to the transform position
         pos.x += lastMove.x; pos.y += lastMove.y; //move the projectile over/up/etc one tile
 
         //Create the bullet and fire it
-        GameObject bullet = Instantiate(this.bullet, pos, Quaternion.identity, transform);
-        SpriteRenderer sr = bullet.GetComponent<SpriteRenderer>();
+        GameObject bullet = Instantiate(this.bullet, pos, Quaternion.identity, transform); //create
+        SpriteRenderer sr = bullet.GetComponent<SpriteRenderer>(); //get the spriterenderer
+        bullet.GetComponent<Bullet>().dir = lastMove; //initalize the bullet's dir to the parent's
 
-        if (lastMove.x == 1) sr.flipX = true;
-        else if (lastMove.x == -1) sr.flipX = false;
-        else if (lastMove.y == 1) bullet.transform.Rotate(new Vector3(0, 0, -90));
-        else if (lastMove.y == -1) bullet.transform.Rotate(new Vector3(0, 0, 90));
+        //flip the sprite depending on the direction the player is facing
+        if (lastMove.x == 1) sr.flipX = true; //turn it right
+        else if (lastMove.x == -1) sr.flipX = false; //turn it left
+        else if (lastMove.y == 1) bullet.transform.Rotate(new Vector3(0, 0, -90)); //turn it up
+        else if (lastMove.y == -1) bullet.transform.Rotate(new Vector3(0, 0, 90)); //turn it down
         
         stunCd = 20; //put the stun on cd for *a lot* of turns
     }
@@ -334,11 +336,8 @@ public class Player : MovingObject {
     //A function that will attempt to move the player, given some sort of obstruction object T
     protected override void AttemptMove<T>(int xDir, int yDir) {
         PrintText(); //update the print text, just in case the player picked something up or got hit by an enemy
-
-        base.AttemptMove<T>(xDir, yDir); //call the MovingObject's AttemptMove function
-        
-        CheckIfGameOver(); //self explanatory
-        
+        base.AttemptMove<T>(xDir, yDir); //call the MovingObject's AttemptMove function        
+        CheckIfGameOver(); //self explanatory        
         GameManager.instance.playersTurn = false; //no longer the player's turn
     }
 
@@ -349,15 +348,14 @@ public class Player : MovingObject {
                 Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
                 enabled = false; //level is over, so the player shouldn't be enabled anymore
             }
+            //inform player he needs more gems
             else bottomText.text = "You need another " + (3 - gems) + " gem(s) to go through the exit.";
         }
         else if (other.tag == "Gem") { //if we interacted with a gem
             gems += 1; //add one to the counter
             PrintText(); //update the user
-
             //Don't ask why we're using eat sound effects
             SoundManager.instance.RandomizeSFX(eatSound1, eatSound2); //play a random eat sound effect 
-
             other.gameObject.SetActive(false); //disable that gem object
         }
         else if(other.tag == "PowerUp") {
@@ -369,10 +367,7 @@ public class Player : MovingObject {
     }
 
     //TODO: implement spawn wolf mechanic
-    private void SpawnWolf() {
-        //GameManager.instance.boardScript.LayoutObjectAtRandom(new GameObject[]{wolf}, 1, 1);
-        print("Spawn Wolf");
-    }
+    private void SpawnWolf() { print("Spawn Wolf"); }
 
     //Called whenever the player goes to hit a wall.
     protected override void OnCantMove<T>(T component) {
@@ -384,16 +379,14 @@ public class Player : MovingObject {
 
     //Function which will be called when the enemy walks into the player
     public void LoseALife(int loss) {
-
         //If the player is hiding, we'll get him out of the box.
         if (GameManager.instance.isHiding) {
             GameManager.instance.isHiding = false;
             animator.SetBool("playerHiding", false);
         }
-
         animator.SetTrigger("playerHit"); //show the player hit animation
         lives -= 1; //reduce the food total by the loss amount
-        bottomText.text = "-1 life " + "Lives: " + lives + " | Gems: " + gems;
+        bottomText.text = "-1 life " + "Lives: " + lives + " | Gems: " + gems; //update the player
         CheckIfGameOver(); //check to see if that loss resulted in a game over
     }
 
