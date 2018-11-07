@@ -3,6 +3,7 @@
 public class Bullet : MovingObject {
     private float score; //the current score the player has
     private Vector2 end; //the max distance the projectile will go
+    public AudioClip enemyHit; //sound effect for when player hits enemy
     public Vector2 dir; //the direction the player was facing when the projectile was shot
 
     protected override void Start() {
@@ -34,6 +35,8 @@ public class Bullet : MovingObject {
                         enemy.stunLength = (int)(score * 5) + 3; //calculate stun length
                         print("Stunned Enemy for " + ((int)(score * 5) + 3) + " turns."); //temp print
                     }
+
+                    SoundManager.instance.PlaySingle(enemyHit); //play the enemy hit sound effect
                 }
                 DestroyImmediate(gameObject); //destroy the bullet
             }

@@ -13,6 +13,10 @@ public class Player : MovingObject {
     public Text tutText; //the textbox in the upper-middle portion of the screen for tutorial text
     public Slider floorSlider; //slider representing the amount of tiles explored by player
 
+    public GameObject powerupImage; //location of the powerup icon
+    public Sprite powerUpSprite; //image of powerup
+    public Sprite notYetImplemented; //image for NYI sprites
+
     public GameObject bullet; //the bullet prefab
     public GameObject wolf; //the wolf prefab
     private Tutorial tutorial; //tutorial object
@@ -21,19 +25,21 @@ public class Player : MovingObject {
     private Transform spotlight; //reference to the player's spotlight component
 
     private int lives; //stores lives
-    private int gems = 0; //stores gem total
+    private int keys = 0; //stores key total
     private int stunCd; //stores current cd on the player's projectile ability
     private string powerup = ""; //stores the name of the powerup the player has (default: none)
 
     //Below are containers for the sound effects related to the player
-    public AudioClip moveSound1; public AudioClip moveSound2;
-    public AudioClip gameOverSound;
-    //These sound effects are still being used, even though they really shouldn't be since we aren't finding food anymore
-    public AudioClip eatSound1; public AudioClip eatSound2;
-    //sound effects for when the destructable walls are hit
-    public AudioClip chopSound1; public AudioClip chopSound2;
-    public AudioClip hitSound1; public AudioClip hitSound2;
-    
+    public AudioClip moveSound1; public AudioClip moveSound2; //movement sounds
+    public AudioClip gameOverSound; //game over sound
+    public AudioClip eatSound1; public AudioClip eatSound2; //food sounds
+    public AudioClip chopSound1; public AudioClip chopSound2; //sound effects for when the destructable walls are hit
+    public AudioClip hitSound1; public AudioClip hitSound2; //player getting hit sound
+    public AudioClip keyPickUp; //sound effect for when player picks up a key
+    public AudioClip enemyHit; //sound effect for when player hits enemy
+    public AudioClip levelFinish; //sound effect that plays when the level is over
+    public AudioClip teleport; //teleport sound effect
+
     //This'll be called whenever the player first loads onto the level
     protected override void Start() {
         animator = GetComponent<Animator>(); //init animator
@@ -45,8 +51,8 @@ public class Player : MovingObject {
     //Simple function that prints an updated score message on the player's UI
     private void PrintText() {
         string str = "";
-        if (gems >= 3) str = "*"; //The * is there to represent the player has enough gems
-        bottomText.text = "Lives: " + lives + " | Gems: " + gems + str; //print text on UI
+        if (keys >= 3) str = "*"; //The * is there to represent the player has enough keys
+        bottomText.text = "Lives: " + lives + " | Keys: " + keys + str; //print text on UI
     }
 
     //set the player's inital values
@@ -63,8 +69,8 @@ public class Player : MovingObject {
     //This'll be called whenever the game moves on to the next level, store score in game manager as we change levels
     private void OnDisable() { GameManager.instance.playerLifeTotal = lives; }
 
-    //Function created to check if the player has enough gems to advance levels
-    private bool CheckGems() { return gems >= 3 ? true : false; }
+    //Function created to check if the player has enough keys to advance levels
+    private bool CheckKeys() { return keys >= 3 ? true : false; }
 
     //Start the tutorial if the player decided they wanted to play through the tutorial
     public void StartTutorial() {
@@ -153,9 +159,19 @@ public class Player : MovingObject {
 
         floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
 
+        if (powerup == "") powerupImage.SetActive(false);
+        else if (powerup == "tp") {
+            powerupImage.SetActive(true);
+            powerupImage.GetComponent<Image>().sprite = powerUpSprite;
+        }
+        else {
+            powerupImage.SetActive(true);
+            powerupImage.GetComponent<Image>().sprite = notYetImplemented;
+        }
+
         //It's a cheaky cheat to help with testing.  Don't tell anyone :]
         if (Input.GetKeyDown(KeyCode.F12)) {
-            gems = 3; lives = 100; PrintText();
+            keys = 3; lives = 100; PrintText();
             GameManager.instance.CheatFloorScore(true);
             powerup = "tp"; stunCd = 0;
         }
@@ -262,7 +278,10 @@ public class Player : MovingObject {
                 return false; //no powerup
             }
             case "tp": { //teleport powerup
-                if (TeleportPlayer()) return true; //if the player can teleport, return true
+                if (TeleportPlayer()) {
+                    SoundManager.instance.PlaySingle(teleport);
+                    return true; //if the player can teleport, return true
+                }
                 else {
                     bottomText.text = "Something is blocking the teleport location!";
                     return false; //player can't teleport
@@ -320,6 +339,7 @@ public class Player : MovingObject {
         GameObject bullet = Instantiate(this.bullet, pos, Quaternion.identity, transform); //create
         SpriteRenderer sr = bullet.GetComponent<SpriteRenderer>(); //get the spriterenderer
         bullet.GetComponent<Bullet>().dir = lastMove; //initalize the bullet's dir to the parent's
+        bullet.GetComponent<Bullet>().enemyHit = enemyHit; //initalize the bullet's audio effect
 
         //flip the sprite depending on the direction the player is facing
         if (lastMove.x == 1) sr.flipX = true; //turn it right
@@ -344,25 +364,43 @@ public class Player : MovingObject {
     //When the player interacts with any item that is set to be "IsTrigger" on the board, this'll be called
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Exit") { //if we interacted with the exit tile
-            if (CheckGems()) { //if we have enough gems to end the level
+            if (CheckKeys()) { //if we have enough keys to end the level
                 Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
-                enabled = false; //level is over, so the player shouldn't be enabled anymore
+                SoundManager.instance.PlaySingle(levelFinish); //play the level complete sound
+                enabled = false; //level is over, so the player shouldn't be enabled anymore                
             }
-            //inform player he needs more gems
-            else bottomText.text = "You need another " + (3 - gems) + " gem(s) to go through the exit.";
+            else bottomText.text = "You need another " + (3 - keys) + " keys(s) to go through the exit.";
         }
-        else if (other.tag == "Gem") { //if we interacted with a gem
-            gems += 1; //add one to the counter
+        else if (other.tag == "Key") { //if we interacted with a key
+            keys += 1; //add one to the counter
             PrintText(); //update the user
-            //Don't ask why we're using eat sound effects
-            SoundManager.instance.RandomizeSFX(eatSound1, eatSound2); //play a random eat sound effect 
-            other.gameObject.SetActive(false); //disable that gem object
+            SoundManager.instance.PlaySingle(keyPickUp); //play the pickup sound
+            other.gameObject.SetActive(false); //disable that key object
         }
-        else if(other.tag == "PowerUp") {
+        else if(other.tag == "Powerup") {
             float val = Random.Range(0, 100); //Randomize a number between 0 and 100
-            if (val <= 45f) powerup = "tp"; //the player has access to a teleport powerup
-            else if (val <= 90f) powerup = "wc"; //the player has access to a wall-changer powerup
+            if (val <= 45f) {
+                powerup = "tp"; //the player has access to a teleport powerup
+                print("Teleport"); //TODO: show on screen somehow instead
+            }
+            else if (val <= 90f) {
+                powerup = "wc"; //the player has access to a wall-changer powerup
+                print("Wall-Changer"); //TODO: show on screen somehow instead
+            }
             else SpawnWolf(); //the player unfortunately gets a bad roll and summons an enemy
+
+            SoundManager.instance.PlaySingle(keyPickUp); //play a random eat sound effect - temporary
+            other.gameObject.SetActive(false); //disable that object
+        }
+        else if(other.tag == "Heart") {
+            if (lives < 3) {
+                lives += 1; //increase the health total by the loss amount
+                bottomText.text = "+1 life " + "Lives: " + lives + " | Keys: " + keys; //update the player
+
+                SoundManager.instance.RandomizeSFX(eatSound1, eatSound2); //play a random eat sound effect - temporary
+                other.gameObject.SetActive(false); //disable that object
+            }
+            else bottomText.text = "Your health is full!";
         }
     }
 
@@ -385,8 +423,8 @@ public class Player : MovingObject {
             animator.SetBool("playerHiding", false);
         }
         animator.SetTrigger("playerHit"); //show the player hit animation
-        lives -= 1; //reduce the food total by the loss amount
-        bottomText.text = "-1 life " + "Lives: " + lives + " | Gems: " + gems; //update the player
+        lives -= 1; //reduce the health total by the loss amount
+        bottomText.text = "-1 life " + "Lives: " + lives + " | Keys: " + keys; //update the player
         CheckIfGameOver(); //check to see if that loss resulted in a game over
     }
 

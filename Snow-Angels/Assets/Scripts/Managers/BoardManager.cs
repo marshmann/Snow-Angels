@@ -6,33 +6,15 @@ using Random = UnityEngine.Random;
 
 //This code sets up the board/level everytime a new level needs to be generated
 public class BoardManager : MonoBehaviour {
-
-    [Serializable]
-    public class Count {
-        public int minimum; public int maximum;
-
-        public Count(int min, int max) {
-            minimum = min; maximum = max;
-        }
-    }
-
     //Specify the size of the board, we can change them as the levels progress.  Default is 20x20.
-    public int columns = 20;
-    public int rows = 20;
-    //This creates a Count object that is used to specify how many walls are created in the level 
-    //(not the border walls, just the internal ones).
-
-    public Count gemCount = new Count(3, 3); //The amount of gems that'll appear in the level
-
-    //Below are variables that hold the prefabs that are created in the Unity Engine (check the prefab folder)
-    //Create the exit block
-    public GameObject exit;
-    //Create the other objects 
-    //(we use arrays so we can pass in the multiple types of tiles and randomly choose which is displayed)
-    public GameObject[] floorTiles;
-    //public GameObject[] wallTiles; //Currently depricated since we don't use the destructable walls
-    public GameObject[] gemTiles; //used to unlock the exit tile
+    public int columns = 20; public int rows = 20;
+    public int keyCount = 3; //The amount of keys that'll appear in the level
+  
+    public GameObject exit; //exit prefab
+    public GameObject[] floorTiles; //floor prefabs
+    public GameObject[] keyTiles; //used to unlock the exit tile
     public GameObject[] healthTiles; //heals the player on pickup
+    public GameObject[] buffTiles; //contains a random buff for the player
     public GameObject[] enemyTiles; //contains the two enemy prefabs
     public GameObject[] wallTiles; //all walls but the last are undestructable
     
@@ -271,7 +253,9 @@ public class BoardManager : MonoBehaviour {
         board = FixTrappedTiles(board); //ensure the board doesn't have unrestricted paths due to traps
         GameManager.instance.SetBoard(board); //use GetManager's setter for the board layout
 
-        LayoutObjectAtRandom(gemTiles, gemCount.minimum, gemCount.maximum); //randomly put the gem tiles
+        LayoutObjectAtRandom(keyTiles, keyCount, keyCount); //randomly put the key tiles on the board
+        LayoutObjectAtRandom(healthTiles, 0, 2); //randomly put 0-2 hearts on the board
+        LayoutObjectAtRandom(buffTiles, 0, 2); //randomly put 0-2 buffs on the board
 
         int enemyCount = (int)Mathf.Log(level+3, 2f); //monster amount is based on a logarithmic distribution
         LayoutObjectAtRandom(enemyTiles, enemyCount, enemyCount); //put the specified amount of enemies on the board

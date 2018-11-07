@@ -91,7 +91,7 @@ public abstract class MovingObject : MonoBehaviour {
             yield return null; //Wait for a frame before re-evaluating the condition in the while loop (sleep for a frame)
         }
 
-        transform.position = new Vector2((int)end.x, (int)end.y);
+        if(transform.tag == "Player") transform.position = new Vector2((int)end.x, (int)end.y);
     }
 
     //Generic class that is called whenever a player or enemy tries to move

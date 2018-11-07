@@ -2,10 +2,10 @@ Mono path[0] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build
 Mono path[1] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono'
 Mono config path = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono/etc'
 PlayerConnection initialized from C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data (debug = 0)
-PlayerConnection initialized network socket : 0.0.0.0 55322
-Multi-casting "[IP] 10.5.0.158 [Port] 55322 [Flags] 2 [Guid] 2110668983 [EditorId] 2964811032 [Version] 1048832 [Id] WindowsPlayer(Nicks-Laptop) [Debug] 0" to [225.0.0.222:54997]...
-Started listening to [0.0.0.0:55322]
-PlayerConnection already initialized - listening to [0.0.0.0:55322]
+PlayerConnection initialized network socket : 0.0.0.0 55225
+Multi-casting "[IP] 10.5.0.240 [Port] 55225 [Flags] 2 [Guid] 2401440914 [EditorId] 3817716995 [Version] 1048832 [Id] WindowsPlayer(Nicks-Laptop) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55225]
+PlayerConnection already initialized - listening to [0.0.0.0:55225]
 Player data archive not found at `C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/data.unity3d`, using local filesystemInitialize engine version: 5.6.3p2 (b3d7a6428558)
 GfxDevice: creating device client; threaded=1
 Direct3D:
@@ -23,16 +23,44 @@ Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Bu
 Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
 Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
-- Completed reload, in  0.058 seconds
+- Completed reload, in  0.091 seconds
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 2.914329 ms
+UnloadTime: 3.019527 ms
+Teleport
+UnityEngine.DebugLogHandler:Internal_Log(LogType, String, Object)
+UnityEngine.DebugLogHandler:LogFormat(LogType, Object, String, Object[])
+UnityEngine.Logger:Log(LogType, Object)
+UnityEngine.Debug:Log(Object)
+UnityEngine.MonoBehaviour:print(Object)
+Player:OnTriggerEnter2D(Collider2D) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Moving\Player.cs:384)
+ 
+(Filename: C:/Users/Nicholas/Documents/Github/MonsterGame/Snow-Angels/Assets/Scripts/ObjectScripts/Moving/Player.cs Line: 384)
+
+Teleport
+UnityEngine.DebugLogHandler:Internal_Log(LogType, String, Object)
+UnityEngine.DebugLogHandler:LogFormat(LogType, Object, String, Object[])
+UnityEngine.Logger:Log(LogType, Object)
+UnityEngine.Debug:Log(Object)
+UnityEngine.MonoBehaviour:print(Object)
+Player:OnTriggerEnter2D(Collider2D) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Moving\Player.cs:384)
+ 
+(Filename: C:/Users/Nicholas/Documents/Github/MonsterGame/Snow-Angels/Assets/Scripts/ObjectScripts/Moving/Player.cs Line: 384)
+
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 16.197086 ms
+System memory in use before: 53.2 MB.
+System memory in use after: 53.4 MB.
+
+Unloading 3 unused Assets to reduce memory usage. Loaded Objects now: 3340.
+Total: 2.597024 ms (FindLiveObjects: 0.400265 ms CreateObjectMapping: 0.248455 ms MarkObjects: 1.916658 ms  DeleteObjects: 0.028651 ms)
+
 Setting up 4 worker threads for Enlighten.
-  Thread -> id: 1ad8 -> priority: 1 
-  Thread -> id: 3530 -> priority: 1 
-  Thread -> id: 2318 -> priority: 1 
-  Thread -> id: 26d0 -> priority: 1 
+  Thread -> id: 1228 -> priority: 1 
+  Thread -> id: 3d7c -> priority: 1 
+  Thread -> id: 1124 -> priority: 1 
+  Thread -> id: 329c -> priority: 1 
