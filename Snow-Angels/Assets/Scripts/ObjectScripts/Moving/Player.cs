@@ -289,7 +289,7 @@ public class Player : MovingObject {
             }
             case "wc": { //wall changer powerup
                 ChangeWalls(); //change the walls around the player
-                bottomText.text = "You changed the nearby walls to destroyable ones!";
+                bottomText.text = "You changed the nearby walls (NYI)!";
                 return true; //player succeded
             }
             default: return false;
