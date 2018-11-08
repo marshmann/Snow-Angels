@@ -31,7 +31,6 @@ public class Enemy : MovingObject {
     public AudioClip enemyAttack1; public AudioClip enemyAttack2;
 
     private Queue<Vector2> path; //vector queue containing the path to player
-    //private Queue<Vector2> explorePath; //vector queue containing the path to the randomly chosen spot
 
     public bool chasing = false; //make note if the AI is chasing or not
 
@@ -57,7 +56,7 @@ public class Enemy : MovingObject {
 
         perception = 7; //set the perception stat of the enemy (might need tuned)
         chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
-        chaseTurns = 12; //the amount of turns the enemy will have an increased detection radius
+        chaseTurns = 8; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
         ResetBoard(); //initalizes the known board to be empty
@@ -219,7 +218,6 @@ public class Enemy : MovingObject {
 
         newInfo = false; //If the newInfo tag changed to true on the last move, change it back to false
         if (chasing) move = path.Dequeue(); //If we're chasing, but can't see the player, then we'll use the path
-        //else move = explorePath.Dequeue(); //If we're exploring, we use the explorePath queue
 
         AttemptMove<MovingObject>((int)move.x, (int)move.y); //tell the enemy to move
 
