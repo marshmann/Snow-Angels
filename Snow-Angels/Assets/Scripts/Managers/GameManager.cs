@@ -49,10 +49,11 @@ public class GameManager : MonoBehaviour {
     [HideInInspector] public AudioClip moveSound2;
 
     public void SetFloorCount(int count) { floorCount = count; } //set the amount of floor tiles
-    public void SetFloorScore() { floorScore++; } //increment the player's total floor score
+    public void IncFloorScore() { floorScore++; } //increment the player's total floor score
+    public void BoostFloorScore() { floorScore += (floorCount / 4); } //give the player a boost of floorScore
     public float GetFloorScore() {return (float)floorScore/floorCount; } //return the calculated floor score
     public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
-    public void CheatFloorScore(bool full) { if (full) floorScore = floorCount; else floorScore = floorCount / 2; } //Remove this before game goes live ;) - Testing Function
+    public void CheatFloorScore(bool full) { if (full) floorScore = floorCount; else floorScore = floorCount / 2; } //set gauge to half or full
 
     public bool StartMenuShowing() { return startMenu; } //returns true if the startmenu is showing
 

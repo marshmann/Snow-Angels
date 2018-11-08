@@ -379,13 +379,12 @@ public class Player : MovingObject {
         }
         else if(other.tag == "Powerup") {
             float val = Random.Range(0, 100); //Randomize a number between 0 and 100
-            if (val <= 45f) {
-                powerup = "tp"; //the player has access to a teleport powerup
-                print("Teleport"); //TODO: show on screen somehow instead
-            }
-            else if (val <= 90f) {
-                powerup = "wc"; //the player has access to a wall-changer powerup
-                print("Wall-Changer"); //TODO: show on screen somehow instead
+            if (val <= 30f) powerup = "tp"; //the player has access to a teleport powerup            
+            else if (val <= 60f) powerup = "wc"; //the player has access to a wall-changer powerup            
+            else if (val <= 90f) { //The player will receive a snow blessing - increasing their gauge
+                GameManager.instance.BoostFloorScore(); //increase the gauge
+                floorSlider.value = GameManager.instance.GetFloorScore(); //update the progress bar
+                bottomText.text = "You've received a blessing of snow!";
             }
             else SpawnWolf(); //the player unfortunately gets a bad roll and summons an enemy
 

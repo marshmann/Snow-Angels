@@ -99,9 +99,13 @@
     <Compile Include="Assets\Scripts\ObjectScripts\Moving\MovingObject.cs" />
     <Compile Include="Assets\Scripts\ObjectScripts\Moving\Player.cs" />
     <Compile Include="Assets\Scripts\ObjectScripts\Static\Floor.cs" />
+    <Compile Include="Assets\Scripts\ObjectScripts\Static\FrostEffect.cs" />
     <Compile Include="Assets\Scripts\ObjectScripts\Static\Tools.cs" />
     <Compile Include="Assets\Scripts\ObjectScripts\Static\Wall.cs" />
     <Compile Include="Assets\Scripts\SceneScript\Tutorial.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Prefabs\Other\LightBlend\IceBlendEffect.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

@@ -1,0 +1,38 @@
+Mono path[0] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Managed'
+Mono path[1] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono'
+Mono config path = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono/etc'
+PlayerConnection initialized from C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data (debug = 0)
+PlayerConnection initialized network socket : 0.0.0.0 55309
+Multi-casting "[IP] 10.5.0.240 [Port] 55309 [Flags] 2 [Guid] 3903272275 [EditorId] 3259755980 [Version] 1048832 [Id] WindowsPlayer(Nicks-Laptop) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55309]
+PlayerConnection already initialized - listening to [0.0.0.0:55309]
+Player data archive not found at `C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/data.unity3d`, using local filesystemInitialize engine version: 5.6.3p2 (b3d7a6428558)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 670MX (ID=0x11a1)
+    Vendor:   NVIDIA
+    VRAM:     2992 MB
+    Driver:   22.21.13.8541
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+- Completed reload, in  0.066 seconds
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.dll (this message is harmless)
+desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+UnloadTime: 3.049034 ms
+Setting up 4 worker threads for Enlighten.
+  Thread -> id: 27bc -> priority: 1 
+  Thread -> id: 1e64 -> priority: 1 
+  Thread -> id: 2864 -> priority: 1 
+  Thread -> id: 460 -> priority: 1 

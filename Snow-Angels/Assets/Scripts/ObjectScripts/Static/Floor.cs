@@ -33,7 +33,7 @@ public class Floor : MonoBehaviour {
             og = spriteRenderer.sprite; //set the og sprite to be the current sprite
             spriteRenderer.sprite = alteredFloor; //alter the floor sprite
             changed = true; //set it so the floor can't be changed again
-            GameManager.instance.SetFloorScore(); //increment the floor score counter
+            GameManager.instance.IncFloorScore(); //increment the floor score counter
         }
     }
 }
