@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class Player : MovingObject {
     public int wallDamage = 1; //how much dmg the player defaultly does to a wall
     public float restartLevelDelay = 1f; //little time delay on level restart
-    public int stealthRadius = 3; //If the enemy is within stealthRadius tiles of the player, he can't stealth
     [HideInInspector] public bool spawn; //spawn flag, used to make it so the movement sound effect isn't played on spawn
 
     public Text bottomText; //text on the bottom of UI
@@ -195,22 +194,9 @@ public class Player : MovingObject {
             //but is still within the radius of the player, he won't be able to hide.
 
             bool playerCanStealth = true; //we'll assume the player can stealth initially
-
-            //Multiple Enemies
+            //if any enemy can see the player, the player can't stealth
             foreach (Enemy enemy in GameManager.instance.enemies) {
-                //To get a good numeric distance between the player and the enemy, we'll simply do some pythag.
-                //Get the absolute difference between the enemy's and the player's x and y coordinates
-                int xDif = (int)System.Math.Abs(enemy.transform.position.x - transform.position.x);
-                int yDif = (int)System.Math.Abs(enemy.transform.position.y - transform.position.y);
-
-                //c = sqrt( a^2 + b^2 ) | Think of xDif as a, yDif as b, and the forming hypotenuse (which would be total) as c
-                int total = (int)System.Math.Sqrt(System.Math.Pow(xDif, 2) + System.Math.Pow(yDif, 2));
-
-                //If the total distance is less than set stealthRadius, then the player is too close to the enemy and cannot stealth
-                if (total <= stealthRadius) {
-                    playerCanStealth = false; //the player can't stealth
-                    break; //if one enemy is within the radius, we don't need to continue checking the other enemies.
-                }
+                if (enemy.CanSeePlayer()) { playerCanStealth = false; break; }
             }
 
             //If the player can stealth, then we'll let them know and change their sprite
@@ -367,6 +353,11 @@ public class Player : MovingObject {
             if (CheckKeys()) { //if we have enough keys to end the level
                 Invoke("Restart", restartLevelDelay); //Call the restart function after a delay
                 SoundManager.instance.PlaySingle(levelFinish); //play the level complete sound
+                
+                int score = lives * 10; //1 life = 10 points
+                if (!GameManager.instance.PlayerDetected()) score += 100; //if the player wasn't detected, give them many points
+                GameManager.instance.IncreaseScore(score); //increase the score
+
                 enabled = false; //level is over, so the player shouldn't be enabled anymore                
             }
             else bottomText.text = "You need another " + (3 - keys) + " keys(s) to go through the exit.";

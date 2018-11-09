@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour {
     private Player player; //store reference to player object
 
     public int playerLifeTotal = 3; //how much life the player defaultly has
+    [HideInInspector] public int playerScore = 0;
+    private bool playerDetected = false;
     
     [HideInInspector] public bool playersTurn = true;
     public float turnDelay = .1f; //How long the delay is between turns
@@ -23,6 +25,7 @@ public class GameManager : MonoBehaviour {
     [HideInInspector] public bool isHiding = false; //Boolean to detect if player is hiding or not
     private float time = 0.0f; //initalizer for time
     private float hideTime = 1f; //Enemies will move every half-second the player is hiding
+    public float pitchChangeTime;
 
     private bool enemiesMoving; //true if any enemies are still moving, false otherwise
     private int level = 1; //Level 1 is when a single enemy will spawn on the board
@@ -49,13 +52,15 @@ public class GameManager : MonoBehaviour {
     [HideInInspector] public AudioClip moveSound2;
 
     public void SetFloorCount(int count) { floorCount = count; } //set the amount of floor tiles
-    public void IncFloorScore() { floorScore++; } //increment the player's total floor score
+    public void IncFloorScore() { floorScore++; IncreaseScore(1); } //increment the player's total floor score, and the overall score
     public void BoostFloorScore() { floorScore += (floorCount / 4); } //give the player a boost of floorScore
     public float GetFloorScore() {return (float)floorScore/floorCount; } //return the calculated floor score
     public void ReduceFloorScore() { floorScore = 0; } //set the score to zero 
     public void CheatFloorScore(bool full) { if (full) floorScore = floorCount; else floorScore = floorCount / 2; } //set gauge to half or full
 
     public bool StartMenuShowing() { return startMenu; } //returns true if the startmenu is showing
+    
+    public bool PlayerDetected() { return playerDetected; } //returns true if the player was detected at all during the level
 
     public void SetBoard(int[,] board) { this.board = board; } //store the numerical board layout
     public int[,] GetBoard() { return board; } //getter for the boardState arr
@@ -65,6 +70,12 @@ public class GameManager : MonoBehaviour {
 
     public void AddEnemyToList(Enemy script) { enemies.Add(script); } //function that adds enemies to the list
 
+    //increase the player's overall score by the passed amount
+    public void IncreaseScore(int score) {
+        playerScore += score; //increase the score
+        print(playerScore); //TODO: update the player's score on the UI
+    }
+
     private void Awake() {
         //The below code makes sure that only one instance of GameManager is open at a time
         //If there does happen to be more than one instance of it, it'll destroy it
@@ -73,7 +84,7 @@ public class GameManager : MonoBehaviour {
 
         /* When a new scene is loaded, normally all objects in the hierarchy will be destroyed
          * DontDestroyOnLoad makes it so this object stays and isn't deleted.
-         * We want this since this allows us to keep track of score between scenes
+         * We want this since this allows us to keep track of the score between scenes
          */
         DontDestroyOnLoad(gameObject);
 
@@ -89,14 +100,17 @@ public class GameManager : MonoBehaviour {
     private void OnLoadScene(Scene scene, LoadSceneMode sceneMode) {
         level++; //increment the level count
         floorScore = 0; //reset floor score
+        playerDetected = false;
 
-        if (tutorial || gameOver) { //if the player just finished the tutorial
+        if (tutorial) { //if the player just finished the tutorial
             startMenu = true; //show the start menu again
+            playerScore = 0; //reset playerScore
             tutorial = false; //set the tutorial bool to false
             level--; //undo the increment that happened above
         }
         else if (gameOver) { //if the player had a gameOver
             startMenu = true; //show the start menu again
+            playerScore = 0; //reset playerScore
             gameOver = false; //set the gameOver bool to false
             
             playerLifeTotal = 3; //reset player's life to 3
@@ -167,6 +181,27 @@ public class GameManager : MonoBehaviour {
             else if (gameOver) player.Restart(); //restart the scene            
         }
 
+        //Alter the music if the player is being chased
+        if (PlayerBeingChased()) { //player is being chased
+            playerDetected = true; //the player has been detected at least once
+
+            //Have the music gradually increase in pitch, rather than instantly become 2x speed
+            if(SoundManager.instance.musicSource.pitch < 2) { //if it's not at 2x speed yet
+                float pitch = SoundManager.instance.musicSource.pitch; //init pitch
+                pitch += Time.deltaTime * pitch / pitchChangeTime; //increase it by a small amount
+                SoundManager.instance.AlterPitch(pitch); //alter the music's pitch
+            }
+            else SoundManager.instance.AlterPitch(2); //if it's >= 2, assure it is actually 2x
+        }
+        else { //player is not being chased
+            if (SoundManager.instance.musicSource.pitch > 1) { //if it's still too fast
+                float pitch = SoundManager.instance.musicSource.pitch; //init pitch
+                pitch -= Time.deltaTime * pitch / pitchChangeTime; //decrease it by a small amount
+                SoundManager.instance.AlterPitch(pitch); //alter the music's pitch
+            }
+            else SoundManager.instance.AlterPitch(1); //if it's <= 1, assure it is actually 1x
+        }
+
         //if the player hits the backspace key when the start menu is open
         if(Input.GetKeyDown(KeyCode.Backspace) && startMenu) {
             tutorial = true; //set tutorial flag
@@ -196,6 +231,15 @@ public class GameManager : MonoBehaviour {
 
     //Spawn an enemy on the appropriate tile during the tutorial
     public void SpawnTutorialEnemy() { Instantiate(boardScript.enemyTiles[1], new Vector3(4, 1, 0), Quaternion.identity); }
+
+    //A function that returns true if any enemy is chasing the player, false otherwise
+    public bool PlayerBeingChased() {
+        foreach (Enemy e in enemies) { //loop over every enemy in the list
+            if (e.chasing == true)  //check if they are chasing
+                return true; //return true if they are 
+        }
+        return false; //return false, no one is chasing
+    }
 
     //Make sure the enemies are moving 
     private IEnumerator MoveEnemies() {

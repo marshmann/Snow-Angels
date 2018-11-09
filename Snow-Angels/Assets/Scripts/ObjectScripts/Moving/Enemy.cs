@@ -41,33 +41,30 @@ public class Enemy : MovingObject {
     private int rwx; private int rwy;
 
     protected override void Start() {
-        
         GameManager.instance.AddEnemyToList(this); //have the enemy add itself to the list in game manager
 
         animator = GetComponent<Animator>(); //initalize animator
-        ps = transform.GetChild(1).GetComponent<ParticleSystem>();
-        ps.Stop();
-
-        target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's location
+        ps = transform.GetChild(1).GetComponent<ParticleSystem>(); //get the particle system
+        ps.Stop(); //stop the particle system, as the enemy isn't stunned on start
+        target = GameObject.FindGameObjectWithTag("Player").transform; //store the player's transform (for locational purposes)
 
         base.Start(); //call the super code's base
 
         path = new Queue<Vector2>(); //init path queue
 
-        perception = 7; //set the perception stat of the enemy (might need tuned)
-        chaseValue = 8; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
+        perception = 5; //set the perception stat of the enemy (might need tuned)
+        chaseValue = 6; //set the radius the enemy will continue to detect the player when chasing (might need tuned)
         chaseTurns = 8; //the amount of turns the enemy will have an increased detection radius
         chaseCount = 0; //initalize counter
 
         ResetBoard(); //initalizes the known board to be empty
 
-        if (!GameManager.instance.tutorial) {
+        if (!GameManager.instance.tutorial) { //if we are not doing the tutorial
             board = GameManager.instance.GetBoard(); //store a copy of the board for ease-of-access
-            lastMove = RandomDirection();
+            lastMove = RandomDirection(); //initalize the direction the enemy is facing to be random
         }
-        else {
-            lastMove = new Vector2(-1, 0);
-        }        
+        else lastMove = new Vector2(-1, 0); //we are in the tutorial, enemy should be facing left
+            
         SetDirArrow(lastMove, arrow); //Rotate the arrow indicator respective to where the enemy is facing
     }
 
@@ -142,8 +139,9 @@ public class Enemy : MovingObject {
 
     //Method to deep copy a queue
     private Queue<Vector2> DeepCopyQueue(Queue<Vector2> v) {
-        if (v == null) {
-            print("Error has occured with the queue.");
+        if (v == null) { //for some reason, the queue screwed up
+            //to prevent crashing due to peeking a null, we'll stop the enemy from chasing
+            chasing = false;
             return new Queue<Vector2>(0);
         }
         Queue<Vector2> cp = new Queue<Vector2>(v.Count);
@@ -189,7 +187,6 @@ public class Enemy : MovingObject {
                 DestroyImmediate(aStar);
             }
             else {
-
                 //TODO: Alter this to allow random breaking, in other words to make it so the enemy AI
                 //doesn't always need to reach a wall to change direction.
 
@@ -259,30 +256,22 @@ public class Enemy : MovingObject {
                 if (lastMove.x == 0) { //if the AI attempted to move up or down but ran into an enemy, we'll attempt to move right/left
                     if (x - 1 >= 0 && board[x - 1, y] != 1 && board[x - 1, y] != 2) { //bounds check
                         transform.GetComponent<SpriteRenderer>().flipX = false; //adjust the direction the enemy is facing
-                        print("b1: " + transform.position);
                         transform.position = new Vector2(x - 1, y); //move the enemy
-                        print("a1: " + transform.position);
                         lastMove = new Vector2(-1, 0); //update lastMove
                     }
                     else if (x + 1 < board.GetUpperBound(0) && board[x + 1, y] != 1 && board[x + 1, y] != 2) { //bounds check
                         transform.GetComponent<SpriteRenderer>().flipX = true; //adjust the direction the enemy is facing
-                        print("b2: " + transform.position);
                         transform.position = new Vector2(x + 1, y); //move the enemy
-                        print("a2: " + transform.position);
                         lastMove = new Vector2(1, 0); //update lastMove
                     }
                 }
                 else { //the AI attempted to move right or left, thus we'll attempt to move up or down
                     if (y + 1 < board.GetUpperBound(0) && board[x, y + 1] != 1 && board[x, y + 1] != 2) { //bounds check
-                        print("b3: " + transform.position);
                         transform.position = new Vector2(x, y + 1); //move the enemy
-                        print("a3: " + transform.position);
                         lastMove = new Vector2(0, 1); //update lastMove
                     }
                     else if (y - 1 >= 0 && board[x, y - 1] != 1 && board[x, y - 1] != 2) { //bounds check
-                        print("b4: " + transform.position);
                         transform.position = new Vector2(x, y - 1); //move the enemy
-                        print("a4: " + transform.position);
                         lastMove = new Vector2(0, -1); //update lastMove
                     }
                 }
@@ -294,7 +283,7 @@ public class Enemy : MovingObject {
     }
 
     //Detect if the player can be seen or not by the enemy.
-    private bool CanSeePlayer() {
+    public bool CanSeePlayer() {
         //If the player is hiding, he can't be detected - or the AI is stunned
         if (GameManager.instance.isHiding) return false;
 

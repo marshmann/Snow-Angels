@@ -2,10 +2,10 @@ Mono path[0] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build
 Mono path[1] = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono'
 Mono config path = 'C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/Mono/etc'
 PlayerConnection initialized from C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data (debug = 0)
-PlayerConnection initialized network socket : 0.0.0.0 55263
-Multi-casting "[IP] 10.5.0.240 [Port] 55263 [Flags] 2 [Guid] 2108082517 [EditorId] 3259755980 [Version] 1048832 [Id] WindowsPlayer(Nicks-Laptop) [Debug] 0" to [225.0.0.222:54997]...
-Started listening to [0.0.0.0:55263]
-PlayerConnection already initialized - listening to [0.0.0.0:55263]
+PlayerConnection initialized network socket : 0.0.0.0 55494
+Multi-casting "[IP] 10.5.0.60 [Port] 55494 [Flags] 2 [Guid] 2809171568 [EditorId] 2106663517 [Version] 1048832 [Id] WindowsPlayer(Nicks-Laptop) [Debug] 0" to [225.0.0.222:54997]...
+Started listening to [0.0.0.0:55494]
+PlayerConnection already initialized - listening to [0.0.0.0:55494]
 Player data archive not found at `C:/Users/Nicholas/Documents/Github/MonsterGame/Development-Build/SnowAngels_Data/data.unity3d`, using local filesystemInitialize engine version: 5.6.3p2 (b3d7a6428558)
 GfxDevice: creating device client; threaded=1
 Direct3D:
@@ -23,16 +23,58 @@ Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Bu
 Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
 Loading C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
-- Completed reload, in  0.057 seconds
+- Completed reload, in  0.058 seconds
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Nicholas\Documents\Github\MonsterGame\Development-Build\SnowAngels_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 3840x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 2.922454 ms
+UnloadTime: 3.085383 ms
+1
+UnityEngine.DebugLogHandler:Internal_Log(LogType, String, Object)
+UnityEngine.DebugLogHandler:LogFormat(LogType, Object, String, Object[])
+UnityEngine.Logger:Log(LogType, Object)
+UnityEngine.Debug:Log(Object)
+UnityEngine.MonoBehaviour:print(Object)
+GameManager:IncreaseScore(Int32) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:76)
+GameManager:IncFloorScore() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:55)
+Floor:AlterFloor() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Static\Floor.cs:36)
+MovingObject:AlterFloor(Vector2) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Moving\MovingObject.cs:123)
+GameManager:Update() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:178)
+ 
+(Filename: C:/Users/Nicholas/Documents/Github/MonsterGame/Snow-Angels/Assets/Scripts/Managers/GameManager.cs Line: 76)
+
+2
+UnityEngine.DebugLogHandler:Internal_Log(LogType, String, Object)
+UnityEngine.DebugLogHandler:LogFormat(LogType, Object, String, Object[])
+UnityEngine.Logger:Log(LogType, Object)
+UnityEngine.Debug:Log(Object)
+UnityEngine.MonoBehaviour:print(Object)
+GameManager:IncreaseScore(Int32) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:76)
+GameManager:IncFloorScore() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:55)
+Floor:AlterFloor() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Static\Floor.cs:36)
+MovingObject:AlterFloor(Vector2) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Moving\MovingObject.cs:123)
+GameManager:Update() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:178)
+ 
+(Filename: C:/Users/Nicholas/Documents/Github/MonsterGame/Snow-Angels/Assets/Scripts/Managers/GameManager.cs Line: 76)
+
+3
+UnityEngine.DebugLogHandler:Internal_Log(LogType, String, Object)
+UnityEngine.DebugLogHandler:LogFormat(LogType, Object, String, Object[])
+UnityEngine.Logger:Log(LogType, Object)
+UnityEngine.Debug:Log(Object)
+UnityEngine.MonoBehaviour:print(Object)
+GameManager:IncreaseScore(Int32) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:76)
+GameManager:IncFloorScore() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:55)
+Floor:AlterFloor() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Static\Floor.cs:36)
+MovingObject:AlterFloor(Vector2) (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\ObjectScripts\Moving\MovingObject.cs:123)
+GameManager:Update() (at C:\Users\Nicholas\Documents\Github\MonsterGame\Snow-Angels\Assets\Scripts\Managers\GameManager.cs:178)
+ 
+(Filename: C:/Users/Nicholas/Documents/Github/MonsterGame/Snow-Angels/Assets/Scripts/Managers/GameManager.cs Line: 76)
+
 Setting up 4 worker threads for Enlighten.
-  Thread -> id: 2e0c -> priority: 1 
-  Thread -> id: 341c -> priority: 1 
-  Thread -> id: 321c -> priority: 1 
-  Thread -> id: 840 -> priority: 1 
+  Thread -> id: 21e8 -> priority: 1 
+  Thread -> id: 3f0c -> priority: 1 
+  Thread -> id: 3df8 -> priority: 1 
+  Thread -> id: 19b8 -> priority: 1 

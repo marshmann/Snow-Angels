@@ -24,6 +24,9 @@ public class SoundManager : MonoBehaviour {
         efxSource.Play(); //play it
     }
 
+    //Alter the pitch of the music (for use when the player is being chased)
+    public void AlterPitch(float pitch) { musicSource.pitch = pitch; }
+
     //params allows us to pass in a comma seperated list of objects of the same time
     //In other words, we can send multiple audioclips to this function
     public void RandomizeSFX(params AudioClip [] clips) {

@@ -27,6 +27,7 @@ public class Bullet : MovingObject {
                 if(hit.transform.tag == "Enemy") { //if it hit an enemy
                     if (score >= 1) { //Kill the enemy if the score bar is full
                         GameManager.instance.enemies.Remove(enemy); //remove it from enemy list
+                        GameManager.instance.IncreaseScore(50); //increase the player's score by 50 for killing an enemy
                         DestroyImmediate(hit.transform.gameObject); //destroy the enemy
                     }
                     else { //Stun the Enemy
