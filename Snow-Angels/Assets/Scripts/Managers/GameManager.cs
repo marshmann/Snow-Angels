@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour {
     private bool gameOver = false; //flag for when the player loses all of his lives
 
     private Text levelText; //the text shown on the level image
+    private Text scoreText; //the text for the score
     private GameObject levelImage; //store a reference to the level image
     private bool doingSetUp; //a boolean dedicated to making the user not move during the level transition
 
@@ -73,7 +74,7 @@ public class GameManager : MonoBehaviour {
     //increase the player's overall score by the passed amount
     public void IncreaseScore(int score) {
         playerScore += score; //increase the score
-        print(playerScore); //TODO: update the player's score on the UI
+        scoreText.text = "Score: " + playerScore; //update the score on the UI
     }
 
     private void Awake() {
@@ -84,8 +85,7 @@ public class GameManager : MonoBehaviour {
 
         /* When a new scene is loaded, normally all objects in the hierarchy will be destroyed
          * DontDestroyOnLoad makes it so this object stays and isn't deleted.
-         * We want this since this allows us to keep track of the score between scenes
-         */
+         * We want this since this allows us to keep track of the score between scenes */
         DontDestroyOnLoad(gameObject);
 
         //We don't want the snoweffect to be destroyed either, so we'll set it to be a child of gamemanager.
@@ -147,6 +147,7 @@ public class GameManager : MonoBehaviour {
         player = GameObject.Find("Player").GetComponent<Player>(); //find the player object
         levelImage = GameObject.Find("LevelImage"); //get the reference for the level image
         levelText = GameObject.Find("LevelText").GetComponent<Text>(); //Similar as above, but getting the component instead
+        scoreText = GameObject.Find("ScoreText").GetComponent<Text>(); //Get the component for the scoreText
     }
 
     //Used to turn off the level image
@@ -158,6 +159,7 @@ public class GameManager : MonoBehaviour {
     //Print the game over screen and end the game
     public void GameOver() {
         levelText.text = "You survived for " + (level-1) + " day(s)\n\n"; //print message
+        levelText.text += "Your score was: " + playerScore +".\n\n"; //add score message to it
         levelText.text += "Hit Enter to return to the main menu."; //add this to the message text
         levelImage.SetActive(true); //turn the level image on
 
