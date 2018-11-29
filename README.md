@@ -1,3 +1,5 @@
+EDIT: This repository has been remade.  There was problems updating it to the newest version, and it was easier to remake it than try and revert.  The old code was very outdated anyway.
+
 # Snow Angels
 This is an outdated ReadMe, as the ideas listed have been implemented, improved upon, or completely scraped. Not to mention the format of "Name | Comment" is kinda redundant when I'm the only one working on the game. I'll update the ReadMe soon! - Nick M.
 
